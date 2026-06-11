@@ -415,8 +415,11 @@ function updateCountdown(){
 }
 
 // ── Notifications ─────────────────────────────────────────────────────────
+const notifSupported = typeof Notification !== 'undefined';
+
 function updateNotifBtn(){
   const btn=document.getElementById('notif-btn');
+  if(!notifSupported){btn.textContent='🔔 Reminders';btn.style.opacity='.5';return;}
   const p=Notification.permission;
   if(p==='granted'){btn.textContent='🔔 On';btn.classList.add('on');}
   else if(p==='denied'){btn.textContent='🔕 Blocked';btn.classList.remove('on');}
@@ -424,12 +427,16 @@ function updateNotifBtn(){
 }
 
 async function toggleNotifs(){
+  if(!notifSupported){
+    alert('Add this page to your Home Screen first, then tap Reminders to enable match notifications.');
+    return;
+  }
   if(Notification.permission==='granted'){
-    alert('Reminders are on! You\'ll get a notification 15 mins before each match. To turn off, go to your browser/phone notification settings.');
+    alert('Reminders are on! You\'ll get a notification 15 mins before each match.');
     return;
   }
   if(Notification.permission==='denied'){
-    alert('Notifications are blocked. Go to Settings → Safari/Chrome → Notifications to allow them for this site.');
+    alert('Notifications are blocked. Go to Settings → Safari → Notifications to allow them for this site.');
     return;
   }
   const result=await Notification.requestPermission();
@@ -444,7 +451,8 @@ async function fetchScores(){
   const st=document.getElementById('score-status');
   try{
     const res=await fetch(
-      'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard'
+      'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard',
+      {mode:'cors'}
     );
     if(!res.ok) return;
     const data=await res.json();
