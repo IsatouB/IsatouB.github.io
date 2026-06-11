@@ -505,6 +505,20 @@ updateCountdown();
 fetchScores();
 setInterval(()=>{updateCountdown();render();},10000);
 setInterval(fetchScores,60000);
+
+// Resume immediately when app comes back to foreground (iOS PWA freeze fix)
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    updateCountdown();
+    render();
+    fetchScores();
+  }
+});
+window.addEventListener('pageshow',()=>{
+  updateCountdown();
+  render();
+  fetchScores();
+});
 </script>
 </body>
 </html>
