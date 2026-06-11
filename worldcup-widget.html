@@ -88,10 +88,6 @@
   .chip-fin{background:linear-gradient(135deg,rgba(255,193,7,.3),rgba(232,56,13,.2));color:#ffd54f;border-color:rgba(255,213,79,.3)}
   .chip-3p{background:rgba(69,90,100,.4);color:#b0bec5;border-color:rgba(176,190,197,.2)}
 
-  /* Live scores banner */
-  .live-banner{background:linear-gradient(90deg,rgba(232,56,13,.15),rgba(232,56,13,.06));border-top:1px solid rgba(232,56,13,.2);padding:9px 16px;display:flex;align-items:center;gap:8px;font-size:12px;color:#ff7c5c;font-weight:600}
-  .live-dot-big{width:8px;height:8px;background:#e8380d;border-radius:50%;animation:pls 1s infinite;flex-shrink:0}
-  .live-banner a{color:#ff9f8c;margin-left:auto;font-size:11px;text-decoration:underline;cursor:pointer}
 
   /* Settings panel */
   .settings{display:none;padding:16px;background:#1a2636;border-bottom:1px solid rgba(255,255,255,.06)}
@@ -142,13 +138,6 @@
   <div class="countdown" id="cd-bar">
     <span class="cd-label" id="cd-label">Loading…</span>
     <span class="cd-time" id="cd-time"></span>
-  </div>
-
-  <!-- Live scores banner (shown during live matches) -->
-  <div class="live-banner" id="live-banner" style="display:none">
-    <div class="live-dot-big"></div>
-    <span id="live-banner-text">Matches are LIVE</span>
-    <a onclick="showTab('today')">View →</a>
   </div>
 
   <!-- Settings panel -->
@@ -419,22 +408,15 @@ function updateCountdown(){
   const cdBar=document.getElementById('cd-bar');
   const cdLabel=document.getElementById('cd-label');
   const cdTime=document.getElementById('cd-time');
-  const liveBanner=document.getElementById('live-banner');
-  const liveBannerText=document.getElementById('live-banner-text');
-
   if(live){
-    cdLabel.textContent=`🔴 LIVE — ${live.h} vs ${live.a}`;
+    const liveGames=M.filter(m=>isLive(new Date(m.dt)));
+    cdLabel.textContent=liveGames.length>1?`🔴 ${liveGames.length} matches LIVE now`:`🔴 LIVE — ${live.h} vs ${live.a}`;
     cdTime.textContent='';
     cdBar.style.background='linear-gradient(90deg,rgba(232,56,13,.18),rgba(232,56,13,.07))';
     cdBar.style.borderTopColor='rgba(232,56,13,.35)';
     cdLabel.style.color='#ff7c5c';
-    liveBanner.style.display='flex';
-    const liveGames=M.filter(m=>isLive(new Date(m.dt)));
-    liveBannerText.textContent=liveGames.length>1?`${liveGames.length} matches LIVE now`:`LIVE: ${live.h} vs ${live.a}`;
     return;
   }
-
-  liveBanner.style.display='none';
   const next=M.find(m=>new Date(m.dt).getTime()>now);
   if(!next){cdLabel.textContent='Tournament complete 🏆';cdTime.textContent='';return;}
 
