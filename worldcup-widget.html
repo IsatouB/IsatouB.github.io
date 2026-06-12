@@ -324,13 +324,14 @@ function card(m){
 }
 
 function groupByDay(arr){
-  const out=[]; let cur=null;
+  const map=new Map();
   arr.forEach(m=>{
-    const key=etDateStr(new Date(m.dt));
-    if(!cur||cur.key!==key){cur={key,label:etDay(new Date(m.dt)),items:[]};out.push(cur);}
-    cur.items.push(m);
+    const d=new Date(m.dt);
+    const key=etDateStr(d);
+    if(!map.has(key)) map.set(key,{key,label:etDay(d),items:[]});
+    map.get(key).items.push(m);
   });
-  return out;
+  return Array.from(map.values());
 }
 function renderDays(arr){
   if(!arr.length) return '<div class="empty">No matches found</div>';
@@ -365,7 +366,9 @@ function render(){
     }
   } else if(tab==='upcoming'){
     pills.style.display='none';
-    list.innerHTML=renderDays(M.filter(m=>new Date(m.dt)>=now&&gs.includes(m.g)));
+    const up=M.filter(m=>new Date(m.dt)>=now&&gs.includes(m.g))
+               .sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+    list.innerHTML=renderDays(up);
   } else if(tab==='group'){
     pills.style.display='flex';
     pills.innerHTML=gs.map(g2=>`<button class="gpill${g2===grp?' active':''}" onclick="setGroup('${g2}')">Group ${g2}</button>`).join('');
