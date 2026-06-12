@@ -60,6 +60,9 @@
   .mcard.is-today{background:rgba(255,193,7,.04)}
   .mcard.is-live{background:rgba(232,56,13,.06)}
   .mcard.is-live::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#e8380d}
+  .mcard.is-past{opacity:.8}
+  .ft-pill{background:rgba(46,125,50,.5);color:#a5d6a7;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;letter-spacing:.4px}
+  .mc-score-fin{font-size:15px;font-weight:900;color:#e8edf2;min-width:14px;text-align:center;margin-left:auto}
 
   .mc-time{min-width:52px;text-align:center}
   .mc-t{font-size:13px;font-weight:800;color:#fff;line-height:1.2}
@@ -133,6 +136,7 @@
   <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" onclick="showTab('today')">Today</button>
+    <button class="tab" onclick="showTab('results')">Results</button>
     <button class="tab" onclick="showTab('upcoming')">Upcoming</button>
     <button class="tab" onclick="showTab('group')">Groups</button>
     <button class="tab" onclick="showTab('knockout')">Knockouts</button>
@@ -289,24 +293,30 @@ function chipClass(g){return chipMap[g]||''}
 function stageLabel(m){return m.stage||`Group ${m.g} · MD${m.md}`}
 
 // ── Match card ────────────────────────────────────────────────────────────
+function isPast(d){ return Date.now() > d.getTime()+7200000; }
+
 function card(m){
   const d=new Date(m.dt);
   const live=isLive(d);
+  const past=isPast(d);
   const today=isTodayET(d);
-  let cls='mcard'+(live?' is-live':today?' is-today':'');
+  let cls='mcard'+(live?' is-live':past?' is-past':today?' is-today':'');
   const sc=scores[m.id];
 
   let timeHtml;
   if(live){
     const minTxt=sc?.minute ? `<div class="mc-min">${sc.minute}'</div>` : '';
     timeHtml=`<span class="live-pill">LIVE</span>${minTxt}`;
+  } else if(past){
+    timeHtml=`<span class="ft-pill">FT</span><div class="mc-tz">${etTime(d)}</div>`;
   } else {
     timeHtml=`<div class="mc-t">${etTime(d)}</div><div class="mc-tz">ET</div>`;
   }
 
   // Score display
-  const hScore = sc && sc.home!=null ? `<span class="mc-score-val">${sc.home}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
-  const aScore = sc && sc.away!=null ? `<span class="mc-score-val">${sc.away}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
+  const scoreClass = past ? 'mc-score-fin' : 'mc-score-val';
+  const hScore = sc && sc.home!=null ? `<span class="${scoreClass}">${sc.home}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
+  const aScore = sc && sc.away!=null ? `<span class="${scoreClass}">${sc.away}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
 
   const cc=chipClass(m.g);
   return `<div class="${cls}">
@@ -344,7 +354,7 @@ let tab='today', grp='A';
 function showTab(t){
   tab=t;
   document.querySelectorAll('.tab').forEach((el,i)=>{
-    el.classList.toggle('active',['today','upcoming','group','knockout'][i]===t);
+    el.classList.toggle('active',['today','results','upcoming','group','knockout'][i]===t);
   });
   render();
 }
@@ -364,6 +374,13 @@ function render(){
       const next=M.filter(m=>new Date(m.dt)>now).slice(0,8);
       list.innerHTML='<div class="day-label">No matches today — coming up next</div>'+next.map(card).join('');
     }
+  } else if(tab==='results'){
+    pills.style.display='none';
+    const done=M.filter(m=>isPast(new Date(m.dt)))
+                 .sort((a,b)=>new Date(b.dt)-new Date(a.dt));
+    list.innerHTML=done.length
+      ? renderDays(done)
+      : '<div class="empty">No results yet — check back after kick-off</div>';
   } else if(tab==='upcoming'){
     pills.style.display='none';
     const up=M.filter(m=>new Date(m.dt)>=now&&gs.includes(m.g))
