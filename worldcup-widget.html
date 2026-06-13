@@ -467,6 +467,18 @@ async function toggleNotifs(){
 }
 
 // ── Live scores (ESPN public API — no key needed) ─────────────────────────
+// ESPN uses different names for some teams — normalise before comparing
+const ESPN_ALIAS={
+  'united states':'usa',
+  'bosnia and herzegovina':'bosnia & herz.',
+  'côte d\'ivoire':'ivory coast',"cote d'ivoire":'ivory coast',
+  'korea republic':'south korea','republic of korea':'south korea',
+  'democratic republic of congo':'dr congo','congo dr':'dr congo',
+  'cape verde islands':'cape verde',
+  'new zealand':'new zealand','aotearoa new zealand':'new zealand',
+};
+function espnKey(n){ const l=n.toLowerCase().trim(); return ESPN_ALIAS[l]||l; }
+
 function parseESPNEvents(events){
   let updated=false;
   events.forEach(ev=>{
@@ -476,13 +488,15 @@ function parseESPNEvents(events){
     const away=comp.competitors?.find(c=>c.homeAway==='away');
     if(!home||!away) return;
     const homeName=home.team?.displayName||'';
+    const awayName=away.team?.displayName||'';
     const evDate=ev.date?.split('T')[0];
     const local=M.find(m=>{
       const mDate=m.dt.split('T')[0];
-      return mDate===evDate && (
-        homeName.toLowerCase().includes(m.h.toLowerCase().split(' ')[0]) ||
-        m.h.toLowerCase().includes(homeName.toLowerCase().split(' ')[0])
-      );
+      if(mDate!==evDate) return false;
+      const eh=espnKey(homeName), ea=espnKey(awayName);
+      const mh=espnKey(m.h),      ma=espnKey(m.a);
+      return (eh===mh||eh.includes(mh.split(' ')[0])||mh.includes(eh.split(' ')[0])) &&
+             (ea===ma||ea.includes(ma.split(' ')[0])||ma.includes(ea.split(' ')[0]));
     });
     if(local){
       scores[local.id]={
