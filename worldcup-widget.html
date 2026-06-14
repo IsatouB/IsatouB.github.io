@@ -458,18 +458,20 @@ function parseESPNEvents(events){
     const homeName=home.team?.displayName||'';
     const awayName=away.team?.displayName||'';
     const evDate=ev.date?.split('T')[0];
-    const local=M.find(m=>{
-      const mDate=m.dt.split('T')[0];
-      if(mDate!==evDate) return false;
-      const eh=espnKey(homeName), ea=espnKey(awayName);
-      const mh=espnKey(m.h),      ma=espnKey(m.a);
-      return (eh===mh||eh.includes(mh.split(' ')[0])||mh.includes(eh.split(' ')[0])) &&
-             (ea===ma||ea.includes(ma.split(' ')[0])||ma.includes(ea.split(' ')[0]));
-    });
+    const nm=(n1,n2)=>n1===n2||n1.includes(n2.split(' ')[0])||n2.includes(n1.split(' ')[0]);
+    let local=null, reversed=false;
+    for(const m of M){
+      if(m.dt.split('T')[0]!==evDate) continue;
+      const eh=espnKey(homeName),ea=espnKey(awayName),mh=espnKey(m.h),ma=espnKey(m.a);
+      if(nm(eh,mh)&&nm(ea,ma)){local=m;reversed=false;break;}
+      if(nm(eh,ma)&&nm(ea,mh)){local=m;reversed=true;break;}
+    }
     if(local){
+      const hs=home.score!=null?parseInt(home.score):null;
+      const as=away.score!=null?parseInt(away.score):null;
       scores[local.id]={
-        home: home.score!=null ? parseInt(home.score) : null,
-        away: away.score!=null ? parseInt(away.score) : null,
+        home: reversed?as:hs,
+        away: reversed?hs:as,
         status: ev.status?.type?.name||'',
         minute: ev.status?.displayClock||''
       };
