@@ -444,8 +444,15 @@ const ESPN_ALIAS={
   'democratic republic of congo':'dr congo','congo dr':'dr congo',
   'cape verde islands':'cape verde',
   'new zealand':'new zealand','aotearoa new zealand':'new zealand',
+  'curaçao':'curacao','curacao':'curacao',
+  'türkiye':'turkey',
 };
-function espnKey(n){ const l=n.toLowerCase().trim(); return ESPN_ALIAS[l]||l; }
+function espnKey(n){
+  // Strip common accents so ç→c, ü→u, etc. as a fallback
+  const l=n.toLowerCase().trim().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const mapped=n.toLowerCase().trim();
+  return ESPN_ALIAS[mapped]||ESPN_ALIAS[l]||mapped;
+}
 
 function parseESPNEvents(events){
   let updated=false;
@@ -461,7 +468,10 @@ function parseESPNEvents(events){
     const nm=(n1,n2)=>n1===n2||n1.includes(n2.split(' ')[0])||n2.includes(n1.split(' ')[0]);
     let local=null, reversed=false;
     for(const m of M){
-      if(m.dt.split('T')[0]!==evDate) continue;
+      // Match on UTC date OR the day before (ESPN may use local date for early-UTC matches)
+      const mDate=m.dt.split('T')[0];
+      const mDatePrev=new Date(new Date(m.dt).getTime()-86400000).toISOString().split('T')[0];
+      if(mDate!==evDate && mDatePrev!==evDate) continue;
       const eh=espnKey(homeName),ea=espnKey(awayName),mh=espnKey(m.h),ma=espnKey(m.a);
       if(nm(eh,mh)&&nm(ea,ma)){local=m;reversed=false;break;}
       if(nm(eh,ma)&&nm(ea,mh)){local=m;reversed=true;break;}
@@ -485,12 +495,20 @@ async function fetchScores(){
   const st=document.getElementById('score-status');
   try{
     // Collect unique dates: today + any date with a past or live match
+    // Also add the day before for early-UTC matches ESPN may log under the prior local date
     const dateSet=new Set();
     const cutoff=Date.now()-14*24*3600*1000;
     M.forEach(m=>{
       const t=new Date(m.dt).getTime();
-      if(t>=cutoff && t<=Date.now()+7200000)
-        dateSet.add(m.dt.split('T')[0].replace(/-/g,''));
+      if(t>=cutoff && t<=Date.now()+7200000){
+        const ds=m.dt.split('T')[0].replace(/-/g,'');
+        dateSet.add(ds);
+        // If match starts before 07:00 UTC, ESPN may list it under the previous calendar day
+        if(new Date(m.dt).getUTCHours()<7){
+          const prev=new Date(t-86400000).toISOString().split('T')[0].replace(/-/g,'');
+          dateSet.add(prev);
+        }
+      }
     });
 
     const fetches=[...dateSet].map(ds=>
