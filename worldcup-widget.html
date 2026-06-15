@@ -302,10 +302,10 @@ function card(m){
     timeHtml=`<div class="mc-t">${etTime(d)}</div><div class="mc-tz">ET</div>`;
   }
 
-  // Score display
+  // Score display — only show for live or finished matches, never for upcoming
   const scoreClass = past ? 'mc-score-fin' : 'mc-score-val';
-  const hScore = sc && sc.home!=null ? `<span class="${scoreClass}">${sc.home}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
-  const aScore = sc && sc.away!=null ? `<span class="${scoreClass}">${sc.away}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
+  const hScore = (live||past) && sc && sc.home!=null ? `<span class="${scoreClass}">${sc.home}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
+  const aScore = (live||past) && sc && sc.away!=null ? `<span class="${scoreClass}">${sc.away}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
 
   const cc=chipClass(m.g);
   return `<div class="${cls}">
