@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIFA World Cup 2026 Calendar</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 560px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .trophy { font-size: 64px; margin-bottom: 16px; }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 28px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .stat {
+            background: #f0f4ff;
+            border-radius: 12px;
+            padding: 14px 20px;
+            flex: 1;
+        }
+
+        .stat-num {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f3460;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .dates {
+            background: #fff8e1;
+            border-left: 4px solid #f9a825;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 28px;
+            text-align: left;
+        }
+
+        .dates p { font-size: 14px; color: #555; line-height: 1.7; }
+        .dates strong { color: #333; }
+
+        .btn-primary {
+            display: block;
+            background: linear-gradient(135deg, #e8380d, #c0392b);
+            color: white;
+            text-decoration: none;
+            padding: 18px 32px;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 15px rgba(232,56,13,0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(232,56,13,0.5);
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            margin-top: 24px;
+        }
+
+        .instructions h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .instructions li {
+            font-size: 13px;
+            color: #555;
+            padding: 5px 0;
+            padding-left: 22px;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .instructions li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 14px;
+            height: 2px;
+            background: #0f3460;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 14px 0;
+        }
+
+        .note {
+            font-size: 12px;
+            color: #999;
+            margin-top: 16px;
+        }
+
+        .groups {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .group-chip {
+            background: #e8f4ff;
+            border: 1px solid #c2dcf7;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            color: #1a6fb5;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="trophy">🏆</div>
+        <h1>FIFA World Cup 2026</h1>
+        <p class="subtitle">June 11 – July 19, 2026 &bull; USA &bull; Canada &bull; Mexico</p>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-num">104</div>
+                <div class="stat-label">Matches</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">48</div>
+                <div class="stat-label">Teams</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">16</div>
+                <div class="stat-label">Venues</div>
+            </div>
+        </div>
+
+        <div class="dates">
+            <p>
+                <strong>Group Stage:</strong> Jun 11 – Jun 27<br>
+                <strong>Round of 32:</strong> Jun 28 – Jul 3<br>
+                <strong>Round of 16:</strong> Jul 4 – Jul 7<br>
+                <strong>Quarterfinals:</strong> Jul 9 – Jul 11<br>
+                <strong>Semifinals:</strong> Jul 14 – Jul 15<br>
+                <strong>Third Place &amp; Final:</strong> Jul 18 – Jul 19
+            </p>
+        </div>
+
+        <div class="groups">
+            <span class="group-chip">Grp A: Mexico · S.Africa · S.Korea · Czechia</span>
+            <span class="group-chip">Grp B: Canada · Bosnia · Qatar · Switzerland</span>
+            <span class="group-chip">Grp C: Brazil · Morocco · Haiti · Scotland</span>
+            <span class="group-chip">Grp D: USA · Paraguay · Australia · Turkey</span>
+            <span class="group-chip">Grp E: Germany · Curacao · Ivory Coast · Ecuador</span>
+            <span class="group-chip">Grp F: Netherlands · Japan · Sweden · Tunisia</span>
+            <span class="group-chip">Grp G: Belgium · Egypt · Iran · New Zealand</span>
+            <span class="group-chip">Grp H: Spain · Cape Verde · Saudi Arabia · Uruguay</span>
+            <span class="group-chip">Grp I: France · Iraq · Norway · Senegal</span>
+            <span class="group-chip">Grp J: Argentina · Algeria · Austria · Jordan</span>
+            <span class="group-chip">Grp K: Portugal · DR Congo · Colombia · Uzbekistan</span>
+            <span class="group-chip">Grp L: England · Croatia · Ghana · Panama</span>
+        </div>
+
+        <a href="worldcup2026.ics" download="worldcup2026.ics" class="btn-primary">
+            ⬇️ Download Calendar (.ics)
+        </a>
+
+        <div class="instructions">
+            <h3>How to add to your phone</h3>
+            <ul>
+                <li><strong>iPhone:</strong> Tap the button above, tap "Open in Calendar" when prompted</li>
+                <li><strong>Android:</strong> Download the file, open it — Google Calendar will import it automatically</li>
+                <li><strong>Google Calendar:</strong> Go to Settings → Import, upload the .ics file</li>
+                <li><strong>Outlook:</strong> Open the .ics file — it imports directly into your calendar</li>
+            </ul>
+        </div>
+
+        <p class="note">All times are stored in UTC — your phone will show matches in your local time zone automatically.</p>
+    </div>
+</body>
+</html>

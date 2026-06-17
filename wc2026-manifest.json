@@ -1,0 +1,18 @@
+{
+  "name": "World Cup 2026",
+  "short_name": "WC 2026",
+  "description": "FIFA World Cup 2026 match schedule — all 104 games",
+  "start_url": "/worldcup-widget.html",
+  "display": "standalone",
+  "background_color": "#0d1b2a",
+  "theme_color": "#e8380d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e8380d'/><text y='.9em' font-size='75' x='12'>⚽</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
