@@ -281,6 +281,43 @@ const chipMap={R32:'chip-r32',R16:'chip-r16',QF:'chip-qf',SF:'chip-sf',FIN:'chip
 function chipClass(g){return chipMap[g]||''}
 function stageLabel(m){return m.stage||`Group ${m.g} · MD${m.md}`}
 
+// ── Group standings (computed from match scores) ───────────────────────────
+let groupStandings={};
+
+function computeGroupStandings(){
+  const grpList=['A','B','C','D','E','F','G','H','I','J','K','L'];
+  grpList.forEach(grp=>{
+    const teams={};
+    const gms=M.filter(m=>m.g===grp);
+    gms.forEach(m=>{
+      if(!teams[m.h]) teams[m.h]={name:m.h,flag:m.hf,pts:0,gd:0,gf:0,played:0};
+      if(!teams[m.a]) teams[m.a]={name:m.a,flag:m.af,pts:0,gd:0,gf:0,played:0};
+    });
+    gms.forEach(m=>{
+      const sc=scores[m.id];
+      if(!sc||sc.home==null||sc.away==null) return;
+      const hg=sc.home,ag=sc.away;
+      teams[m.h].gf+=hg; teams[m.h].gd+=hg-ag; teams[m.h].played++;
+      teams[m.a].gf+=ag; teams[m.a].gd+=ag-hg; teams[m.a].played++;
+      if(hg>ag) teams[m.h].pts+=3;
+      else if(ag>hg) teams[m.a].pts+=3;
+      else { teams[m.h].pts++; teams[m.a].pts++; }
+    });
+    const sorted=Object.values(teams).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+    if(sorted.length>=2&&sorted[0].played>0){
+      groupStandings[grp]={win:sorted[0].name,winF:sorted[0].flag,ru:sorted[1].name,ruF:sorted[1].flag};
+    }
+  });
+}
+
+function resolveTeam(name,flag){
+  const wm=name.match(/^Win ([A-L])$/);
+  if(wm){ const s=groupStandings[wm[1]]; if(s) return {n:s.win,f:s.winF}; }
+  const rm=name.match(/^R\/u ([A-L])$/);
+  if(rm){ const s=groupStandings[rm[1]]; if(s) return {n:s.ru,f:s.ruF}; }
+  return {n:name,f:flag};
+}
+
 // ── Match card ────────────────────────────────────────────────────────────
 function isPast(d){ return Date.now() > d.getTime()+7200000; }
 
@@ -307,13 +344,14 @@ function card(m){
   const hScore = (live||past) && sc && sc.home!=null ? `<span class="${scoreClass}">${sc.home}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
   const aScore = (live||past) && sc && sc.away!=null ? `<span class="${scoreClass}">${sc.away}</span>` : (live ? `<span class="mc-score-dash">-</span>` : '');
 
+  const ht=resolveTeam(m.h,m.hf), at=resolveTeam(m.a,m.af);
   const cc=chipClass(m.g);
   return `<div class="${cls}">
     <div class="mc-time">${timeHtml}</div>
     <div class="mc-teams">
-      <div class="mc-row"><span class="mc-flag">${m.hf}</span><span class="mc-name">${m.h}</span>${hScore}</div>
+      <div class="mc-row"><span class="mc-flag">${ht.f}</span><span class="mc-name">${ht.n}</span>${hScore}</div>
       <div class="mc-vsrow"><div class="mc-vsline"></div><span class="mc-vstxt">VS</span><div class="mc-vsline"></div></div>
-      <div class="mc-row"><span class="mc-flag">${m.af}</span><span class="mc-name">${m.a}</span>${aScore}</div>
+      <div class="mc-row"><span class="mc-flag">${at.f}</span><span class="mc-name">${at.n}</span>${aScore}</div>
     </div>
     <div class="mc-right">
       <span class="mc-stage-chip ${cc}">${stageLabel(m)}</span>
@@ -520,6 +558,7 @@ async function fetchScores(){
     results.forEach(data=>{ if(data) updated=parseESPNEvents(data.events||[])||updated; });
 
     if(updated){
+      computeGroupStandings();
       render();
       if(st){st.textContent='⚽ Scores updated just now';st.className='score-status live';}
     } else if(st){
@@ -533,6 +572,7 @@ async function fetchScores(){
 
 // ── Init ──────────────────────────────────────────────────────────────────
 updateNotifBtn();
+computeGroupStandings();
 render();
 updateCountdown();
 fetchScores();
