@@ -410,7 +410,7 @@ function render(){
       : '<div class="empty">No results yet — check back after kick-off</div>';
   } else if(tab==='upcoming'){
     pills.style.display='none';
-    const up=M.filter(m=>new Date(m.dt)>=now&&gs.includes(m.g))
+    const up=M.filter(m=>new Date(m.dt)>=now)
                .sort((a,b)=>new Date(a.dt)-new Date(b.dt));
     list.innerHTML=renderDays(up);
   } else if(tab==='group'){
