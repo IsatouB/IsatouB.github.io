@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>That's Private! — Manuscript</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1b2430; --mid:#4a5568; --light:#8a94a6;
+    --accent:#7c3aed; --accent2:#0d9488;
+    --note-bg:#f6f2ff; --note-border:#c4b5fd;
+    --page:#ffffff; --wash:#f7f5fb;
+    --body:"Georgia","Iowan Old Style","Times New Roman",serif;
+    --display:"Trebuchet MS","Verdana","Segoe UI",sans-serif;
+  }
+  html{font-size:16px}
+  body{font-family:var(--body);color:var(--ink);background:var(--wash);
+    line-height:1.6;padding:2rem 1rem 5rem}
+  .sheet{max-width:44rem;margin:0 auto;background:var(--page);
+    padding:3rem 2.5rem;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+  .titlepage{text-align:center;padding:2rem 0 3rem;border-bottom:3px double var(--accent)}
+  .series{font-family:var(--display);font-size:.75rem;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--accent);font-weight:bold}
+  .booknum{font-family:var(--display);font-size:.7rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--light);margin-top:.35rem}
+  h1{font-family:var(--display);font-size:2.9rem;line-height:1.05;margin:1.2rem 0 .5rem;
+    letter-spacing:-.01em}
+  .subtitle{font-family:var(--display);font-size:1.05rem;color:var(--accent2);
+    font-weight:bold;text-transform:uppercase;letter-spacing:.06em}
+  .byline{margin-top:1.6rem;font-style:italic;color:var(--mid)}
+  .specs{margin-top:1.6rem;font-family:var(--display);font-size:.8rem;color:var(--light);line-height:1.9}
+
+  h2{font-family:var(--display);font-size:1.4rem;margin:3rem 0 1rem;color:var(--accent);
+    padding-bottom:.4rem;border-bottom:1px solid #e4dff0}
+  h3{font-family:var(--display);font-size:1.05rem;margin:2rem 0 .6rem;color:var(--ink)}
+  p{margin-bottom:.9rem}
+  .lede{color:var(--mid);font-size:.95rem}
+
+  .spread{margin:0 0 2.2rem;padding-top:1.6rem;border-top:1px solid #ece7f5}
+  .spread:first-of-type{border-top:none}
+  .sp-label{font-family:var(--display);font-size:.72rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--accent);font-weight:bold;margin-bottom:.7rem}
+  .sp-label .pages{color:var(--light);font-weight:normal;letter-spacing:.08em}
+  .verse{font-size:1.18rem;line-height:1.85;white-space:pre-line;margin-bottom:.9rem}
+  .verse .shout{font-weight:bold;letter-spacing:.02em}
+  .bigword{font-family:var(--display);font-weight:bold;color:var(--accent);letter-spacing:.02em}
+  .display-line{font-family:var(--display);font-weight:bold;color:var(--accent2);
+    font-size:1.35rem;text-align:center;margin:.8rem 0;letter-spacing:.01em}
+
+  .art{background:var(--note-bg);border-left:4px solid var(--note-border);
+    padding:.75rem 1rem;font-family:var(--display);font-size:.84rem;
+    line-height:1.6;color:#4c3a7a;border-radius:0 4px 4px 0}
+  .art b{color:#5b21b6;text-transform:uppercase;letter-spacing:.1em;font-size:.72rem}
+  .art.caution{background:#fff5f5;border-left-color:#fc8181;color:#742a2a}
+  .art.caution b{color:#9b2c2c}
+
+  .glossary dt{font-family:var(--display);font-weight:bold;color:var(--accent);
+    margin-top:.9rem;font-size:.98rem}
+  .glossary dd{margin-left:0;color:var(--mid)}
+  ol,ul{margin:0 0 1rem 1.4rem}
+  li{margin-bottom:.45rem}
+  .box{background:var(--wash);border:1px solid #e4dff0;border-radius:6px;
+    padding:1.2rem 1.4rem;margin:1.2rem 0}
+  .box h3{margin-top:0}
+  .fillin{border-bottom:1.5px dotted var(--light);display:inline-block;min-width:12rem}
+  .script{font-family:var(--display);background:#fff;border:1px dashed var(--accent);
+    border-radius:5px;padding:.6rem .9rem;margin:.5rem 0;color:var(--accent);font-weight:bold}
+
+  .controls{max-width:44rem;margin:0 auto 1rem;text-align:right}
+  button{font-family:var(--display);font-size:.8rem;padding:.5rem .9rem;
+    border:1px solid var(--accent);background:#fff;color:var(--accent);
+    border-radius:4px;cursor:pointer}
+  button:hover{background:var(--accent);color:#fff}
+  body.read-aloud .art{display:none}
+  body.read-aloud .spread{padding-top:1.2rem}
+
+  @media print{
+    body{background:#fff;padding:0;font-size:11.5pt}
+    .sheet{box-shadow:none;padding:0;max-width:none}
+    .controls{display:none}
+    .spread{page-break-inside:avoid}
+    h2{page-break-after:avoid}
+  }
+  @media (max-width:640px){
+    .sheet{padding:2rem 1.25rem}
+    h1{font-size:2.1rem}
+    .verse{font-size:1.08rem}
+  }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button onclick="document.body.classList.toggle('read-aloud')">Toggle illustration notes</button>
+  <button onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div class="sheet">
+
+<header class="titlepage">
+  <div class="series">Big Ideas for Little Minds</div>
+  <div class="booknum">Book Two</div>
+  <h1>That's Private!</h1>
+  <div class="subtitle">All About Privacy, Passwords &amp; Staying Safe Online</div>
+  <p class="byline">A rhyming picture book for curious kids</p>
+  <div class="specs">
+    Ages 5–8 &nbsp;·&nbsp; Reading level: Grades 1–3<br>
+    28 spreads &nbsp;·&nbsp; 48 pages &nbsp;·&nbsp; approx. 1,500 words<br>
+    Trim: 8.5" × 8.5" square, full color
+  </div>
+</header>
+
+<h2>How to Read This Manuscript</h2>
+<p class="lede">Same format as Book One. Big type is printed text; the purple box is the art note
+for your illustrator. Red-edged art notes mark the emotionally sensitive spreads — those need
+warm color and calm faces, never fear. A frightened child stops listening.</p>
+
+<h2>The Story</h2>
+
+<div class="spread">
+  <div class="sp-label">Spread 1 <span class="pages">— pages 4–5</span></div>
+  <div class="verse">Byte rolled back in Saturday, right after lunch,
+with a beep and a blink and a wave and a hunch.
+"Today," said the robot, "we're learning a word.
+It's a word about <span class="shout">YOU</span> — and the best one you've heard."</div>
+  <div class="art"><b>Art</b> — Sunny kitchen, crumbs and juice glasses still on the table. BYTE (identical
+  design to Book One) rolling in through the doorway, antenna raised. MAYA and AMIR spin around
+  mid-bite, thrilled to see him again. Series continuity matters — same room, same house, same kids.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 2 <span class="pages">— pages 6–7</span></div>
+  <div class="verse">He spun in a circle. He flashed his small light.
+"The word," said Byte, "is <span class="bigword">PRIVACY</span>. Right?
+It means some things are yours. They belong just to you.
+And <span class="shout">YOU</span> get to choose who can see them. It's true!"</div>
+  <div class="art"><b>Art</b> — The word PRIVACY hand-lettered enormous across the whole spread, with
+  the kids climbing on the letters. Inside the letter O, a little scene of Maya holding a treasure box
+  close to her chest.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 3 <span class="pages">— pages 8–9</span></div>
+  <div class="verse">"You shut the bathroom door. Now <span class="shout">that</span> is privacy.
+You whisper to a friend. And <span class="shout">that</span> is privacy.
+Your diary. Your daydream. The wish on your cake.
+Not all things are for all folks — and that's <span class="shout">not</span> a mistake."</div>
+  <div class="art"><b>Art</b> — Four cheerful vignettes: a closed bathroom door with a "knock please" sign;
+  two kids whispering behind cupped hands; a locked diary; a birthday cake mid-wish with eyes
+  squeezed shut. Everyday, ordinary, safe. Privacy starts as a normal thing, not a scary thing.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 4 <span class="pages">— pages 10–11</span></div>
+  <div class="verse">"Now <span class="bigword">PRIVATE</span> is not the same thing as <span class="bigword">BAD</span>.
+Private just means: it is mine, and I'm glad.
+There's nothing gone wrong when you keep something small…
+but there's one kind of secret you must tell. Tell it all."</div>
+  <div class="art"><b>Art</b> — Left page bright and light: a child happily holding a small closed box
+  labeled MINE. Right page: the same box, but heavy, gray, and too big to carry — with the child
+  looking uncertain. Sets up spread 5 visually before a single word of it is read.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 5 <span class="pages">— pages 12–13</span></div>
+  <div class="verse">"A <span class="bigword">SURPRISE</span> is a party, a gift, or a cake.
+It is happy. It ends. And it's fun when it's shared.
+But a secret that's heavy, that hurts, or feels bad?
+You should <span class="shout">never</span> keep that one. Go tell. Don't be scared."</div>
+  <div class="art caution"><b>Art — sensitive</b> — Left: a joyful surprise party bursting with color. Right:
+  a child walking toward a warm, kneeling parent, shoulders visibly lighter as they speak. Show the
+  <i>relief</i>, not the fear. No shadowy figures, no threat imagery anywhere in this book.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 6 <span class="pages">— pages 14–15</span></div>
+  <div class="verse">"So who is your grown-up? Let's name a few now:
+a parent. A teacher. An auntie. A coach.
+Pick <span class="shout">THREE</span> that you trust. Say them right out loud.
+Those three are your team. And your team's who you approach."</div>
+  <div class="art"><b>Art</b> — Three portrait frames with warm faces, and empty frames beside them the
+  child can imagine filling. Byte holding up a clipboard headed "MY TEAM: 1. 2. 3." Deliberately mirrors
+  the fill-in page in the back matter.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 7 <span class="pages">— pages 16–17</span></div>
+  <div class="verse">"Now here's the important bit," Byte said with a spin.
+"Some facts about you should stay safely tucked in.
+Your full name. Your address. Your school and your street.
+Your birthday. Your phone. And your <span class="shout">passwords</span> — complete!"</div>
+  <div class="art"><b>Art</b> — A treasure chest with each private fact drawn as a labeled gem being tucked
+  inside: NAME, ADDRESS, SCHOOL, BIRTHDAY, PHONE, PASSWORD. Design this list so it reads as a
+  checklist a child can memorize — it's the spine of the whole book.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 8 <span class="pages">— pages 18–19</span></div>
+  <div class="verse">"But why?" asked Amir. "They're just facts about me!"
+"They are," answered Byte. "But now listen. You'll see.
+Put a few of them together and somebody could guess
+where you'll be at half three. And <span class="shout">that</span> is a mess."</div>
+  <div class="art"><b>Art</b> — Three innocent puzzle pieces — a school logo, a street name, a soccer
+  jersey — sliding together into one picture of a child's daily route. Illustrate the <i>idea</i> of piecing
+  together, with no menacing character present. The concept is the lesson, not a villain.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 9 <span class="pages">— pages 20–21</span></div>
+  <div class="verse">"A <span class="bigword">PASSWORD</span>," said Byte, "is a key made of letters.
+A short one is weak. And a long one is better.
+Not '1-2-3-4.' Not your birthday. Not 'cat.'
+Make it <span class="shout">LONG</span>. Make it <span class="shout">SILLY</span>. Yes — sillier than that!"</div>
+  <div class="display-line">PurpleWaffleMoonTruck47!</div>
+  <div class="art"><b>Art</b> — A row of keys: a tiny bent key labeled "1234" snapping in a lock, next to an
+  enormous ornate key made of purple waffles, a moon, and a truck, sliding smoothly into a huge
+  vault door. The silly password should be genuinely funny and genuinely memorable.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 10 <span class="pages">— pages 22–23</span></div>
+  <div class="verse">"Use a different one everywhere. Don't use one for them all —
+for if one gets found out, then they <span class="shout">all</span> take a fall.
+And who do you tell? Just your grown-up. That's it.
+Not your friend. Not a stranger. Not a website. Not <span class="shout">me</span>."</div>
+  <div class="art"><b>Art</b> — Row of doors, all opening with one sad little key (dominoes falling behind
+  them). Beneath it, the fixed version: each door with its own wild key. Byte holding an antenna up
+  in a "don't tell even me" gesture — a nice character beat for the mascot.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 11 <span class="pages">— pages 24–25</span></div>
+  <div class="verse">"Now, apps are like guests who come knocking around.
+They say, 'May I see you? May I hear your sound?
+May I know where you are? May I look at your face?'
+Before you say <span class="shout">yes</span> — ask a grown-up. Just in case."</div>
+  <div class="art"><b>Art</b> — Cartoon app-characters at a front door holding permission cards: a camera,
+  a microphone, a map pin, a contacts book. Maya at the door with a parent's hand on the latch.
+  Polite, not sinister — apps ask, and you get to answer.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 12 <span class="pages">— pages 26–27</span></div>
+  <div class="verse">"And here's a strange thing about screens, big and small:
+they remember. They keep things. They don't forget at all.
+Every message and picture and clip that you send
+leaves a <span class="bigword">FOOTPRINT</span> behind you. And footprints don't end."</div>
+  <div class="art"><b>Art</b> — A trail of glowing footprints leading out of a phone and off across a wide
+  landscape — through a park, past a school, over a hill, disappearing to the horizon. Beautiful rather
+  than scary. This is the image people will remember from the book.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 13 <span class="pages">— pages 28–29</span></div>
+  <div class="verse">"So before you hit <span class="shout">SEND</span>, take a breath. Count to three.
+Ask: 'Would I be all right if my whole school could see?'
+If the answer is <span class="shout">no</span>, then don't send it. Delete.
+Once a message is out, you can never retreat."</div>
+  <div class="art"><b>Art</b> — Amir's thumb hovering over a big SEND button, with a thought-bubble
+  showing his entire class, his teacher, and his grandmother all reading the message. He pauses.
+  Give the pause its own visual weight — a held breath.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 14 <span class="pages">— pages 30–31</span></div>
+  <div class="verse">"And why is that game free?" Byte asked with a wink.
+"It isn't quite free. Let me tell you. Just think:
+they are learning what you like — your clicks and your play —
+and they use it to sell you more things every day."</div>
+  <div class="art"><b>Art</b> — A bright arcade-style game with a big FREE! banner. Behind the machine,
+  a conveyor belt carrying little tagged data-parcels — LIKES CATS, PLAYS AT 7PM, WANTS SNEAKERS —
+  off toward a shop full of advertisements. Reveal-the-machinery composition.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 15 <span class="pages">— pages 32–33</span></div>
+  <div class="verse">"Online, you can't see who is there on the other end.
+A grown-up can pretend to be a kid. Or a friend.
+A picture can be fake. And a name can be, too.
+So a stranger online is a <span class="shout">STRANGER</span> to you."</div>
+  <div class="art caution"><b>Art — sensitive</b> — A chat window with a cheerful cartoon-puppy profile
+  picture; beside it, a plain gray question-mark silhouette holding that same puppy picture like a mask.
+  Neutral gray shape only — no leering adult, no menace. The point is <i>unknowable</i>, not <i>evil</i>.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 16 <span class="pages">— pages 34–35</span></div>
+  <div class="verse">"If a stranger asks, 'Hi! What's your name? Where's your school?' —
+don't answer. Go tell. That is always the rule.
+If they ask for a photo, the answer is <span class="shout">NO</span>.
+If they say, 'Don't tell anyone' — <span class="shout">TELL</span>. And then <span class="shout">GO</span>."</div>
+  <div class="art"><b>Art</b> — Three bold instruction panels like road signs: DON'T ANSWER / SAY NO /
+  GO TELL. Maya already up and walking toward a grown-up, chin high and confident. She is the hero
+  of this page, not a victim.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 17 <span class="pages">— pages 36–37</span></div>
+  <div class="verse">"There's a feeling you get. It's a tug. It's a knot.
+It's a hot little wobble right there in your gut.
+That's your body just saying, 'Hey — wait! Something's weird!'
+So listen. Close the screen. Go and tell. Never fear."</div>
+  <div class="art caution"><b>Art — sensitive</b> — Amir at a tablet, a soft orange glow drawn in his tummy
+  like a little warning lantern. Next panel: the tablet face-down, and Amir walking to find Dad.
+  Naming the physical feeling is the most useful thing in this book — give it a full page.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 18 <span class="pages">— pages 38–39</span></div>
+  <div class="verse">"If a box on your screen shouts <span class="shout">YOU WON! CLICK RIGHT HERE!</span> —
+don't click it. It's a trick. Let me make that quite clear.
+Prizes don't fall from a screen like the rain.
+Close the window. Don't touch it. Then go and explain."</div>
+  <div class="art"><b>Art</b> — A gaudy blinking pop-up with confetti and a cartoon trophy — drawn to look
+  exactly like the real thing, because recognition is the skill. Byte pulling Maya's hand gently back
+  from the screen. Behind the pop-up, a paper-thin fake with nothing behind it.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 19 <span class="pages">— pages 40–41</span></div>
+  <div class="verse">"Now privacy works in two ways. Here's the deal:
+other people have privacy, too. It's for real.
+So ask first, before posting a picture of Sam.
+And if Sam says 'No thank you' — then you don't. Yes, ma'am!"</div>
+  <div class="art"><b>Art</b> — Maya holding up a phone to photograph a friend, who has a hand raised
+  politely: "not right now." Maya lowering the phone with a smile — no sulking. Model the graceful
+  acceptance of a "no"; that's the half of consent nobody teaches.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 20 <span class="pages">— pages 42–43</span></div>
+  <div class="verse">"Don't pass on a secret. Don't share what they said.
+Don't post where they live. Don't repeat what you read.
+Be the friend who can hold something safe in her hand.
+That's a very good friend. That's a very good plan."</div>
+  <div class="art"><b>Art</b> — Two kids on a step, one cupping something glowing and small in both hands
+  and keeping it safe. Warm evening light. A quiet, tender spread — the emotional counterweight to
+  all the rules.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 21 <span class="pages">— pages 44–45</span></div>
+  <div class="verse">"Some apps draw a map with a dot. And it's <span class="shout">YOU</span>.
+It can show where you sleep and the things that you do.
+Ask a grown-up to check it. Ask, 'Should this be on?'
+And most of the time? The right answer is: <span class="shout">gone</span>."</div>
+  <div class="art"><b>Art</b> — A map of a neighborhood with a bright dot and a dotted line tracing the
+  daily route: home → school → park → home. On the facing page, a hand tapping a toggle to OFF and
+  the trail fading away. Show the fix, always show the fix.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 22 <span class="pages">— pages 46–47</span></div>
+  <div class="verse">"And the <span class="shout">most</span> private thing? It's your body. It's you.
+The parts a swimsuit covers belong just to you.
+No one should ask for a picture. No one at all.
+And if somebody does — that's a <span class="shout">TELL</span>. Make that call."</div>
+  <div class="art caution"><b>Art — sensitive</b> — Kids at a sunny pool in swimsuits, laughing, entirely
+  ordinary. Byte beside them under a small banner: MY BODY BELONGS TO ME. Nothing on this page
+  should look clinical, secretive, or shadowed. Bright daylight only.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 23 <span class="pages">— pages 48–49</span></div>
+  <div class="verse">"You can say, '<span class="shout">No thank you</span>.' You can say, 'I don't want to.'
+You can hand back the tablet and say, 'I am through.'
+And you'll never be in trouble for coming to tell —
+not with <span class="shout">your</span> grown-ups. Say it once. All is well."</div>
+  <div class="art"><b>Art</b> — Amir handing a tablet to a parent, relieved and unbothered. Parent's face
+  open and unsurprised — no scolding, no phone-confiscation drama. Children stay quiet because
+  they fear the reaction; this page exists to defuse that.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 24 <span class="pages">— pages 50–51</span></div>
+  <div class="verse">"So make rules with your family. Write them. Hang them high:
+where you use screens, and for how long, and why.
+Rules aren't a punishment. Rules are a fence.
+They keep all the fun <span class="shout">in</span> — and keep out the nonsense."</div>
+  <div class="art"><b>Art</b> — The whole family at the fridge, taping up a hand-drawn rules chart with
+  crayon and mismatched handwriting — clearly made <i>together</i>. A fenced yard visible through the
+  window, kids playing safely inside it. Mirrors the fill-in chart in the back matter.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 25 <span class="pages">— pages 52–53</span></div>
+  <div class="verse">"Let's remember together. Now say it with me:
+My name and my address stay <span class="shout">in</span>. (Take a bow!)
+My passwords are long, and I don't pass them out.
+And when something feels funny — I <span class="shout">TELL</span>. And right now."</div>
+  <div class="art"><b>Art</b> — Kids and Byte standing shoulder to shoulder mid-chant, mouths open,
+  fists up. Big, bold, poster-like lettering of the three promises. This is the second poster spread
+  in the series — design it to be photographed and pinned to a classroom wall.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 26 <span class="pages">— pages 54–55</span></div>
+  <div class="verse">"Because <span class="shout">YOU</span> are the boss of the you that is you:
+of your face, of your name, of the things that you do.
+And a boss gets to choose. And a boss gets to say,
+'That is <span class="shout">private</span>. That's mine. And not today.'"</div>
+  <div class="art"><b>Art</b> — Maya and Amir drawn large and golden, standing tall like small monarchs
+  with paper crowns, one hand each raised in a friendly STOP. The most empowering image in the
+  book. Big color, big confidence.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 27 <span class="pages">— pages 56–57</span></div>
+  <div class="verse">Then Byte gave a beep and he rolled down the hall.
+"Keep it private," he called. "You're the boss. That is all."
+And we waved from the window and watched the sun set —
+the most sensible, safest two kids Byte had met.</div>
+  <div class="art"><b>Art</b> — Sunset through the front window, long orange light across the floor. Byte's
+  small silhouette rolling down the path, one antenna waving. Kids at the glass. Echo the closing
+  composition of Book One so the two books rhyme visually on a shelf.</div>
+</div>
+
+<h2>Back Matter</h2>
+<p class="lede">Six pages. The fill-in pages are the reason a parent buys the paperback instead of
+borrowing the library copy — they get written in.</p>
+
+<h3>Words to Know</h3>
+<dl class="glossary">
+  <dt>Privacy</dt><dd>Getting to choose who sees, hears, or knows something about you.</dd>
+  <dt>Private information</dt><dd>Facts that should stay with you and your grown-ups: full name, address, school, phone number, birthday, and passwords.</dd>
+  <dt>Password</dt><dd>A key made of letters and numbers. Long and silly is strong. Short and easy is weak.</dd>
+  <dt>Trusted adult</dt><dd>A grown-up you know in real life who keeps you safe and never makes you keep a heavy secret.</dd>
+  <dt>Permission</dt><dd>Asking first — and accepting the answer, even when it's no.</dd>
+  <dt>Digital footprint</dt><dd>The trail of messages, photos, and clicks you leave behind you online.</dd>
+  <dt>Stranger</dt><dd>Someone you don't know in real life. Online, everyone you haven't met in person is a stranger.</dd>
+  <dt>Pop-up</dt><dd>A box that jumps onto your screen. Many are tricks. Close them; don't click them.</dd>
+  <dt>Location</dt><dd>Where you are right now. Apps can see it — unless a grown-up turns it off.</dd>
+  <dt>The uh-oh feeling</dt><dd>The tug in your tummy that says something's wrong. Always listen to it.</dd>
+</dl>
+
+<div class="box">
+  <h3>My Three Trusted Grown-Ups</h3>
+  <p>Write their names. Learn them by heart. You can go to any of them, any time, about anything.</p>
+  <p>1. <span class="fillin"></span><br>2. <span class="fillin"></span><br>3. <span class="fillin"></span></p>
+</div>
+
+<div class="box">
+  <h3>Build a Super Password</h3>
+  <p>Pick one word from each row. Stick them together. Add a number that isn't your birthday,
+  and one squiggle mark.</p>
+  <ul>
+    <li><b>A color:</b> purple, gold, lime, navy</li>
+    <li><b>A snack:</b> waffle, mango, pretzel, noodle</li>
+    <li><b>A big thing:</b> moon, tractor, volcano, whale</li>
+    <li><b>A number + squiggle:</b> 47! &nbsp; 92? &nbsp; 15#</li>
+  </ul>
+  <p>My super password lives in my head and in my grown-up's password keeper — nowhere else.</p>
+</div>
+
+<div class="box">
+  <h3>Say It Out Loud</h3>
+  <p>Practice these with a grown-up until they come out easily. Having the words ready is what
+  makes a child able to use them under pressure.</p>
+  <div class="script">"I have to ask my grown-up first."</div>
+  <div class="script">"No thank you. I don't share that."</div>
+  <div class="script">"I'm going to go tell someone."</div>
+  <div class="script">"Please don't post that picture of me."</div>
+</div>
+
+<div class="box">
+  <h3>Our Family Screen Rules</h3>
+  <p>Fill this in together, then hang it where everyone can see it.</p>
+  <ul>
+    <li>Screens are okay in these rooms: <span class="fillin"></span></li>
+    <li>Screens go away at: <span class="fillin"></span></li>
+    <li>I ask before I download: <span class="fillin"></span></li>
+    <li>The grown-up who knows my passwords: <span class="fillin"></span></li>
+    <li>If something feels weird, I tell: <span class="fillin"></span></li>
+  </ul>
+</div>
+
+<h3>Talk About It</h3>
+<ol>
+  <li>Name three things that are private about you.</li>
+  <li>What's the difference between a surprise and a secret that feels heavy?</li>
+  <li>Why is a long silly password stronger than a short easy one?</li>
+  <li>Someone online says, "Don't tell your mom." What do you do?</li>
+  <li>Your friend says no to a photo. How do you answer?</li>
+</ol>
+
+<h3>A Note for Grown-Ups</h3>
+<p>Children are handed screens years before they're handed the vocabulary to describe what's
+happening on them. This book gives them that vocabulary early, while the stakes are still low.</p>
+<p>Three things worth reinforcing after you close the book. First, the <b>uh-oh feeling</b> on spread
+17 — a child who can name that sensation is far more likely to act on it. Second, the promise on
+spread 23 that they will never be in trouble for telling; children most often stay silent because they
+fear losing the device or disappointing you, so say it out loud and mean it. Third, that privacy runs
+in both directions — spreads 19 and 20 ask them to protect other people's information too, which
+is the part that makes them a good friend rather than just a careful one.</p>
+<p>Read it more than once. Rules learned in rhyme stick around a lot longer than rules learned in
+a lecture.</p>
+
+</div>
+</body>
+</html>

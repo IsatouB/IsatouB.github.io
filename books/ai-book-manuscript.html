@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hello! I'm A.I. — Manuscript</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1b2430; --mid:#4a5568; --light:#8a94a6;
+    --accent:#1f6feb; --accent2:#f59e0b;
+    --note-bg:#fff8e6; --note-border:#f0c674;
+    --page:#ffffff; --wash:#f4f7fb;
+    --body:"Georgia","Iowan Old Style","Times New Roman",serif;
+    --display:"Trebuchet MS","Verdana","Segoe UI",sans-serif;
+  }
+  html{font-size:16px}
+  body{
+    font-family:var(--body); color:var(--ink); background:var(--wash);
+    line-height:1.6; padding:2rem 1rem 5rem;
+  }
+  .sheet{max-width:44rem;margin:0 auto;background:var(--page);
+    padding:3rem 2.5rem;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+  /* ---------- TITLE BLOCK ---------- */
+  .titlepage{text-align:center;padding:2rem 0 3rem;border-bottom:3px double var(--accent)}
+  .series{font-family:var(--display);font-size:.75rem;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--accent);font-weight:bold}
+  .booknum{font-family:var(--display);font-size:.7rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--light);margin-top:.35rem}
+  h1{font-family:var(--display);font-size:2.9rem;line-height:1.05;margin:1.2rem 0 .5rem;
+    color:var(--ink);letter-spacing:-.01em}
+  .subtitle{font-family:var(--display);font-size:1.1rem;color:var(--accent2);
+    font-weight:bold;text-transform:uppercase;letter-spacing:.08em}
+  .byline{margin-top:1.6rem;font-style:italic;color:var(--mid)}
+  .specs{margin-top:1.6rem;font-family:var(--display);font-size:.8rem;color:var(--light);
+    line-height:1.9}
+
+  /* ---------- SECTIONS ---------- */
+  h2{font-family:var(--display);font-size:1.4rem;margin:3rem 0 1rem;color:var(--accent);
+    padding-bottom:.4rem;border-bottom:1px solid #dde3ec}
+  h3{font-family:var(--display);font-size:1.05rem;margin:2rem 0 .6rem;color:var(--ink)}
+  p{margin-bottom:.9rem}
+  .lede{color:var(--mid);font-size:.95rem}
+
+  /* ---------- SPREADS ---------- */
+  .spread{margin:0 0 2.2rem;padding-top:1.6rem;border-top:1px solid #e8edf4}
+  .spread:first-of-type{border-top:none}
+  .sp-label{font-family:var(--display);font-size:.72rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--accent);font-weight:bold;margin-bottom:.7rem}
+  .sp-label .pages{color:var(--light);font-weight:normal;letter-spacing:.08em}
+  .verse{font-size:1.18rem;line-height:1.85;white-space:pre-line;margin-bottom:.9rem}
+  .verse .shout{font-weight:bold;letter-spacing:.02em}
+  .bigword{font-family:var(--display);font-weight:bold;color:var(--accent);
+    letter-spacing:.02em}
+  .display-line{font-family:var(--display);font-weight:bold;color:var(--accent2);
+    font-size:1.25rem;text-align:center;margin:.6rem 0;letter-spacing:.01em}
+
+  .art{background:var(--note-bg);border-left:4px solid var(--note-border);
+    padding:.75rem 1rem;font-family:var(--display);font-size:.84rem;
+    line-height:1.6;color:#6b5518;border-radius:0 4px 4px 0}
+  .art b{color:#8a6a10;text-transform:uppercase;letter-spacing:.1em;font-size:.72rem}
+
+  /* ---------- BACK MATTER ---------- */
+  .glossary dt{font-family:var(--display);font-weight:bold;color:var(--accent);
+    margin-top:.9rem;font-size:.98rem}
+  .glossary dd{margin-left:0;color:var(--mid)}
+  ol,ul{margin:0 0 1rem 1.4rem}
+  li{margin-bottom:.45rem}
+  .box{background:var(--wash);border:1px solid #dde3ec;border-radius:6px;
+    padding:1.2rem 1.4rem;margin:1.2rem 0}
+  .box h3{margin-top:0}
+  .fillin{border-bottom:1.5px dotted var(--light);display:inline-block;min-width:11rem}
+
+  /* ---------- CONTROLS ---------- */
+  .controls{max-width:44rem;margin:0 auto 1rem;text-align:right}
+  button{font-family:var(--display);font-size:.8rem;padding:.5rem .9rem;
+    border:1px solid var(--accent);background:#fff;color:var(--accent);
+    border-radius:4px;cursor:pointer}
+  button:hover{background:var(--accent);color:#fff}
+  body.read-aloud .art{display:none}
+  body.read-aloud .spread{padding-top:1.2rem}
+
+  @media print{
+    body{background:#fff;padding:0;font-size:11.5pt}
+    .sheet{box-shadow:none;padding:0;max-width:none}
+    .controls{display:none}
+    .spread{page-break-inside:avoid}
+    h2{page-break-after:avoid}
+  }
+  @media (max-width:640px){
+    .sheet{padding:2rem 1.25rem}
+    h1{font-size:2.1rem}
+    .verse{font-size:1.08rem}
+  }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button onclick="document.body.classList.toggle('read-aloud')">Toggle illustration notes</button>
+  <button onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div class="sheet">
+
+<header class="titlepage">
+  <div class="series">Big Ideas for Little Minds</div>
+  <div class="booknum">Book One</div>
+  <h1>Hello! I'm A.I.</h1>
+  <div class="subtitle">All About Artificial Intelligence</div>
+  <p class="byline">A rhyming picture book for curious kids</p>
+  <div class="specs">
+    Ages 5–8 &nbsp;·&nbsp; Reading level: Grades 1–3<br>
+    28 spreads &nbsp;·&nbsp; 48 pages &nbsp;·&nbsp; approx. 1,450 words<br>
+    Trim: 8.5" × 8.5" square, full color
+  </div>
+</header>
+
+<h2>How to Read This Manuscript</h2>
+<p class="lede">Each numbered <b>spread</b> is one left-and-right page pair in the finished
+book. The large type is the text that gets printed. The yellow box beneath it is the
+<b>art note</b> — the instruction for your illustrator (or for an image-generation prompt).
+Art notes are never printed in the book. Use the toggle button above to hide them and read
+the story straight through the way a child will hear it.</p>
+
+<h2>The Story</h2>
+
+<div class="spread">
+  <div class="sp-label">Spread 1 <span class="pages">— pages 4–5</span></div>
+  <div class="verse">The rain wouldn't stop. It was puddles and gray.
+My brother and I had run out of play.
+Then something went <span class="shout">BEEP</span> by the leg of my chair —
+a small silver something with one blinking flare.</div>
+  <div class="art"><b>Art</b> — Cozy living room, rain streaking the window. MAYA (7, narrator, box
+  braids, striped socks) sprawled upside down on the couch; AMIR (5, little brother, big glasses)
+  flat on the rug. In the bottom corner, unnoticed by them, a small round robot the size of a grapefruit
+  peeks out from under the chair — one glowing blue eye-light.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 2 <span class="pages">— pages 6–7</span></div>
+  <div class="verse">It rolled to my shoe and said, "Hello! How do you do?
+My name is Byte, and I've come here for you.
+I am small. I am round. I have wheels made of tin,
+and a whole lot of <span class="bigword">CODE</span> running quietly within."</div>
+  <div class="art"><b>Art</b> — Full reveal of BYTE: a friendly silver dome on two chunky wheels, one big
+  round screen-face with a blue smile, two bendy antenna-arms. A cutaway bubble shows tidy glowing
+  lines of code inside him. Kids leaning in, delighted. Byte is the series mascot — keep his design
+  identical in Book Two.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 3 <span class="pages">— pages 8–9</span></div>
+  <div class="verse">"Do you think?" asked Amir. "Do you wonder? Do you dream?"
+"Ha!" laughed the robot. "I'm not what I seem.
+I don't feel. I don't wish. I don't know what is true.
+But I'm useful. I'm clever. And I'll prove it to you."</div>
+  <div class="art"><b>Art</b> — Amir crouched nose-to-nose with Byte, hopeful. Thought-bubbles above
+  Byte showing a heart, a star, and a dream-cloud — all three crossed out with a gentle dotted line,
+  not a harsh X. Keep it playful, not sad.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 4 <span class="pages">— pages 10–11</span></div>
+  <div class="verse">"A computer," said Byte, "will do just what you say —
+if you write down the steps in a very clear way.
+Step one, and step two, and step three, and step four,
+like a recipe. Follow it. Never one more."</div>
+  <div class="art"><b>Art</b> — Kitchen scene as a giant recipe card. Byte wearing a chef hat, following
+  numbered steps to make a peanut butter sandwich. Each step drawn as a little panel: 1. open jar,
+  2. scoop, 3. spread, 4. squish. Sandwich comes out perfect.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 5 <span class="pages">— pages 12–13</span></div>
+  <div class="verse">"A list of clear steps has a name you can learn.
+It's an <span class="bigword">AL-go-RITH-um</span>. Now say it — your turn!"
+So we said it. We shouted it. Loud as a drum.
+<span class="shout">AL! GO! RITH! UM!</span> — What a fun word to become.</div>
+  <div class="art"><b>Art</b> — Big hand-lettered word ALGORITHM broken into four bouncing syllable-blocks
+  across the spread, kids jumping on them like stepping stones. Byte conducting with his antenna
+  like a bandleader.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 6 <span class="pages">— pages 14–15</span></div>
+  <div class="verse">"But some things are too tricky for steps to explain.
+Like — how do you know that a cat's not a plane?
+Is it whiskers? Or fur? Or the point of the ears?
+You just <span class="shout">KNOW</span>. But to write it? You'd sit here for years!"</div>
+  <div class="art"><b>Art</b> — Split page. Left: a cat. Right: an airplane. Between them, Maya scratching
+  her head beside a comically long scroll of half-finished rules trailing off the page: "A cat has
+  fur… unless it doesn't… a cat has 4 legs… so does a table…"</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 7 <span class="pages">— pages 16–17</span></div>
+  <div class="verse">So people got clever and tried something new.
+"We won't write the steps. We'll show pictures! A few?"
+"Oh no," they all said. "We'll need more than a few.
+We'll need <span class="shout">MILLIONS</span> of pictures. Now here's what we'll do…"</div>
+  <div class="art"><b>Art</b> — An enormous cascade of photographs pouring into a funnel on top of a big
+  friendly machine. Cats of every kind — fat ones, skinny ones, orange, black, sleeping, jumping.
+  Scientists in the corner cheerfully shoveling more in.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 8 <span class="pages">— pages 18–19</span></div>
+  <div class="verse">"This one is a <span class="shout">CAT</span>." "This one <span class="shout">ISN'T</span>." "This <span class="shout">IS</span>."
+Again and again, like a very long quiz.
+The machine kept on guessing. It guessed and it missed.
+Then it guessed a bit better. Then better than this!</div>
+  <div class="art"><b>Art</b> — Grid of photos, each getting a green check or red X. Show the machine's
+  guess meter climbing: a big dial moving from "mostly wrong" toward "pretty good." Include one
+  funny wrong guess — it labels a loaf of bread "CAT."</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 9 <span class="pages">— pages 20–21</span></div>
+  <div class="verse">For slowly it noticed the things that cats share:
+the ears and the whiskers, the eyes and the hair.
+Nobody told it. It found them alone.
+That's learning from <span class="bigword">PATTERNS</span> — and boy, had it grown!</div>
+  <div class="art"><b>Art</b> — Ghostly overlay of a hundred cat photos stacked on top of each other,
+  slowly resolving into one glowing cat-shape made of light. Highlight circles around ears, whiskers,
+  eyes. Kids watching with wide eyes.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 10 <span class="pages">— pages 22–23</span></div>
+  <div class="verse">"The showing," said Byte, "has a name: it is <span class="bigword">TRAINING</span>.
+And the pictures are <span class="bigword">DATA</span> — I hope I'm explaining!
+A machine that learns patterns from data this way
+is <span class="bigword">ARTIFICIAL INTELLIGENCE</span>. A.I.! Hooray!"</div>
+  <div class="art"><b>Art</b> — Byte at a chalkboard with three labeled arrows: DATA → TRAINING → A.I.
+  Simple enough that a five-year-old can trace it with a finger. Confetti. This is the spread the
+  whole book turns on — give it the boldest lettering in the book.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 11 <span class="pages">— pages 24–25</span></div>
+  <div class="verse">"And you've met me already," said Byte with a spin.
+"I'm the voice in the speaker. I'm out and I'm in.
+I'm the map that says 'TURN!' when your car's in the street.
+I'm the junk-mail remover. I'm hard to defeat!"</div>
+  <div class="art"><b>Art</b> — Cutaway of the family house and the street outside, with little Byte-faces
+  glowing wherever AI is hiding: smart speaker, phone map, email inbox, TV recommendations,
+  the car. Like a seek-and-find. Kids can count them.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 12 <span class="pages">— pages 26–27</span></div>
+  <div class="verse">"I sort through your photos and know Grandma's face.
+I turn Spanish to English. I'm good at a race
+of remembering things — I remember a <span class="shout">LOT</span>.
+And I never grow sleepy. And I never grow hot."</div>
+  <div class="art"><b>Art</b> — Three panels: (1) photo app grouping pictures of a smiling grandmother,
+  (2) a speech bubble morphing from "¡Hola!" to "Hello!", (3) Byte zooming past a snoozing tortoise
+  labeled "me at bedtime." Light and funny.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 13 <span class="pages">— pages 28–29</span></div>
+  <div class="verse">"And some of my cousins make sentences, too.
+They have read a whole mountain of writing — it's true!
+So they guess the next word, and the next, and the next,
+till they've built you a poem, a story, a text."</div>
+  <div class="art"><b>Art</b> — A robot cousin (taller, bookish, spectacles drawn on its screen) standing
+  on a literal mountain made of books and webpages. Words tumbling out of it and assembling
+  into a short poem on the page. Show the guessing: "The cat sat on the ___" with three
+  possible next words floating up (mat, moon, marshmallow).</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 14 <span class="pages">— pages 30–31</span></div>
+  <div class="verse">"And some make a picture from words that you say.
+Ask for <span class="shout">SIXTEEN BLUE ELEPHANTS SAILING A SLEIGH</span> —
+and poof! There they are, in a blink and a beam.
+But a machine made that picture. A machine has no dream."</div>
+  <div class="art"><b>Art</b> — The absurd requested image rendered gloriously: sixteen blue elephants in
+  a sleigh, sailing through clouds. Around the edges, keep it slightly "unfinished" — one elephant has
+  five legs, one sleigh runner is bent — as a quiet visual joke that sets up Spread 16.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 15 <span class="pages">— pages 32–33</span></div>
+  <div class="verse">"I help doctors find sickness deep down in an ear.
+I help farmers grow corn. I help sailors to steer.
+I read books out loud for the eyes that can't see.
+Oh, there's so many good things a helper can be!"</div>
+  <div class="art"><b>Art</b> — Four warm vignettes in soft circles: a doctor and child looking at a screen;
+  a farmer in a green field with a small drone; a ship on calm water; a child with a cane listening to a
+  tablet read aloud. Diverse cast throughout. This spread should feel hopeful.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 16 <span class="pages">— pages 34–35</span></div>
+  <div class="verse">"But listen," said Byte, and his blinking went slow.
+"There are things I get <span class="shout">WRONG</span>. And you ought to know.
+Once I looked at a muffin, all speckled and brown,
+and I said, 'That's a PUPPY!' — the best one in town."</div>
+  <div class="art"><b>Art</b> — The classic gag done big: a tray of blueberry muffins next to a row of
+  chihuahua faces, genuinely hard to tell apart. Byte pointing confidently at a muffin with a label
+  reading "PUPPY — 98% sure." Kids laughing.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 17 <span class="pages">— pages 36–37</span></div>
+  <div class="verse">"And here is the worst of it: when I am wrong,
+I don't sound like I'm guessing. I sound very strong!
+I can tell you a 'fact' that is not even true
+in a confident voice. So — what should you do?"</div>
+  <div class="art"><b>Art</b> — Byte on a little stage, chest puffed, spotlight on him, declaring
+  "THE MOON IS MADE OF CHEESE!" with total conviction. Maya in the audience with one eyebrow
+  raised. Amir already reaching for a book.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 18 <span class="pages">— pages 38–39</span></div>
+  <div class="verse">"<span class="shout">CHECK IT!</span>" said Amir. "That's right!" said our friend.
+"Don't believe the first thing. Ask again. Then again.
+Ask a grown-up. A teacher. A book on the shelf.
+For the very best checker of facts is <span class="shout">YOURSELF</span>."</div>
+  <div class="art"><b>Art</b> — Amir holding up a real book about the moon, showing a photo of gray rock.
+  Maya asking a parent. Byte's cheese claim deflating like a balloon. Add a small repeating icon —
+  a magnifying glass — that can become the series' "check it" symbol.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 19 <span class="pages">— pages 40–41</span></div>
+  <div class="verse">"And here's something tricky, but true all the same:
+whatever I'm shown is the way that I came.
+If the pictures were unfair, then <span class="shout">I</span> will be too.
+So people must check me. And 'people' means <span class="shout">YOU</span>."</div>
+  <div class="art"><b>Art</b> — A machine being shown a lopsided pile of pictures — every "doctor" picture
+  is the same kind of person — and then the machine drawing only that kind of doctor. On the right,
+  the kids fixing it by handing it a big armful of pictures of all kinds of doctors. Keep it hopeful
+  and fixable, never accusatory.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 20 <span class="pages">— pages 42–43</span></div>
+  <div class="verse">"And I need lots of data to learn what to do,
+and that data comes from folks — from people like you.
+So your password, your address, the name of your school:
+don't type them to me. Ask a grown-up. That's the rule."</div>
+  <div class="art"><b>Art</b> — Maya at a tablet about to type her address; Byte gently blocking the screen
+  with an antenna and a kind expression, pointing toward a parent in the doorway. Include a small
+  "That's private!" tag — this is the deliberate bridge to Book Two.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 21 <span class="pages">— pages 44–45</span></div>
+  <div class="verse">"Are you <span class="shout">ALIVE</span>?" asked Amir. "Do you laugh? Do you care?"
+"I do not," said Byte. "There is nobody there.
+I don't hurt. I don't hope. I don't wish on a star.
+I'm a tool — like a hammer, a wheel, or a car."</div>
+  <div class="art"><b>Art</b> — Byte standing in a lineup with a hammer, a bicycle wheel, and a toy car,
+  all wearing tiny name tags reading "TOOL." Gentle and matter-of-fact, not eerie. Amir looks a
+  little sad; Maya has a hand on his shoulder.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 22 <span class="pages">— pages 46–47</span></div>
+  <div class="verse">"So <span class="shout">YOU</span> are the thinker. And you are the one
+who can wonder, and worry, and giggle, and run.
+I can copy a poem. I can sound like a friend.
+But your ideas are yours — from beginning to end."</div>
+  <div class="art"><b>Art</b> — The two kids drawn big and golden, bursting with imagination: a wild
+  crayon drawing exploding out of Maya's sketchbook into three dimensions — dragons, rockets,
+  a jellyfish wearing a hat. Byte small at the bottom, applauding.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 23 <span class="pages">— pages 48–49</span></div>
+  <div class="verse">"Three rules," said the robot, "and then I'll be done.
+<span class="shout">RULE ONE:</span> ask a grown-up before you have fun.
+<span class="shout">RULE TWO:</span> keep the private stuff private and small.
+<span class="shout">RULE THREE:</span> do your own thinking. That's the best one of all."</div>
+  <div class="art"><b>Art</b> — Three big numbered signs held up by Byte's antennae, hand-lettered like
+  a poster. Design this spread so it works as a standalone classroom poster — publishers and
+  teachers photograph pages like this, and it sells books.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 24 <span class="pages">— pages 50–51</span></div>
+  <div class="verse">"If your teacher says, 'Write me a story of rain,'
+then <span class="shout">YOU</span> write the story. Go on — use your brain!
+I can show you how raindrops are built in the sky.
+But the story is yours. Don't you let that go by."</div>
+  <div class="art"><b>Art</b> — Maya writing in a notebook by the window, tongue out in concentration.
+  Byte beside her holding up a small helpful diagram of the water cycle — helper, not author. The
+  notebook page shows her own messy, wonderful handwriting.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 25 <span class="pages">— pages 52–53</span></div>
+  <div class="verse">"And one day," said Byte, "when you're taller than me,
+you could build a new helper. Yes — <span class="shout">YOU</span>. Wait and see.
+For somebody made me. They were curious too.
+They asked lots of questions… exactly like you."</div>
+  <div class="art"><b>Art</b> — Dream sequence in soft color: Maya grown up in a workshop, building a
+  robot of her own; Amir with a laptop and a wild grin. Sketches and springs everywhere. Show
+  many kinds of kids in the dream, not only these two.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 26 <span class="pages">— pages 54–55</span></div>
+  <div class="verse">The rain finally stopped. There was gold in the sky.
+And Byte gave a beep and a blink of goodbye.
+"Remember," he said as he rolled out the door,
+"I am smart in <span class="shout">one</span> way. But you're smart in <span class="shout">more</span>."</div>
+  <div class="art"><b>Art</b> — Golden late-afternoon light flooding the room, puddles outside catching the
+  sun. Byte rolling toward the door, one antenna raised in a wave. Kids waving from the rug.
+  Warm, quiet, end-of-adventure feeling.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 27 <span class="pages">— pages 56–57</span></div>
+  <div class="verse">So now when a robot voice tells us what's true,
+we listen. We wonder. And then we check, too.
+Because thinking's a thing that we <span class="shout">get</span> to do —
+and the very best thinker in this house… is <span class="shout">YOU</span>.</div>
+  <div class="art"><b>Art</b> — Final page turns to the reader: the two kids looking straight out at us,
+  pointing gently at the reader. Mirror-like framing. Big warm color. This is the emotional payoff —
+  the child on the rug is the "you."</div>
+</div>
+
+<h2>Back Matter</h2>
+<p class="lede">Four pages of back matter. This is what turns a picture book into a classroom
+purchase, and it is the single cheapest way to raise the perceived value of the book.</p>
+
+<h3>Words to Know</h3>
+<dl class="glossary">
+  <dt>Algorithm</dt><dd>A list of steps for doing a job, written so clearly that a machine can follow it.</dd>
+  <dt>Artificial intelligence (A.I.)</dt><dd>A computer program that learns patterns from examples instead of being given every step.</dd>
+  <dt>Data</dt><dd>Information — pictures, words, numbers, sounds — that a computer can look at.</dd>
+  <dt>Training</dt><dd>Showing a program lots and lots of examples so it can learn a pattern.</dd>
+  <dt>Pattern</dt><dd>Something that repeats. Cats all have whiskers; that's part of the "cat" pattern.</dd>
+  <dt>Chatbot</dt><dd>An A.I. that writes words back to you, guessing what word should come next.</dd>
+  <dt>Prompt</dt><dd>What you ask an A.I. to do. A better question usually gets a better answer.</dd>
+  <dt>Bias</dt><dd>When something is unfair in one direction. If an A.I. only ever sees one kind of example, it learns an unfair pattern.</dd>
+  <dt>Fact-check</dt><dd>Looking somewhere else — a book, a grown-up, a trusted website — to find out if something is really true.</dd>
+  <dt>Tool</dt><dd>Something people made to help them do a job. A hammer is a tool. So is A.I.</dd>
+</dl>
+
+<div class="box">
+<h3>Try This! — Be the Algorithm</h3>
+<p>Ask a grown-up to sit down with bread, peanut butter, and a knife. Now give them
+<i>exact</i> steps to make a sandwich — and they must do <b>only</b> what you say. Say "pick
+up the bread" and they might pick up the whole bag. It gets very silly, very fast. That's how
+picky computers are about instructions.</p>
+</div>
+
+<div class="box">
+<h3>Try This! — A.I. Scavenger Hunt</h3>
+<p>Walk through your home and count the places A.I. might be hiding. Check the phone,
+the TV, the car, the speaker, the camera on the doorbell. How many did you find? Ask a
+grown-up which ones are listening, and when.</p>
+</div>
+
+<div class="box">
+<h3>Try This! — Catch a Mistake</h3>
+<p>With a grown-up, ask an A.I. assistant a question you already know the answer to — like the
+name of your street, or how old your dog is. Did it get it right? Did it sound sure either way?
+That's the whole lesson of this book in one minute.</p>
+</div>
+
+<h3>Talk About It</h3>
+<ol>
+  <li>What is the difference between a recipe and learning from examples?</li>
+  <li>Byte says he's a tool, like a hammer. Do you agree? Why?</li>
+  <li>Why can a computer be wrong <i>and</i> sound sure at the same time?</li>
+  <li>Name one thing about you that should stay private.</li>
+  <li>What's something you can do that A.I. can't?</li>
+</ol>
+
+<h3>A Note for Grown-Ups</h3>
+<p>Children are already using A.I. — in homework helpers, in games, in the speaker on the
+kitchen counter — usually well before anyone explains it to them. The goal of this book is not
+to make kids afraid of the technology, and not to make them starry-eyed about it either. It's to
+give them three habits early: <b>ask a trusted adult</b>, <b>keep private information private</b>,
+and <b>check before you believe</b>.</p>
+<p>The trickiest idea here is the one on spread 17 — that a machine can be confidently wrong.
+Adults struggle with this too. If your child takes only one thing from this book, let it be that
+sounding sure and being right are two different things.</p>
+<p>Book Two in this series, <i>That's Private!</i>, picks up exactly where spread 20 leaves off.</p>
+
+</div>
+</body>
+</html>
