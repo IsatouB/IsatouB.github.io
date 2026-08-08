@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beep! I'm Byte — Manuscript (Ages 2–5)</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1b2430;--mid:#4a5568;--light:#8a94a6;
+    --accent:#0284c7;--accent2:#f59e0b;
+    --note-bg:#fff8e6;--note-border:#f0c674;
+    --wash:#eff8fd;
+    --body:"Georgia","Times New Roman",serif;
+    --display:"Trebuchet MS","Verdana","Segoe UI",sans-serif;
+  }
+  body{font-family:var(--body);color:var(--ink);background:var(--wash);
+    line-height:1.6;padding:2rem 1rem 5rem}
+  .sheet{max-width:44rem;margin:0 auto;background:#fff;padding:3rem 2.5rem;
+    border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+  .titlepage{text-align:center;padding:2rem 0 3rem;border-bottom:3px double var(--accent)}
+  .series{font-family:var(--display);font-size:.75rem;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--accent);font-weight:bold}
+  .booknum{font-family:var(--display);font-size:.7rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--light);margin-top:.35rem}
+  h1{font-family:var(--display);font-size:3.1rem;line-height:1.02;margin:1.2rem 0 .5rem;
+    letter-spacing:-.02em}
+  .subtitle{font-family:var(--display);font-size:1.05rem;color:var(--accent2);
+    font-weight:bold;text-transform:uppercase;letter-spacing:.06em}
+  .specs{margin-top:1.6rem;font-family:var(--display);font-size:.8rem;color:var(--light);line-height:1.9}
+
+  h2{font-family:var(--display);font-size:1.35rem;margin:2.8rem 0 1rem;color:var(--accent);
+    padding-bottom:.4rem;border-bottom:1px solid #d9ecf7}
+  h3{font-family:var(--display);font-size:1.02rem;margin:1.8rem 0 .5rem}
+  p{margin-bottom:.9rem}
+  .lede{color:var(--mid);font-size:.95rem}
+  ul,ol{margin:0 0 1rem 1.4rem}li{margin-bottom:.4rem}
+
+  .spread{margin:0 0 2rem;padding-top:1.5rem;border-top:1px solid #e6f1f8}
+  .spread:first-of-type{border-top:none}
+  .sp-label{font-family:var(--display);font-size:.72rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--accent);font-weight:bold;margin-bottom:.8rem}
+  .sp-label .pages{color:var(--light);font-weight:normal;letter-spacing:.08em}
+  .verse{font-family:var(--display);font-size:1.6rem;font-weight:bold;line-height:1.45;
+    white-space:pre-line;margin-bottom:1rem;letter-spacing:-.01em;color:#12303f}
+  .verse .big{color:var(--accent);font-size:1.15em}
+  .art{background:var(--note-bg);border-left:4px solid var(--note-border);
+    padding:.75rem 1rem;font-family:var(--display);font-size:.84rem;
+    line-height:1.6;color:#6b5518;border-radius:0 4px 4px 0}
+  .art b{color:#8a6a10;text-transform:uppercase;letter-spacing:.1em;font-size:.72rem}
+
+  .box{background:var(--wash);border:1px solid #d9ecf7;border-radius:6px;
+    padding:1.1rem 1.3rem;margin:1.2rem 0}
+  .box h3{margin-top:0}
+  .box.warn{background:#fff7ed;border-color:#fdba74}
+  .box.warn h3{color:#9a3412}
+  .glossary dt{font-family:var(--display);font-weight:bold;color:var(--accent);margin-top:.8rem}
+  .glossary dd{margin-left:0;color:var(--mid)}
+
+  .controls{max-width:44rem;margin:0 auto 1rem;text-align:right}
+  button{font-family:var(--display);font-size:.8rem;padding:.5rem .9rem;
+    border:1px solid var(--accent);background:#fff;color:var(--accent);
+    border-radius:4px;cursor:pointer}
+  button:hover{background:var(--accent);color:#fff}
+  body.read-aloud .art{display:none}
+
+  @media print{body{background:#fff;padding:0;font-size:11pt}
+    .sheet{box-shadow:none;padding:0;max-width:none}
+    .controls{display:none}.spread{page-break-inside:avoid}}
+  @media (max-width:640px){.sheet{padding:2rem 1.25rem}h1{font-size:2.2rem}
+    .verse{font-size:1.3rem}}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button onclick="document.body.classList.toggle('read-aloud')">Toggle illustration notes</button>
+  <button onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div class="sheet">
+
+<header class="titlepage">
+  <div class="series">Big Ideas for Little Minds · First Books</div>
+  <div class="booknum">Toddler Edition</div>
+  <h1>Beep! I'm Byte</h1>
+  <div class="subtitle">A First Book About Robots &amp; A.I.</div>
+  <div class="specs">
+    Ages 2–5 &nbsp;·&nbsp; Read-aloud / pre-reader<br>
+    16 spreads &nbsp;·&nbsp; 32 pages &nbsp;·&nbsp; 187 words<br>
+    Trim: 8" × 8" square, full color
+  </div>
+</header>
+
+<h2>What changed for ages 2–5</h2>
+<p class="lede">This is not a trimmed version of the 5–8 book. It's a different book that happens
+to share a mascot. Toddler picture books follow different rules, and I've applied all of them:</p>
+<ul>
+  <li><b>187 words instead of 1,450.</b> Four short lines a spread, maximum.</li>
+  <li><b>One idea per spread.</b> No spread does two jobs.</li>
+  <li><b>Sound and repetition carry the book.</b> "Beep, beep, beep!" recurs six times — toddlers
+  join in on it by the third read, and that participation is what makes a book get requested again.</li>
+  <li><b>Concrete nouns only.</b> Cats, muffins, wheels, ice cream. "Algorithm," "data," and "bias"
+  are all gone — they're beyond this age and their absence costs nothing.</li>
+  <li><b>The concept is reduced to one true thing:</b> a machine learns by looking at lots and
+  lots of things, it gets things wrong, and it is not alive. That's the whole book.</li>
+  <li><b>It ends on the child, not the robot.</b> Every good toddler book does.</li>
+</ul>
+
+<div class="box warn">
+<h3>Format note — there are no board books on KDP</h3>
+<p>Amazon KDP prints paperback and hardcover only. Board books need a specialty printer with a
+minimum order in the hundreds or thousands of copies, paid up front. So publish this as an 8" × 8"
+full-color <b>paperback</b> and describe it as a "first book" or "read-aloud picture book" for ages
+2–5 — never call it a board book in the listing, because buyers will expect thick pages and leave
+one-star reviews when they don't get them.</p>
+</div>
+
+<h2>The Story</h2>
+
+<div class="spread">
+  <div class="sp-label">Spread 1 <span class="pages">— pages 2–3</span></div>
+  <div class="verse"><span class="big">Beep, beep, beep!</span>
+Look who's here!
+A little robot.
+Byte is here!</div>
+  <div class="art"><b>Art</b> — BYTE rolling in through a doorway, one antenna up in a wave. Big, simple,
+  centered, filling most of the spread. Toddler books need one clear subject per page and lots of
+  empty space around it. Bright, flat color.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 2 <span class="pages">— pages 4–5</span></div>
+  <div class="verse">Byte has wheels.
+Byte has a light.
+Byte has arms
+that bend just right.</div>
+  <div class="art"><b>Art</b> — Byte alone on a plain bright background with his parts gently labeled by
+  simple pointing lines: wheels, light, arms. Toddlers love naming pages — this one earns pointing
+  fingers and is the page a two-year-old will stop on.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 3 <span class="pages">— pages 6–7</span></div>
+  <div class="verse">Byte can't eat.
+Byte can't grow.
+Byte's a <span class="big">MACHINE</span>.
+Now you know!</div>
+  <div class="art"><b>Art</b> — Three little panels: Byte in front of a plate of spaghetti, not eating.
+  Byte next to a growth chart, not growing. Then Byte beside a toaster and a washing machine, all
+  three with friendly faces — machines together. Funny, not sad.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 4 <span class="pages">— pages 8–9</span></div>
+  <div class="verse">What can Byte do?
+Byte can <span class="big">LOOK!</span>
+Look, Byte, look!
+What do you see?</div>
+  <div class="art"><b>Art</b> — Byte's round screen-face lighting up, two big beams of soft light coming
+  from his eye like a friendly flashlight. Expectant, leaning forward. The page should make a child
+  want to turn it.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 5 <span class="pages">— pages 10–11</span></div>
+  <div class="verse">Here's a cat.
+One little cat.
+Byte says, "Hmm…
+a dog? A hat?"</div>
+  <div class="art"><b>Art</b> — One fluffy orange cat sitting patiently. Byte looking puzzled, with a
+  thought bubble containing a wobbly dog and a floppy hat. Big visual joke — toddlers know it's a
+  cat, and being smarter than the robot is the best feeling in the book.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 6 <span class="pages">— pages 12–13</span></div>
+  <div class="verse">Show Byte more!
+Two. Three. Four.
+Big cats. Small cats.
+<span class="big">MORE! MORE! MORE!</span></div>
+  <div class="art"><b>Art</b> — The spread filling up with cats of every shape and color — striped,
+  spotted, fat, skinny, sleeping, jumping. Countable ones in front (two, three, four clearly
+  separated) and a joyful jumble behind. A counting page hidden inside a concept page.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 7 <span class="pages">— pages 14–15</span></div>
+  <div class="verse">Now Byte knows.
+Byte shouts, "<span class="big">A CAT!</span>"
+Byte looked and looked.
+Byte learned, like that!</div>
+  <div class="art"><b>Art</b> — Byte lit up bright and triumphant, antennae straight up, confetti or
+  sparkles. One cat in front of him with a big label. This is the entire scientific content of the
+  book, and it lands in four words: Byte looked and looked.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 8 <span class="pages">— pages 16–17</span></div>
+  <div class="verse">Byte learns by looking.
+Look, look, look!
+Just like you learn
+from your favorite book.</div>
+  <div class="art"><b>Art</b> — Split page. Left: Byte studying cats. Right: a toddler in a grown-up's lap
+  with a picture book open, pointing at the page. Deliberate mirror composition — the child sees
+  themselves doing what the robot does. Warm light on the right side.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 9 <span class="pages">— pages 18–19</span></div>
+  <div class="verse">Byte can help.
+Where's Grandma's face?
+<span class="big">Beep!</span> Byte found her.
+There's the place!</div>
+  <div class="art"><b>Art</b> — A wall of small photographs. Byte's light landing on one — a smiling
+  grandmother — while a toddler claps. Make Grandma warm and specific enough to be somebody's
+  actual grandmother.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 10 <span class="pages">— pages 20–21</span></div>
+  <div class="verse">Byte can help.
+Which way to go?
+Byte says, "<span class="big">LEFT!</span>"
+Now we know!</div>
+  <div class="art"><b>Art</b> — A simple winding road seen from above with a big friendly arrow pointing
+  left, and a little car on it. Byte riding on the dashboard. Keep the map cartoon-simple — one road,
+  one arrow, one turn.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 11 <span class="pages">— pages 22–23</span></div>
+  <div class="verse"><span class="big">Uh-oh, Byte!</span>
+That's not a pup.
+That's a <span class="big">MUFFIN</span>
+in a cup!</div>
+  <div class="art"><b>Art</b> — One blueberry muffin in a paper cup, big and central. Byte pointing at it
+  confidently, with a little wobbly puppy in his thought bubble. The toddler equivalent of the whole
+  "AI is confidently wrong" lesson — and it gets the biggest laugh in the book.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 12 <span class="pages">— pages 24–25</span></div>
+  <div class="verse">Byte gets things wrong.
+Byte isn't always right.
+So ask your grown-up.
+They will help you. <span class="big">Beep!</span></div>
+  <div class="art"><b>Art</b> — A toddler tugging a parent's sleeve and pointing at the muffin; the parent
+  crouching down to look. Byte beside them, sheepish, one antenna drooping. The behavior being
+  modelled is simply: go ask.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 13 <span class="pages">— pages 26–27</span></div>
+  <div class="verse">Byte can beep.
+Byte can roll.
+Byte can find things.
+Byte is cool!</div>
+  <div class="art"><b>Art</b> — Byte doing all three at once in a happy motion-blur — beeping, rolling,
+  spotlight on. Cheerful and fast. Sets up the turn on the next spread, so keep this page purely
+  celebratory.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 14 <span class="pages">— pages 28–29</span></div>
+  <div class="verse">But can Byte hug?
+<span class="big">No, no, no!</span>
+Can Byte taste
+your ice cream? <span class="big">NO!</span></div>
+  <div class="art"><b>Art</b> — Two funny panels: Byte's stiff metal arms failing to hug a soft teddy bear,
+  and Byte holding an ice cream cone with no mouth to eat it, looking baffled. Ice cream melting
+  down his side. Big laugh, gentle point.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 15 <span class="pages">— pages 30–31</span></div>
+  <div class="verse">Only <span class="big">YOU</span> can.
+Yes, it's true.
+Byte is clever…
+but not like <span class="big">YOU!</span></div>
+  <div class="art"><b>Art</b> — The toddler drawn big and golden in the middle of the spread, hugging a
+  bear with one arm and holding an ice cream in the other, mid-giggle. Byte small at their feet,
+  applauding. The child is the biggest thing on the page — that's the whole payoff.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 16 <span class="pages">— pages 32–33</span></div>
+  <div class="verse">Bye-bye, Byte!
+<span class="big">Beep, beep, beep!</span>
+Wave good night.
+Time to sleep.</div>
+  <div class="art"><b>Art</b> — Dim bedtime blues and warm lamplight. Byte rolling out the bedroom door,
+  antenna waving. Toddler tucked in with the bear, waving back, eyes heavy. Every toddler book
+  should end somewhere a child can be put to bed.</div>
+</div>
+
+<h2>Back Matter</h2>
+<p class="lede">Keep it to two pages at this age. Parents of two-year-olds don't read six pages of
+back matter — but they do read a short note that tells them what to say.</p>
+
+<h3>Three Words to Say Together</h3>
+<dl class="glossary">
+  <dt>Machine</dt><dd>Something people built. It doesn't eat, sleep, or grow. A toaster is a machine. So is Byte.</dd>
+  <dt>Learn</dt><dd>Getting better at something by doing it again and again — like Byte looking at cats, or you turning pages.</dd>
+  <dt>Ask</dt><dd>What you do when you're not sure. Find your grown-up and ask.</dd>
+</dl>
+
+<h3>Play Along</h3>
+<ul>
+  <li><b>Beep together.</b> Let your child say every "beep, beep, beep!" You do the rest. This is
+  the point of the refrain.</li>
+  <li><b>Be Byte.</b> Point at things around the room and guess wrong on purpose — call the sofa a
+  banana. Let them correct you. Being right about the world is a huge feeling at three.</li>
+  <li><b>Machine or not?</b> Walk around the house asking "machine, or alive?" The fridge. The cat.
+  The vacuum. Grandma. Trickier than it sounds, and it's the real lesson of the book.</li>
+</ul>
+
+<h3>A Note for Grown-Ups</h3>
+<p>A two-year-old cannot learn what artificial intelligence is, and this book doesn't try. It plants
+one idea that will still be true when they're fifteen: <b>the machine is not alive, and it gets things
+wrong.</b> Children who grow up with talking speakers in the kitchen often assume otherwise, and
+the assumption is surprisingly sticky. Naming it early costs nothing and helps a lot.</p>
+<p>When they're ready for algorithms, training data, and fact-checking, the 5–8 edition —
+<i>Hello! I'm A.I.</i> — has the same robot in it.</p>
+
+</div>
+</body>
+</html>

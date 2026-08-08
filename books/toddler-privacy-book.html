@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask Me First! — Manuscript (Ages 2–5)</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1b2430;--mid:#4a5568;--light:#8a94a6;
+    --accent:#9333ea;--accent2:#0d9488;
+    --note-bg:#f6f2ff;--note-border:#c4b5fd;
+    --wash:#faf5ff;
+    --body:"Georgia","Times New Roman",serif;
+    --display:"Trebuchet MS","Verdana","Segoe UI",sans-serif;
+  }
+  body{font-family:var(--body);color:var(--ink);background:var(--wash);
+    line-height:1.6;padding:2rem 1rem 5rem}
+  .sheet{max-width:44rem;margin:0 auto;background:#fff;padding:3rem 2.5rem;
+    border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+  .titlepage{text-align:center;padding:2rem 0 3rem;border-bottom:3px double var(--accent)}
+  .series{font-family:var(--display);font-size:.75rem;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--accent);font-weight:bold}
+  .booknum{font-family:var(--display);font-size:.7rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--light);margin-top:.35rem}
+  h1{font-family:var(--display);font-size:3.1rem;line-height:1.02;margin:1.2rem 0 .5rem;
+    letter-spacing:-.02em}
+  .subtitle{font-family:var(--display);font-size:1.05rem;color:var(--accent2);
+    font-weight:bold;text-transform:uppercase;letter-spacing:.06em}
+  .specs{margin-top:1.6rem;font-family:var(--display);font-size:.8rem;color:var(--light);line-height:1.9}
+
+  h2{font-family:var(--display);font-size:1.35rem;margin:2.8rem 0 1rem;color:var(--accent);
+    padding-bottom:.4rem;border-bottom:1px solid #ece1fa}
+  h3{font-family:var(--display);font-size:1.02rem;margin:1.8rem 0 .5rem}
+  p{margin-bottom:.9rem}
+  .lede{color:var(--mid);font-size:.95rem}
+  ul,ol{margin:0 0 1rem 1.4rem}li{margin-bottom:.4rem}
+
+  .spread{margin:0 0 2rem;padding-top:1.5rem;border-top:1px solid #f0e8fb}
+  .spread:first-of-type{border-top:none}
+  .sp-label{font-family:var(--display);font-size:.72rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--accent);font-weight:bold;margin-bottom:.8rem}
+  .sp-label .pages{color:var(--light);font-weight:normal;letter-spacing:.08em}
+  .verse{font-family:var(--display);font-size:1.6rem;font-weight:bold;line-height:1.45;
+    white-space:pre-line;margin-bottom:1rem;letter-spacing:-.01em;color:#3b1e5c}
+  .verse .big{color:var(--accent);font-size:1.15em}
+  .art{background:var(--note-bg);border-left:4px solid var(--note-border);
+    padding:.75rem 1rem;font-family:var(--display);font-size:.84rem;
+    line-height:1.6;color:#4c3a7a;border-radius:0 4px 4px 0}
+  .art b{color:#5b21b6;text-transform:uppercase;letter-spacing:.1em;font-size:.72rem}
+  .art.caution{background:#fff5f5;border-left-color:#fc8181;color:#742a2a}
+  .art.caution b{color:#9b2c2c}
+
+  .box{background:var(--wash);border:1px solid #ece1fa;border-radius:6px;
+    padding:1.1rem 1.3rem;margin:1.2rem 0}
+  .box h3{margin-top:0}
+  .box.warn{background:#fff7ed;border-color:#fdba74}
+  .box.warn h3{color:#9a3412}
+  .script{font-family:var(--display);background:#fff;border:1px dashed var(--accent);
+    border-radius:5px;padding:.55rem .9rem;margin:.45rem 0;color:var(--accent);font-weight:bold}
+  .glossary dt{font-family:var(--display);font-weight:bold;color:var(--accent);margin-top:.8rem}
+  .glossary dd{margin-left:0;color:var(--mid)}
+
+  .controls{max-width:44rem;margin:0 auto 1rem;text-align:right}
+  button{font-family:var(--display);font-size:.8rem;padding:.5rem .9rem;
+    border:1px solid var(--accent);background:#fff;color:var(--accent);
+    border-radius:4px;cursor:pointer}
+  button:hover{background:var(--accent);color:#fff}
+  body.read-aloud .art{display:none}
+
+  @media print{body{background:#fff;padding:0;font-size:11pt}
+    .sheet{box-shadow:none;padding:0;max-width:none}
+    .controls{display:none}.spread{page-break-inside:avoid}}
+  @media (max-width:640px){.sheet{padding:2rem 1.25rem}h1{font-size:2.2rem}
+    .verse{font-size:1.3rem}}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button onclick="document.body.classList.toggle('read-aloud')">Toggle illustration notes</button>
+  <button onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div class="sheet">
+
+<header class="titlepage">
+  <div class="series">Big Ideas for Little Minds · First Books</div>
+  <div class="booknum">Toddler Edition</div>
+  <h1>Ask Me First!</h1>
+  <div class="subtitle">A First Book About Privacy</div>
+  <div class="specs">
+    Ages 2–5 &nbsp;·&nbsp; Read-aloud / pre-reader<br>
+    16 spreads &nbsp;·&nbsp; 32 pages &nbsp;·&nbsp; 196 words<br>
+    Trim: 8" × 8" square, full color
+  </div>
+</header>
+
+<h2>What changed for ages 2–5</h2>
+<p class="lede">Passwords, digital footprints, and online strangers are all gone — they mean
+nothing to a three-year-old. What's left is the part that actually matters at this age, and it's the
+foundation everything else gets built on later:</p>
+<ul>
+  <li><b>Ownership first.</b> Some things are mine. Toddlers already understand "mine" intensely —
+  this book borrows that feeling and gives it a name.</li>
+  <li><b>Consent in both directions.</b> Ask me first, <i>and</i> I ask you first. Teaching only the
+  first half produces a child who guards themselves and grabs from others.</li>
+  <li><b>Body autonomy, calmly.</b> The swimsuit rule, the right to refuse a hug, and the doctor
+  exception — stated plainly, in daylight, with no fear anywhere on the page.</li>
+  <li><b>One screen rule:</b> ask a grown-up first. That's all a preschooler needs.</li>
+  <li><b>Telling is the hero move.</b> Two spreads make it the brave, correct, never-in-trouble thing.</li>
+</ul>
+
+<div class="box warn">
+<h3>Format note — there are no board books on KDP</h3>
+<p>KDP prints paperback and hardcover only. Publish this as an 8" × 8" full-color <b>paperback</b>
+and call it a "first book" or "read-aloud picture book," never a board book — buyers who expect
+thick pages and get thin ones leave one-star reviews.</p>
+</div>
+
+<h2>The Story</h2>
+
+<div class="spread">
+  <div class="sp-label">Spread 1 <span class="pages">— pages 2–3</span></div>
+  <div class="verse"><span class="big">Beep, beep, beep!</span>
+Look who came!
+Byte is back.
+Let's play a game.</div>
+  <div class="art"><b>Art</b> — BYTE rolling in, identical design to <i>Beep! I'm Byte</i>. Same doorway,
+  same house. A toddler on the rug looking up, delighted. The shared "beep, beep, beep!" refrain
+  opens both toddler books — that's what makes them feel like a set.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 2 <span class="pages">— pages 4–5</span></div>
+  <div class="verse">Some things are for
+<span class="big">EVERYONE:</span>
+the park, the slide,
+the great big sun!</div>
+  <div class="art"><b>Art</b> — A wide, sunny playground full of many different children sharing a slide,
+  a sandbox, a swing. Warm and generous and busy. Establishing "shared" first makes "private"
+  land properly on the next page.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 3 <span class="pages">— pages 6–7</span></div>
+  <div class="verse">But some things are mine.
+Just mine. It's true:
+my bear, my cup,
+my toothbrush too!</div>
+  <div class="art"><b>Art</b> — Three objects, big and clear on a plain background: a well-loved teddy
+  bear, a favorite cup, a toothbrush. The toddler holding all three at once, arms full. Objects a
+  small child will recognize as theirs immediately.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 4 <span class="pages">— pages 8–9</span></div>
+  <div class="verse">There's a word for that.
+<span class="big">PRIVACY!</span>
+It means some things
+belong to me.</div>
+  <div class="art"><b>Art</b> — The word PRIVACY hand-lettered enormous and playful across the whole
+  spread, the toddler and Byte peeking through the letters. Even pre-readers learn to recognize a
+  word shape when it's this big and this repeated.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 5 <span class="pages">— pages 10–11</span></div>
+  <div class="verse"><span class="big">Knock, knock, knock!</span>
+Please wait for me.
+The door is closed.
+That's privacy!</div>
+  <div class="art"><b>Art</b> — A closed bathroom door with a crayon sign taped to it. A hand knocking.
+  Byte waiting patiently outside with his antenna politely lowered. Sound-word page — kids will
+  knock on the book.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 6 <span class="pages">— pages 12–13</span></div>
+  <div class="verse">My tummy's mine.
+My toes are mine.
+My ears! My nose!
+<span class="big">All mine. All mine!</span></div>
+  <div class="art"><b>Art</b> — Toddler pointing at each body part in turn across four little panels,
+  giggling. Bright, silly, no clothing removed — everyday clothes throughout. A pointing-and-naming
+  page, which is the most-reread kind at this age.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 7 <span class="pages">— pages 14–15</span></div>
+  <div class="verse">The parts my swimsuit
+covers up
+are private, private,
+<span class="big">PRIVATE.</span> Yup!</div>
+  <div class="art caution"><b>Art — sensitive</b> — Bright poolside or sprinkler scene, children in
+  ordinary swimsuits, laughing, full daylight. Nothing clinical, nothing shadowed, no anatomy, no
+  arrows or diagrams. The tone is a sunny afternoon, and the rule is just stated out loud in the middle
+  of it.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 8 <span class="pages">— pages 16–17</span></div>
+  <div class="verse">If a doctor checks
+to keep me well,
+my grown-up stays.
+And I can tell.</div>
+  <div class="art caution"><b>Art — sensitive</b> — A friendly doctor with a stethoscope, the toddler on
+  the exam table, and a parent sitting right beside them with a hand on the child's back. The parent
+  must be clearly visible in frame — that presence is the entire point of the spread.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 9 <span class="pages">— pages 18–19</span></div>
+  <div class="verse">"<span class="big">No, thank you!</span>"
+I can say.
+A wave, a high-five —
+that's okay!</div>
+  <div class="art"><b>Art</b> — A relative leaning in for a hug; the toddler holding up a hand and
+  offering a high-five instead, cheerful and unbothered. The grown-up smiling and accepting it
+  easily. Model the adult taking "no" gracefully — that's the half that changes households.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 10 <span class="pages">— pages 20–21</span></div>
+  <div class="verse"><span class="big">Ask me first</span>
+before a squeeze.
+Ask me first
+for pictures, please!</div>
+  <div class="art"><b>Art</b> — Two panels: someone crouching to ask before a hug, and someone
+  holding up a phone camera and asking before a photo. Toddler nodding yes in one, shaking head
+  no in the other. Both answers shown as equally fine.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 11 <span class="pages">— pages 22–23</span></div>
+  <div class="verse">And <span class="big">I</span> ask <span class="big">YOU</span>
+before I take
+your bear, your book,
+your slice of cake.</div>
+  <div class="art"><b>Art</b> — The toddler asking another child before picking up their teddy. Hands
+  open, not grabbing. The second child considering. This spread is the reason the book is called
+  <i>Ask Me First!</i> rather than <i>That's Mine!</i></div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 12 <span class="pages">— pages 24–25</span></div>
+  <div class="verse">If you say no,
+I say, "<span class="big">Okay!</span>"
+Your stuff is yours.
+Let's go and play!</div>
+  <div class="art"><b>Art</b> — The friend shaking their head; our toddler shrugging happily and running
+  off toward blocks with them anyway. No sulk, no tantrum, friendship intact. Toddlers need to see
+  that a "no" doesn't end the fun.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 13 <span class="pages">— pages 26–27</span></div>
+  <div class="verse"><span class="big">Beep!</span> A screen!
+Can I? Can I?
+Ask a grown-up
+first. Then try!</div>
+  <div class="art"><b>Art</b> — Toddler reaching up toward a tablet on a table, then turning to a parent
+  with a questioning face. Parent nodding and handing it down together. Byte beside the tablet with
+  a small "ask first" gesture.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 14 <span class="pages">— pages 28–29</span></div>
+  <div class="verse">A brand-new face
+inside my screen?
+I go tell my grown-up
+what I've seen.</div>
+  <div class="art caution"><b>Art — sensitive</b> — A tablet showing a plain, neutral gray question-mark
+  avatar in a video-call window. The toddler already climbing down and walking toward a parent.
+  No adult figure, no threat, no shadow — an unknown is a question mark, nothing more.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 15 <span class="pages">— pages 30–31</span></div>
+  <div class="verse">If someone says,
+"Don't tell. Don't tell."
+I <span class="big">TELL</span> right now.
+And all is well.</div>
+  <div class="art caution"><b>Art — sensitive</b> — Just the toddler, running with purpose across a bright
+  room into a parent's open arms, both smiling. Do not illustrate the person who said "don't tell" at all —
+  leave that frame empty. The image is the telling and the welcome, full stop.</div>
+</div>
+
+<div class="spread">
+  <div class="sp-label">Spread 16 <span class="pages">— pages 32–33</span></div>
+  <div class="verse">I'm the boss
+of <span class="big">ME, ME, ME!</span>
+My body. My things.
+My <span class="big">PRIVACY!</span></div>
+  <div class="art"><b>Art</b> — The toddler standing tall in the middle of the spread in a paper crown,
+  arms up, bear under one arm, absolutely triumphant. Byte cheering at their feet, antenna waving
+  goodbye. Biggest, brightest, most confident page in the book — end on the child, always.</div>
+</div>
+
+<h2>Back Matter</h2>
+
+<h3>Three Words to Say Together</h3>
+<dl class="glossary">
+  <dt>Privacy</dt><dd>Some things are mine. I get to choose who sees them.</dd>
+  <dt>Ask</dt><dd>What we say before we hug, take, or share — every single time.</dd>
+  <dt>Tell</dt><dd>What I do when something feels funny. I'm never in trouble for telling.</dd>
+</dl>
+
+<div class="box">
+  <h3>Say It Out Loud</h3>
+  <p>Practice these until they come out easily. A child who has said the words before can say
+  them when it counts.</p>
+  <div class="script">"No, thank you."</div>
+  <div class="script">"Ask me first!"</div>
+  <div class="script">"Can I have a turn, please?"</div>
+  <div class="script">"I'm going to tell."</div>
+</div>
+
+<h3>Play Along</h3>
+<ul>
+  <li><b>Mine or everyone's?</b> Point around the room. The couch? Everyone's. Your toothbrush?
+  Yours. The park? Everyone's. Your bear? Yours. Silly ones are the best ones.</li>
+  <li><b>Knock, knock.</b> Let them knock on the page. Then practice knocking on a real closed door
+  and waiting for "come in."</li>
+  <li><b>Ask first, at home.</b> For one week, ask your child before you pick them up, hug them, or
+  photograph them. It feels strange for about two days. Then it feels normal — and they will start
+  asking you back.</li>
+</ul>
+
+<h3>A Note for Grown-Ups</h3>
+<p>Two things in this book do most of the work, and both are for you rather than your child.</p>
+<p>The first is <b>spread 9</b>. When a child says no to a hug and the adult accepts it warmly, the
+child learns that their "no" has power. When the adult overrules it — even kindly, even for
+Grandma — they learn the opposite, and that lesson transfers. This is the single highest-leverage
+page in the book, and it only works if you back it up in real life.</p>
+<p>The second is <b>spread 15</b>. Children stay silent because they expect trouble. Say "you will
+never be in trouble for telling me" out loud, more than once, and then honour it the first time
+they test it — including when what they tell you is inconvenient.</p>
+<p>When they're older, <i>That's Private!</i> (ages 5–8) picks this up with passwords, screens,
+and online strangers.</p>
+
+</div>
+</body>
+</html>

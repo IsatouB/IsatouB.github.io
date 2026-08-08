@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Art Prompt Pack — Big Ideas for Little Minds</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1b2430;--mid:#4a5568;--light:#8a94a6;
+    --accent:#be185d;--accent2:#0f766e;--rule:#eadfe6;
+    --wash:#fdf4f8;
+    --body:"Georgia","Times New Roman",serif;
+    --display:"Trebuchet MS","Segoe UI",sans-serif;
+    --mono:"SF Mono","Consolas","Courier New",monospace;
+  }
+  body{font-family:var(--body);color:var(--ink);background:var(--wash);
+    line-height:1.65;padding:2rem 1rem 5rem}
+  .sheet{max-width:48rem;margin:0 auto;background:#fff;padding:3rem 2.5rem;
+    border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .series{font-family:var(--display);font-size:.75rem;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--accent);font-weight:bold}
+  h1{font-family:var(--display);font-size:2.4rem;line-height:1.1;margin:.8rem 0 .4rem}
+  .tagline{color:var(--mid);font-style:italic;margin-bottom:2rem;
+    padding-bottom:2rem;border-bottom:3px double var(--accent)}
+  h2{font-family:var(--display);font-size:1.35rem;margin:2.8rem 0 .9rem;color:var(--accent);
+    padding-bottom:.4rem;border-bottom:1px solid var(--rule)}
+  h3{font-family:var(--display);font-size:1.02rem;margin:1.8rem 0 .5rem}
+  h4{font-family:var(--display);font-size:.9rem;margin:1.4rem 0 .4rem;color:var(--accent2);
+    text-transform:uppercase;letter-spacing:.08em}
+  p{margin-bottom:.9rem}
+  ul,ol{margin:0 0 1rem 1.4rem}li{margin-bottom:.4rem}
+  .lede{color:var(--mid);font-size:.95rem}
+
+  pre{font-family:var(--mono);font-size:.8rem;line-height:1.6;background:#1e293b;color:#e2e8f0;
+    padding:1rem 1.1rem;border-radius:6px;overflow-x:auto;margin:.7rem 0 1.2rem;
+    white-space:pre-wrap;word-wrap:break-word}
+  pre .tok{color:#7dd3fc}
+  code{font-family:var(--mono);background:var(--wash);padding:.1rem .35rem;
+    border-radius:3px;font-size:.88em}
+
+  .prompt{background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid var(--accent2);
+    border-radius:0 5px 5px 0;padding:.7rem .95rem;margin:.5rem 0 1.1rem;
+    font-family:var(--mono);font-size:.82rem;line-height:1.65;color:#1e293b}
+  .prompt .n{display:block;font-family:var(--display);font-weight:bold;font-size:.75rem;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--accent2);margin-bottom:.35rem}
+
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem}
+  th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{font-family:var(--display);font-size:.76rem;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--accent);background:var(--wash)}
+  .tbl-wrap{overflow-x:auto}
+  .box{background:var(--wash);border:1px solid var(--rule);border-radius:6px;
+    padding:1.1rem 1.3rem;margin:1.2rem 0}
+  .box h3{margin-top:0}
+  .box.warn{background:#fff7ed;border-color:#fdba74}
+  .box.warn h3{color:#9a3412}
+  .box.key{background:#f0fdfa;border-color:#5eead4}
+  .box.key h3{color:#0f766e}
+  .check{list-style:none;margin-left:0}
+  .check li{padding-left:1.7rem;position:relative}
+  .check li::before{content:"☐";position:absolute;left:.2rem;color:var(--accent2);font-size:1.1rem}
+  @media print{body{background:#fff;padding:0;font-size:10.5pt}
+    .sheet{box-shadow:none;padding:0;max-width:none}
+    pre{background:#f1f5f9;color:#0f172a;border:1px solid #cbd5e1}}
+  @media (max-width:640px){.sheet{padding:2rem 1.15rem}h1{font-size:1.8rem}
+    pre,.prompt{font-size:.75rem}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<div class="series">Big Ideas for Little Minds</div>
+<h1>AI Art Prompt Pack</h1>
+<p class="tagline">Character bibles, a locked style string, and a ready-to-paste prompt for every
+spread in all four books.</p>
+
+<div class="box warn">
+<h3>What this is, and what it isn't</h3>
+<p>I can't generate images in this session — there's no image tool wired up here. So this isn't
+finished art; it's the thing that makes your art come out usable instead of a mess of 64 slightly
+different robots.</p>
+<p>Everything below is copy-paste ready. Take it to Midjourney, ChatGPT, Firefly, or whatever you
+prefer, and work through it in the order given. <b>Do the character sheets first.</b> If you skip
+straight to spread prompts because it's more fun, you will generate a hundred images and throw
+them all away — I promise you that.</p>
+</div>
+
+<h2>1. Picking a tool</h2>
+<div class="tbl-wrap">
+<table>
+  <tr><th>Tool</th><th>Strength</th><th>Weakness</th></tr>
+  <tr><td><b>Midjourney</b></td><td>Best-looking children's illustration by a wide margin. Has real character-reference and style-reference features.</td><td>Subscription; syntax changes between versions; a learning curve.</td></tr>
+  <tr><td><b>ChatGPT image generation</b></td><td>Easiest to steer — you describe changes in plain English and it holds context across a conversation.</td><td>Slower per image; style drifts over long sessions.</td></tr>
+  <tr><td><b>Adobe Firefly</b></td><td>Trained on licensed content and built for commercial use, which is the cleanest legal footing of the bunch.</td><td>Illustration style is blander than Midjourney's.</td></tr>
+  <tr><td><b>Ideogram</b></td><td>The only one that renders readable text in images.</td><td>You shouldn't put text in images anyway — see §4.</td></tr>
+</table>
+</div>
+<p><b>My recommendation:</b> Midjourney for the illustrations, because character reference is the
+entire ballgame on a 64-spread project. Whatever you choose, read that tool's current commercial-use
+terms yourself before you publish — they change often, and the terms usually differ between free
+and paid tiers.</p>
+
+<h2>2. The only real problem: consistency</h2>
+<p>Byte on page 9 must be recognisably the same robot as Byte on page 51 — same proportions,
+same eye, same wheels, same blue. Readers of any age notice instantly when he isn't, and it makes
+a book look cheap. Three things fix this, and you need all three:</p>
+<ol>
+  <li><b>A character bible</b> — a fixed block of words describing each character, pasted verbatim
+  into every single prompt. Never paraphrase it. Never "improve" it mid-project.</li>
+  <li><b>A locked style string</b> — a fixed block describing the art style, also pasted into every
+  prompt, unchanged.</li>
+  <li><b>Reference images</b> — generate one good character sheet per character, save it, and feed
+  it back as a reference on every subsequent generation (<code>--cref</code> in Midjourney, or just
+  uploading it in ChatGPT/Firefly).</li>
+</ol>
+<div class="box key">
+<h3>The formula for every prompt in this document</h3>
+<pre><span class="tok">[SCENE]</span> + <span class="tok">[CHARACTER BLOCK for whoever is in it]</span> + <span class="tok">[STYLE BLOCK]</span> + <span class="tok">[PARAMETERS]</span></pre>
+<p style="margin-bottom:0">The per-spread prompts in §6 and §7 give you the <b>SCENE</b> only. You
+append the other three from §3, §4, and §5 every time. That's the discipline the whole pack
+depends on.</p>
+</div>
+
+<h2>3. The style block</h2>
+<p>Paste this into every prompt, unchanged, for the whole project. This is what makes 64 images
+look like one book.</p>
+<pre>modern children's picture book illustration, flat vector shapes with soft
+paper-grain texture, bold clean outlines, rounded friendly forms, simple
+uncluttered composition with generous negative space, soft even lighting,
+cheerful and warm, hand-lettered picture book sensibility, no photorealism,
+no 3D render, no text, no words, no letters</pre>
+
+<p>Then add the palette line for whichever book you're working on:</p>
+<h4>AI books — <i>Hello! I'm A.I.</i> and <i>Beep! I'm Byte</i></h4>
+<pre>color palette: deep navy blue, bright teal, sunny yellow, warm coral, cream white</pre>
+<h4>Privacy books — <i>That's Private!</i> and <i>Ask Me First!</i></h4>
+<pre>color palette: deep violet purple, teal green, warm coral, soft gold, cream white</pre>
+<p>Two palettes off a shared structure is what makes the books read as a series but not as
+duplicates. Don't add a third.</p>
+
+<h2>4. Non-negotiable rules</h2>
+<ul>
+  <li><b>Never let AI generate the text.</b> Not the title, not the verse, not a sign in the
+  background. AI-rendered letters are subtly wrong in a way that screams amateur, and you can't
+  fix kerning in a JPEG. Generate clean art with empty space where words go, then set every word
+  in Canva, Affinity Publisher, or InDesign. This is why <code>no text, no words, no letters</code>
+  is in the style block.</li>
+  <li><b>Leave room for the words.</b> Add <code>large empty area in the upper third for text
+  placement</code> to any spread whose verse sits over the art.</li>
+  <li><b>Aspect ratios.</b> Full-bleed spread → <code>--ar 2:1</code>. Single page → <code>--ar
+  1:1</code> for the 8"×8" toddler books, <code>--ar 1:1</code> for the 8.5"×8.5" older books.</li>
+  <li><b>Resolution.</b> KDP needs 300 DPI. An 8"×8" page with bleed is 2,475 px square; a full
+  spread is about 4,875 × 2,475 px. No generator outputs that natively — generate at maximum,
+  then upscale 2–4× with a dedicated upscaler before layout.</li>
+  <li><b>Nothing important in the gutter.</b> On a two-page spread, keep faces and key objects out
+  of the middle 1.5 inches or they'll disappear into the spine.</li>
+</ul>
+
+<h2>5. Character bibles</h2>
+<p>Generate each of these first, on a plain background, and save the best result as your reference
+image. Then paste the matching block into every scene prompt where that character appears.</p>
+
+<h3>Byte — the series mascot</h3>
+<div class="prompt"><span class="n">Character block — paste verbatim</span>
+BYTE, a small friendly robot the size of a grapefruit: a smooth silver-and-white
+rounded dome body, one large round screen-face displaying a simple glowing
+cyan smile and one big cyan eye, two short bendy antenna-arms with rounded tips,
+two chunky dark grey wheels, a small coral-red light on top of his head, no mouth,
+no legs, cheerful and toy-like</div>
+<div class="prompt"><span class="n">Character sheet prompt — run this first</span>
+character reference sheet of the same small robot shown five times on a plain
+cream background: front view, side view, three-quarter view, rear view, and a
+close-up of the face; consistent proportions across all five; model sheet layout
++ [BYTE BLOCK] + [STYLE BLOCK] + [AI PALETTE] --ar 3:2</div>
+
+<h3>Maya — narrator, age 7 <span style="font-weight:normal;color:var(--light)">(ages 5–8 books only)</span></h3>
+<div class="prompt"><span class="n">Character block</span>
+MAYA, a cheerful 7-year-old Black girl with medium-brown skin, hair in neat box
+braids with two coral beads, wearing a mustard-yellow t-shirt, denim overalls,
+and red-and-white striped socks, expressive and curious</div>
+
+<h3>Amir — little brother, age 5 <span style="font-weight:normal;color:var(--light)">(ages 5–8 books only)</span></h3>
+<div class="prompt"><span class="n">Character block</span>
+AMIR, an enthusiastic 5-year-old Black boy with medium-brown skin, short cropped
+hair, round oversized glasses, wearing a teal long-sleeved shirt with a small star
+on the chest and grey shorts, always slightly mid-motion</div>
+
+<h3>Nia — the toddler <span style="font-weight:normal;color:var(--light)">(ages 2–5 books only)</span></h3>
+<div class="prompt"><span class="n">Character block</span>
+NIA, a happy 3-year-old girl with warm brown skin, two small puffy pigtails tied
+with coral bands, wearing a simple yellow t-shirt dress and bare feet, round
+cheeks, big expressive eyes, chunky toddler proportions with a large head
+relative to body</div>
+<p class="lede">The toddler books need their own child protagonist — a 3-year-old will not identify
+with a 7-year-old. Nia is Maya and Amir's little cousin, which lets all four books share a world
+without needing to share a cast.</p>
+
+<h3>Grown-ups</h3>
+<div class="prompt"><span class="n">Character block</span>
+a warm, ordinary parent in their thirties, relaxed everyday clothes, kind
+unhurried expression, crouching to child height whenever speaking to a child</div>
+<p class="lede">Vary the grown-ups' appearance across spreads — different skin tones, ages, and
+genders. Children should see that a trusted grown-up doesn't have one look.</p>
+
+<div class="box warn">
+<h3>Before you go further</h3>
+<p>Generate all four character sheets now. Look at them side by side. Are you happy? Because you
+are about to draw these characters sixty-four more times, and changing your mind at spread 40
+means regenerating everything before it. This is the cheapest hour you will spend on the project.</p>
+</div>
+
+<h2>6. Prompts — <i>Beep! I'm Byte</i> (ages 2–5)</h2>
+<p class="lede">Sixteen spreads. Append <code>[BYTE BLOCK] + [STYLE BLOCK] + [AI PALETTE] --ar
+2:1</code> to every one. Toddler art wants <b>one big clear subject and lots of empty space</b> — if
+a prompt is producing busy backgrounds, add <code>minimal background, plain color field</code>.</p>
+
+<div class="prompt"><span class="n">Spread 1 — Beep, beep, beep!</span>
+a small friendly robot rolling through an open doorway into a bright playroom, one
+antenna raised in a cheerful wave, viewed straight on, large in frame, plain warm
+cream background, big empty area in the upper third for text</div>
+
+<div class="prompt"><span class="n">Spread 2 — Byte has wheels</span>
+a small friendly robot alone and centered on a flat teal background, arms
+outstretched to show his shape clearly, simple thin pointer lines extending from
+his wheels, his head light, and his arms toward empty label space, diagram-like
+but playful</div>
+
+<div class="prompt"><span class="n">Spread 3 — Byte's a machine</span>
+three simple panels side by side: a small friendly robot sitting at a table in front
+of a plate of spaghetti not eating it and looking puzzled; the same robot standing
+beside a child's height chart, unchanged; the same robot standing happily between
+a smiling toaster and a smiling washing machine, flat cream background</div>
+
+<div class="prompt"><span class="n">Spread 4 — Byte can look</span>
+close-up of a small friendly robot's round screen-face lighting up brightly, two
+soft wide beams of pale yellow light projecting forward from his single cyan eye
+like a friendly flashlight, leaning eagerly forward, dark navy background so the
+light beams glow</div>
+
+<div class="prompt"><span class="n">Spread 5 — one cat</span>
+one fluffy orange tabby cat sitting patiently on the left of the frame, a small
+friendly robot on the right looking confused with his head tilted, a thought bubble
+above him containing a crudely drawn wobbly dog and a floppy hat, plain cream
+background, comedic</div>
+
+<div class="prompt"><span class="n">Spread 6 — MORE cats</span>
+a joyful crowd of many different cartoon cats filling the frame, striped, spotted,
+fluffy, skinny, sleeping, jumping, orange, grey, black and white, four of them
+clearly separated in the foreground for counting, a small friendly robot peeking
+out from among them, bright and busy and delightful</div>
+
+<div class="prompt"><span class="n">Spread 7 — A CAT!</span>
+a small friendly robot lit up bright and triumphant with both antenna-arms
+straight up in the air, yellow sparkles and confetti bursting around him, one
+orange tabby cat sitting proudly in front of him, celebratory, plain teal background</div>
+
+<div class="prompt"><span class="n">Spread 8 — learns by looking</span>
+a mirrored two-panel composition: on the left, a small friendly robot studying a
+neat row of cat pictures; on the right, a warm scene of a 3-year-old girl sitting in
+a parent's lap pointing at an open picture book, soft golden light on the right side,
+visual rhyme between the two halves + [NIA BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 9 — finding Grandma</span>
+a wall covered in many small framed family photographs, a small friendly robot
+shining a soft beam of light onto one photo of a smiling grandmother with grey
+curls, a delighted 3-year-old girl clapping beside him + [NIA BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 10 — which way to go</span>
+a simple cartoon map seen from above showing one winding road through green
+hills with a single big friendly yellow arrow pointing left at a fork, a tiny cheerful
+car on the road, a small friendly robot riding on the car's dashboard, very simple
+and uncluttered</div>
+
+<div class="prompt"><span class="n">Spread 11 — muffin, not a puppy</span>
+one large blueberry muffin in a paper cup, centered and appetizing, a small
+friendly robot pointing at it very confidently with one antenna-arm, a thought
+bubble above him containing a small wobbly cartoon puppy, plain cream
+background, big comedic contrast</div>
+
+<div class="prompt"><span class="n">Spread 12 — ask your grown-up</span>
+a 3-year-old girl tugging a crouching parent's sleeve and pointing off to the side,
+the parent leaning down attentively to look, a small friendly robot standing nearby
+looking sheepish with one antenna drooping, warm kitchen setting
++ [NIA BLOCK] + [GROWN-UP BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 13 — Byte is cool</span>
+a small friendly robot in joyful motion, wheels spinning with speed lines, both
+antenna-arms up, head light beaming, small cyan sound-wave arcs radiating from
+him to suggest beeping, energetic and celebratory, flat yellow background</div>
+
+<div class="prompt"><span class="n">Spread 14 — no hugs, no ice cream</span>
+two comedic panels: a small friendly robot trying to hug a soft teddy bear with
+stiff rigid metal arms, unable to close them; the same robot holding a melting ice
+cream cone up to his screen-face, looking baffled, ice cream dripping down his
+silver side, plain cream background</div>
+
+<div class="prompt"><span class="n">Spread 15 — only YOU</span>
+a happy 3-year-old girl drawn large and central in warm golden light, hugging a
+teddy bear with one arm and holding an ice cream cone in the other, mid-giggle,
+a small friendly robot tiny at her feet applauding with both antenna-arms, the
+child is by far the largest thing in the frame + [NIA BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 16 — bye-bye, Byte</span>
+a cozy bedroom at night in soft blues with one warm pool of lamplight, a small
+friendly robot rolling out through the bedroom doorway with one antenna raised in
+a wave, a sleepy 3-year-old girl tucked under a blanket with a teddy bear waving
+back, peaceful and quiet + [NIA BLOCK]</div>
+
+<h2>7. Prompts — <i>Ask Me First!</i> (ages 2–5)</h2>
+<p class="lede">Switch to the <b>privacy palette</b> for all sixteen. Same appended blocks
+otherwise. Spreads 7, 8, 14, and 15 are the sensitive ones — they're written to keep every image
+bright, ordinary, and free of any threatening figure. Don't soften that constraint if a generation
+comes back gloomy; regenerate it.</p>
+
+<div class="prompt"><span class="n">Spread 1 — Byte is back</span>
+a small friendly robot rolling in through a sunlit doorway with one antenna raised
+in greeting, a delighted 3-year-old girl looking up from a rug covered in wooden
+blocks, warm morning light + [NIA BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 2 — for everyone</span>
+a wide sunny playground scene full of many different happy children of various
+skin tones sharing a yellow slide, a sandbox and swings, a big warm sun in the
+sky, generous and busy and welcoming</div>
+
+<div class="prompt"><span class="n">Spread 3 — just mine</span>
+a 3-year-old girl standing centered on a plain cream background with her arms full,
+holding a well-loved brown teddy bear, a spotted cup, and a toothbrush, all three
+objects large and clearly visible, proud expression + [NIA BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 4 — PRIVACY</span>
+a plain flat violet background with a huge empty space across the whole frame
+reserved for a single hand-lettered word to be added later, a 3-year-old girl and a
+small friendly robot peeking playfully into the frame from the bottom edge, nothing
+else in the composition + [NIA BLOCK] + [BYTE BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 5 — knock, knock, knock</span>
+a closed wooden bathroom door with a child's crayon drawing taped to it, a small
+hand knocking on the door, a small friendly robot waiting patiently beside the door
+with his antenna politely lowered, simple hallway, warm and calm</div>
+
+<div class="prompt"><span class="n">Spread 6 — all mine</span>
+four cheerful panels of the same 3-year-old girl in ordinary clothes pointing and
+giggling: at her tummy, at her toes, at her ear, at her nose, bright flat background,
+playful and silly + [NIA BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 7 — swimsuit rule</span>
+a bright sunny backyard sprinkler scene in full daylight, several happy young
+children in ordinary colorful swimsuits laughing and running through the water,
+green grass, blue sky, entirely cheerful everyday summer atmosphere, no close-ups,
+full-body wide shot</div>
+
+<div class="prompt"><span class="n">Spread 8 — the doctor</span>
+a friendly doctor with a stethoscope smiling at a 3-year-old girl sitting on an exam
+table, and a parent sitting right beside the child with a reassuring hand on her back,
+all three clearly visible in frame, bright cheerful clinic with a colorful mural, calm
+and unremarkable + [NIA BLOCK] + [GROWN-UP BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 9 — no thank you</span>
+a warm relative leaning down with open arms for a hug, and a 3-year-old girl
+smiling and holding up one hand for a high-five instead, the adult smiling and
+happily accepting the high-five, friendly living room, nobody upset
++ [NIA BLOCK] + [GROWN-UP BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 10 — ask me first</span>
+two panels: an adult crouching to child height with open hands asking permission
+before a hug while a 3-year-old girl nods yes; the same girl shaking her head no
+while an adult holds up a phone camera and lowers it with a smile, both outcomes
+shown as equally fine + [NIA BLOCK] + [GROWN-UP BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 11 — I ask you</span>
+a 3-year-old girl with open palms politely asking another young child for their
+teddy bear, not grabbing it, the other child considering thoughtfully, both seated on
+a rug among toys, gentle and warm + [NIA BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 12 — okay!</span>
+one young child shaking their head no while holding their teddy bear, and a
+3-year-old girl shrugging cheerfully and gesturing toward a pile of wooden blocks,
+both of them already running off to play together, no sulking, friendship intact
++ [NIA BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 13 — ask a grown-up first</span>
+a 3-year-old girl reaching up toward a tablet on a low table, then turning to look
+up at a parent with a questioning expression, the parent nodding warmly and
+reaching to hand it down together, a small friendly robot beside the tablet holding
+up one antenna-arm + [NIA BLOCK] + [GROWN-UP BLOCK] + [BYTE BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 14 — a new face on screen</span>
+a tablet on a table showing a video-call window containing only a plain flat grey
+circle with a simple question mark in it, and a 3-year-old girl already climbing down
+from her chair and walking away toward a doorway, bright ordinary living room,
+no other person anywhere in the image + [NIA BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 15 — I tell right now</span>
+a 3-year-old girl running with purpose across a bright sunlit room into a parent's
+open welcoming arms, both of them smiling, the room warm and open and safe,
+only these two people in the entire image + [NIA BLOCK] + [GROWN-UP BLOCK]</div>
+
+<div class="prompt"><span class="n">Spread 16 — boss of me</span>
+a 3-year-old girl standing tall and triumphant in the center of the frame wearing a
+paper crown, both arms raised in the air, a teddy bear tucked under one arm,
+radiant golden light behind her, a small friendly robot at her feet cheering with one
+antenna waving goodbye, the most confident image in the book
++ [NIA BLOCK] + [BYTE BLOCK]</div>
+
+<h2>8. Prompts for the 5–8 books</h2>
+<p>I haven't written out all 54 of those here, because you already have them. The art notes inside
+<i>Hello! I'm A.I.</i> and <i>That's Private!</i> were written as prompts. Convert each one like this:</p>
+<pre>1. Copy the art note text from the manuscript spread.
+2. Delete the production asides — "series continuity matters",
+   "design this to work as a classroom poster", character ages
+   in parentheses, and any sentence addressed to the illustrator.
+3. Replace character names with the character blocks from §5.
+4. Append the style block + the correct palette + --ar 2:1.</pre>
+<p>Worked example, from Book 1, spread 16:</p>
+<div class="prompt"><span class="n">Raw art note</span>
+The classic gag done big: a tray of blueberry muffins next to a row of chihuahua
+faces, genuinely hard to tell apart. Byte pointing confidently at a muffin with a label
+reading "PUPPY — 98% sure." Kids laughing.</div>
+<div class="prompt"><span class="n">Converted prompt</span>
+a tray of blueberry muffins beside a row of chihuahua faces arranged in a grid,
+comically similar to each other, a small friendly robot pointing confidently at one
+muffin with an antenna-arm, two children laughing in the background, empty
+banner space above the muffin for a label to be added later
++ [BYTE BLOCK] + [MAYA BLOCK] + [AMIR BLOCK] + [STYLE BLOCK]
++ [AI PALETTE] --ar 2:1</div>
+<p>Note the label became <i>empty banner space</i>. That's rule one from §4, applied — never let
+the generator write "PUPPY — 98% sure," because it will come out as "PUPPPY — 9B% sme."</p>
+
+<h2>9. Cover prompts</h2>
+<p>Covers get their own treatment: single page, <code>--ar 1:1</code>, and a deliberate empty zone
+where the title will be set. Generate ten of each and pick — the cover is the one image that
+actually sells the book.</p>
+<div class="prompt"><span class="n">Cover — Beep! I'm Byte (2–5)</span>
+book cover illustration, a small friendly robot large and centered and glowing
+cheerfully, facing the viewer with both antenna-arms raised in greeting, surrounded
+by a soft ring of simple cat silhouettes and yellow stars, deep navy background,
+large clear empty space across the top third for a title
++ [BYTE BLOCK] + [STYLE BLOCK] + [AI PALETTE] --ar 1:1</div>
+<div class="prompt"><span class="n">Cover — Ask Me First! (2–5)</span>
+book cover illustration, a happy 3-year-old girl centered and holding a glowing
+treasure chest close to her chest, a small friendly robot beside her, warm confident
+expression, deep violet background with soft gold light, large clear empty space
+across the top third for a title
++ [NIA BLOCK] + [BYTE BLOCK] + [STYLE BLOCK] + [PRIVACY PALETTE] --ar 1:1</div>
+<div class="prompt"><span class="n">Cover — Hello! I'm A.I. (5–8)</span>
+book cover illustration, a small friendly robot large and glowing in the center, a
+7-year-old girl and a 5-year-old boy floating around him inside soft circles of light
+made of simple pattern shapes and dots, deep navy to teal gradient background,
+large clear empty space in the upper left for a stacked title
++ [BYTE BLOCK] + [MAYA BLOCK] + [AMIR BLOCK] + [STYLE BLOCK]
++ [AI PALETTE] --ar 1:1</div>
+<div class="prompt"><span class="n">Cover — That's Private! (5–8)</span>
+book cover illustration, a 7-year-old girl and a 5-year-old boy standing confidently
+together holding a glowing treasure chest between them, a small friendly robot
+beside them, deep violet and teal background, warm and self-assured rather than
+anxious, large clear empty space in the upper left for a stacked title
++ [MAYA BLOCK] + [AMIR BLOCK] + [BYTE BLOCK] + [STYLE BLOCK]
++ [PRIVACY PALETTE] --ar 1:1</div>
+
+<h2>10. From generated image to printable page</h2>
+<ol>
+  <li><b>Generate at maximum resolution</b>, then upscale 2–4× with a dedicated upscaler. Check the
+  result at 100% zoom — upscalers invent nonsense in faces and hands, and faces are most of your art.</li>
+  <li><b>Fix the small stuff.</b> Six-fingered hands, a wheel that grew, an eye that drifted. Every
+  spread will need something. Budget for it.</li>
+  <li><b>Lay out in Canva, Affinity Publisher, or InDesign</b> at 8.25" × 8.25" per page with bleed
+  (8.75" × 8.75" for the 8.5" books). Place art, then set all type over it.</li>
+  <li><b>Use one typeface for the whole series.</b> A chunky rounded sans for the verse. Buy a
+  commercial license for it — free-for-personal-use fonts are a real trap when you're selling.</li>
+  <li><b>Keep type off busy areas.</b> If a line isn't readable, put a soft translucent shape behind
+  it — never squeeze the type smaller.</li>
+  <li><b>Export PDF/X, 300 DPI, fonts embedded, transparency flattened.</b> Run it through KDP's
+  previewer and look at every page.</li>
+  <li><b>Order a proof copy.</b> Screen colors are lit from behind; paper isn't. Navy in particular
+  prints darker than you expect.</li>
+</ol>
+
+<h2>11. Legal, honestly</h2>
+<div class="box warn">
+<ul style="margin-bottom:0">
+  <li><b>Disclose it to KDP.</b> Amazon asks whether your content is AI-generated. Images count.
+  Answer yes. It isn't shown to customers and it doesn't hurt your listing — but a false answer
+  puts your entire account at risk, which is not a trade worth making for a checkbox.</li>
+  <li><b>You likely don't own the AI images.</b> Under current US Copyright Office guidance,
+  purely AI-generated images aren't protected by copyright. You can sell the book — people do,
+  every day — but you may have no recourse if someone lifts your art. Your <b>text is fully
+  yours</b> either way, and so is the book as a compiled whole.</li>
+  <li><b>Check your tool's terms.</b> Commercial rights differ by service and by tier, and they get
+  revised. Read them at the moment you publish, not from memory.</li>
+  <li><b>Still no Seuss.</b> Don't prompt "in the style of Dr. Seuss," don't put a red-and-white
+  striped hat on anything, and don't name any living illustrator in a prompt.</li>
+</ul>
+</div>
+
+<h2>12. Work order</h2>
+<ul class="check">
+  <li>Pick your tool and read its commercial terms.</li>
+  <li>Generate character sheets for Byte and Nia. Save as reference images.</li>
+  <li>Generate the <i>Beep! I'm Byte</i> cover ten times. Pick one. This tells you if the style works.</li>
+  <li>Generate all 16 spreads of <i>Beep! I'm Byte</i>, in order, same reference image every time.</li>
+  <li>Upscale, retouch, lay out, export, proof.</li>
+  <li>Publish it. Then look at what sold before making the other three.</li>
+</ul>
+<div class="box key">
+<h3>Start with the toddler book</h3>
+<p style="margin-bottom:0">Sixteen spreads instead of twenty-seven, 32 pages instead of 48,
+simpler art, lower print cost, and a bigger buying audience — ages 2–5 is the highest-volume
+segment in children's books, because that's where gifts and repeat reads live. <i>Beep! I'm
+Byte</i> is by a wide margin the cheapest way to find out whether this series works, and
+everything you learn doing it makes the other three faster.</p>
+</div>
+
+</div>
+</body>
+</html>
