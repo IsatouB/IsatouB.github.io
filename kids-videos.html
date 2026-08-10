@@ -263,6 +263,8 @@
         <div class="row" style="margin-top:12px">
           <button class="btn" id="addBtn">Add to library</button>
         </div>
+        <button class="btn ghost wide" id="starterBtn" style="margin-top:10px">Restore the Ms Rachel set</button>
+        <div class="hint">Puts back the videos the app came with, without removing anything you added.</div>
       </div>
     </div>
 
@@ -369,6 +371,7 @@ function load(){
         db.items=Array.isArray(p.items)?p.items:[];
         db.settings=Object.assign(db.settings,p.settings||{});
         db.usage=Object.assign(db.usage,p.usage||{});
+        db.seeded=!!p.seeded;
       }
     }
   }catch(e){}
@@ -390,6 +393,34 @@ function show(id){
 }
 var EMOJI=['🌟','🎵','🐶','🚂','🦖','🎨','🐘','⚽','🍎','🌈','🐟','🚗','🧸','🌻','🐝','🦄'];
 function uid(){return Math.random().toString(36).slice(2,9);}
+
+/* Ms Rachel videos loaded on first run so a small child can just open the app and
+   tap a picture. A grown-up can delete any of these or add their own. */
+var STARTER=[
+  ['F2oYXi7Kzq4','First Words & Songs','🌟'],
+  ['hTqtGJwsJVE','First Words & Nursery Rhymes','🎵'],
+  ['zwL2o4jZxbc',"Baby's First Words",'🧸'],
+  ['PnXS5wvTOO4','More First Words','🍎'],
+  ['xkYved-ucGg','Learn to Talk','🐶'],
+  ['h67AgK4EHq4','Nursery Rhymes & Kids Songs','🎨'],
+  ['zmEv7vTOQGE','Songs & Sign Language','🌈'],
+  ['IdtZ0ntcB9o','Going to the Beach','🚗'],
+  ['7zYkZ9inbkU','5 Little Fishes','🐟'],
+  ['JuwhORzgBA8','3 Hungry Ants','🐝'],
+  ['rMHX2yBWRvY','Elevator Up','🚂'],
+  ['JJQHyQ2WXOE','Bubble Gum','🦄'],
+  ['I4o7caGRmwk','Letter B at the Beach','🐘'],
+  ['HsT3iI6dT5U','Christmas Movie','🌻']
+];
+function addStarter(){
+  var n=0;
+  STARTER.forEach(function(s){
+    if(db.items.some(function(x){return x.vid===s[0];}))return;
+    db.items.push({id:uid(),kind:'yt',vid:s[0],title:s[1],emoji:s[2],added:Date.now()});
+    n++;
+  });
+  return n;
+}
 
 /* ---------------- link parsing ---------------- */
 // Returns {kind:'yt'|'ytpl'|'vimeo', vid:string} or null.
@@ -494,14 +525,24 @@ function tickUsage(){
 }
 
 /* ---------------- player ---------------- */
-var current=null, ytPlayer=null, ytReady=false, ytPending=null, usageTimer=null, progTimer=null, wakeLock=null;
+var current=null, ytPlayer=null, ytReady=false, ytPending=null, usageTimer=null, progTimer=null, wakeLock=null, watchdog=null;
 
+var ytFailed=false;
 function loadYTApi(){
   if(window.YT&&window.YT.Player){ytReady=true;return;}
-  if(document.getElementById('ytapi'))return;
+  var existing=document.getElementById('ytapi');
+  if(existing){
+    if(!ytFailed) return;          // still loading — let it finish
+    existing.parentNode.removeChild(existing);   // last attempt died; try again
+  }
+  ytFailed=false;
   var s=document.createElement('script');
   s.id='ytapi'; s.src='https://www.youtube.com/iframe_api';
-  s.onerror=function(){ showOops("Couldn't reach the video player. Check the internet connection."); };
+  s.onerror=function(){
+    ytFailed=true;
+    // only worth saying out loud if he is sitting in front of the player
+    if($('play').classList.contains('on')) showOops("Couldn't reach the video player. Check the internet connection.");
+  };
   document.head.appendChild(s);
 }
 window.onYouTubeIframeAPIReady=function(){
@@ -521,6 +562,9 @@ function clearStage(){
   $('vimeoMount').innerHTML='';
   clearInterval(usageTimer); usageTimer=null;
   clearInterval(progTimer); progTimer=null;
+  clearTimeout(watchdog); watchdog=null;
+  // a pending auto-return must never fire into whatever he watches next
+  clearTimeout(oopsTimer); oopsTimer=null;
   $('prog').style.width='0';
 }
 function stopPlayback(){ clearStage(); releaseWake(); current=null; }
@@ -531,13 +575,21 @@ function showOops(msg){
   if(msg) $('oops').querySelector('p').innerHTML='<b>'+msg+'</b>';
   $('loadingMsg').style.display='none';
   hideTapToPlay();
+  clearTimeout(watchdog); watchdog=null;
   // the transport controls do nothing once playback has failed — take them away
   document.querySelector('#play .ctl').style.display='none';
   document.querySelector('#play .bar').style.display='none';
   $('nowPlaying').style.display='none';
+  // he can't read "Back to videos", so walk him back to the pictures himself
+  clearTimeout(oopsTimer);
+  oopsTimer=setTimeout(function(){
+    goHome();
+    toast('That video would not play — try another one');
+  },4000);
 }
-var OOPS_DEFAULT=$('oops').querySelector('p').innerHTML;
+var OOPS_DEFAULT=$('oops').querySelector('p').innerHTML, oopsTimer=null;
 function hideOops(){
+  clearTimeout(oopsTimer); oopsTimer=null;
   $('oops').querySelector('p').innerHTML=OOPS_DEFAULT;
   $('oops').style.display='none';
   $('strip').style.display='block';
@@ -562,6 +614,11 @@ function startVideo(id){
   show('play');
   requestWake();
   if(it.kind==='vimeo') mountVimeo(it); else mountYT(it);
+  // nothing playing after 12s means it is never going to; don't leave him on a dead screen
+  watchdog=setTimeout(function(){
+    if(!isPlaying() && $('oops').style.display!=='block')
+      showOops("This video didn't start. Check the internet connection.");
+  },12000);
   usageTimer=setInterval(function(){ if(isPlaying()) tickUsage(); },1000);
 }
 
@@ -581,7 +638,8 @@ function mountYT(it){
       onReady:function(e){ $('loadingMsg').style.display='none'; try{e.target.playVideo();}catch(err){} startProg(); armTapToPlay(); },
       onStateChange:function(e){
         if(e.data===0) onEnded();
-        if(e.data===1){ $('btnPlay').textContent='⏸'; $('loadingMsg').style.display='none'; hideTapToPlay(); }
+        if(e.data===1){ $('btnPlay').textContent='⏸'; $('loadingMsg').style.display='none'; hideTapToPlay();
+                        clearTimeout(watchdog); watchdog=null; }
         if(e.data===2){ $('btnPlay').textContent='▶'; }
       },
       onError:function(){ showOops(); }
@@ -890,6 +948,11 @@ $('tap2play').addEventListener('click',function(e){
 });
 
 $('addBtn').addEventListener('click',function(){ addLinks($('addBox').value); });
+$('starterBtn').addEventListener('click',function(){
+  var n=addStarter();
+  db.seeded=true; save(); renderParent();
+  toast(n?(n+' video'+(n===1?'':'s')+' restored'):'They are all here already');
+});
 $('limitSel').addEventListener('change',function(){
   db.settings.limitMin=parseInt($('limitSel').value,10)||0; save(); renderParent();
 });
@@ -923,6 +986,9 @@ document.addEventListener('contextmenu',function(e){ e.preventDefault(); });
 
 /* ---------------- boot ---------------- */
 load();
+// First run: fill the library so the app is usable by a child immediately.
+// Once seeded we never re-add, so a grown-up who clears it keeps it cleared.
+if(!db.seeded && db.items.length===0){ addStarter(); db.seeded=true; save(); }
 var hash=location.hash||'';
 if(hash.indexOf('#lib=')===0){
   history.replaceState(null,'',location.pathname);
