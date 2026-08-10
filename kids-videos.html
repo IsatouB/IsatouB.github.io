@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Kid Videos</title>
+<link rel="manifest" href="kids-manifest.json">
+<meta name="theme-color" content="#ff8a3d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kid Videos">
+<link rel="apple-touch-icon" href="kids-icon-180.png">
+<link rel="icon" href="kids-icon-180.png">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#1a1330; --bg2:#2a1b47; --card:#3a2760; --card2:#4a3178;
+    --accent:#ff8a3d; --accent2:#ff6b6b; --good:#4ecdc4; --text:#fff;
+    --dim:rgba(255,255,255,.62); --line:rgba(255,255,255,.12);
+    --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif;
+    background:var(--bg); color:var(--text);
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    overscroll-behavior:none; touch-action:manipulation;
+  }
+  button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer;touch-action:manipulation}
+  input,textarea,select{font-family:inherit;font-size:16px}
+  .screen{display:none;min-height:100dvh;flex-direction:column}
+  .screen.on{display:flex}
+
+  /* ---------- KID: library ---------- */
+  #kid{background:radial-gradient(1200px 600px at 20% -10%,#3b2566 0%,transparent 60%),var(--bg)}
+  .kidbar{display:flex;align-items:center;gap:10px;padding:calc(var(--safe-t) + 14px) 16px 10px}
+  .kidbar h1{font-size:22px;font-weight:900;letter-spacing:-.4px;flex:1}
+  .kidbar h1 span{font-size:24px;margin-right:6px}
+  .gear{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);
+        display:grid;place-items:center;font-size:18px;opacity:.5}
+  .gear:active{transform:scale(.94)}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:6px 16px calc(var(--safe-b) + 28px)}
+  @media(min-width:620px){.grid{grid-template-columns:repeat(3,1fr)}}
+  .tile{
+    background:var(--card);border-radius:22px;overflow:hidden;text-align:left;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);transition:transform .12s;position:relative;
+    display:flex;flex-direction:column;
+  }
+  .tile:active{transform:scale(.96)}
+  .thumb{width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#6d4bb5,#c65b9a);
+         display:grid;place-items:center;font-size:40px;position:relative}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .tile .em{position:absolute;left:8px;top:8px;font-size:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));z-index:1}
+  .tile .pl{position:absolute;right:8px;top:8px;background:rgba(0,0,0,.65);border-radius:8px;
+            padding:3px 7px;font-size:10px;font-weight:800;letter-spacing:.4px;z-index:1}
+  /* he can't read yet — the picture is the button, the title is really for the grown-up */
+  .tile .nm{padding:9px 12px 12px;font-size:12.5px;font-weight:700;line-height:1.25;color:var(--dim);
+            display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tile .thumb{font-size:52px}
+  .empty{margin:auto;text-align:center;padding:40px 30px;max-width:340px}
+  .empty .big{font-size:64px;margin-bottom:14px}
+  .empty h2{font-size:20px;font-weight:900;margin-bottom:8px}
+  .empty p{font-size:14px;color:var(--dim);line-height:1.5;margin-bottom:22px}
+  .btn{background:var(--accent);color:#2a1200;font-weight:900;font-size:15px;
+       padding:15px 26px;border-radius:16px;display:inline-block}
+  .btn:active{transform:scale(.97)}
+  .btn.ghost{background:rgba(255,255,255,.1);color:var(--text)}
+  .btn.wide{display:block;width:100%;text-align:center}
+  .btn.danger{background:rgba(255,107,107,.18);color:#ff9d9d}
+
+  /* ---------- KID: player ---------- */
+  #play{background:#000}
+  .stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;flex-shrink:0;margin-top:var(--safe-t)}
+  .stage iframe,.stage #ytmount{position:absolute;inset:0;width:100%;height:100%;border:0}
+  /* transparent shield: swallows every touch so nothing reaches the player's own UI */
+  .shield{position:absolute;inset:0;z-index:2;background:transparent}
+  .loading{position:absolute;inset:0;z-index:1;display:grid;place-items:center;color:var(--dim);font-size:14px;font-weight:700}
+  /* iOS blocks autoplay-with-sound on a player built after the tap; this gives back a direct gesture */
+  .tap2play{position:absolute;inset:0;z-index:3;background:rgba(0,0,0,.55);color:#fff;font-size:64px;
+            display:grid;place-items:center;width:100%;height:100%}
+  .tap2play:active{background:rgba(0,0,0,.7)}
+  .bar{height:5px;background:rgba(255,255,255,.14);flex-shrink:0}
+  .bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s linear}
+  .ctl{display:flex;align-items:center;justify-content:center;gap:22px;padding:16px 12px;background:#0d0a18;flex-shrink:0}
+  .cbtn{width:66px;height:66px;border-radius:50%;background:rgba(255,255,255,.1);
+        display:grid;place-items:center;font-size:26px}
+  .cbtn:active{transform:scale(.92)}
+  .cbtn.main{width:84px;height:84px;background:var(--accent);color:#2a1200;font-size:34px;
+             box-shadow:0 6px 20px rgba(255,138,61,.4)}
+  .nowplaying{padding:2px 18px 10px;background:#0d0a18;font-size:13px;font-weight:800;color:var(--dim);
+              text-align:center;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .strip{flex:1;background:#0d0a18;padding:8px 12px calc(var(--safe-b) + 16px);overflow-y:auto;min-height:0}
+  .strip h3{font-size:12px;font-weight:900;color:var(--dim);letter-spacing:1px;margin:6px 4px 10px}
+  .srow{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+  .srow::-webkit-scrollbar{display:none}
+  .scard{flex:0 0 132px;background:var(--card);border-radius:14px;overflow:hidden;text-align:left}
+  .scard:active{transform:scale(.95)}
+  .scard .thumb{aspect-ratio:16/9;font-size:26px}
+  .scard .nm{padding:7px 9px 10px;font-size:11px;font-weight:800;line-height:1.2;
+             display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .oops{padding:26px 22px;text-align:center;background:#0d0a18;flex:1}
+  .oops p{color:var(--dim);font-size:14px;line-height:1.5;margin:10px 0 20px}
+
+  /* ---------- all done ---------- */
+  #done{background:linear-gradient(160deg,#2a1b47,#1a1330);align-items:center;justify-content:center;text-align:center;padding:40px 30px}
+  #done .big{font-size:78px;margin-bottom:16px}
+  #done h2{font-size:26px;font-weight:900;margin-bottom:10px}
+  #done p{color:var(--dim);font-size:15px;line-height:1.5;max-width:300px;margin-bottom:26px}
+
+  /* ---------- gate ---------- */
+  #gate{background:var(--bg);align-items:center;justify-content:center;padding:30px 24px}
+  .gatebox{width:100%;max-width:330px;text-align:center}
+  .gatebox h2{font-size:19px;font-weight:900;margin-bottom:6px}
+  .gatebox p{color:var(--dim);font-size:13px;margin-bottom:20px}
+  .code{font-size:26px;font-weight:900;letter-spacing:1px;color:var(--accent);margin-bottom:6px}
+  .dots{display:flex;gap:12px;justify-content:center;margin:18px 0 22px}
+  .dot{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.15)}
+  .dot.f{background:var(--accent)}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .key{height:62px;border-radius:16px;background:var(--card);font-size:24px;font-weight:800;
+       display:grid;place-items:center}
+  .key:active{background:var(--card2)}
+  .key.sm{font-size:14px;font-weight:800;color:var(--dim)}
+  .shake{animation:sh .35s}
+  @keyframes sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+
+  /* ---------- parent ---------- */
+  #parent{background:var(--bg)}
+  .phead{display:flex;align-items:center;gap:12px;padding:calc(var(--safe-t) + 14px) 16px 12px;
+         border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+  .phead h2{font-size:18px;font-weight:900;flex:1}
+  .x{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:17px}
+  .pbody{flex:1;overflow-y:auto;padding:18px 16px calc(var(--safe-b) + 40px)}
+  .sec{margin-bottom:26px}
+  .sec>h3{font-size:12px;font-weight:900;letter-spacing:1.1px;color:var(--dim);margin-bottom:11px}
+  .panel{background:var(--card);border-radius:18px;padding:16px}
+  .panel + .panel{margin-top:12px}
+  label.fl{display:block;font-size:13px;font-weight:800;margin-bottom:7px}
+  textarea,input[type=text],input[type=number],select{
+    width:100%;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:12px;
+    padding:13px;color:var(--text);outline:none}
+  textarea{min-height:118px;resize:vertical;line-height:1.45}
+  textarea:focus,input:focus,select:focus{border-color:var(--accent)}
+  .hint{font-size:12px;color:var(--dim);line-height:1.5;margin-top:9px}
+  .hint a{color:var(--accent)}
+  .row{display:flex;gap:10px;align-items:center}
+  .row .btn{flex:1;text-align:center;padding:13px 10px;font-size:14px}
+  .item{display:flex;align-items:center;gap:11px;background:var(--card);border-radius:14px;padding:10px;margin-bottom:9px}
+  .item .th{width:74px;height:42px;border-radius:9px;overflow:hidden;flex-shrink:0;
+            background:linear-gradient(135deg,#6d4bb5,#c65b9a);display:grid;place-items:center;font-size:19px}
+  .item .th img{width:100%;height:100%;object-fit:cover}
+  .item .meta{flex:1;min-width:0}
+  .item .meta b{display:block;font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .meta small{font-size:11px;color:var(--dim)}
+  .iact{display:flex;gap:5px;flex-shrink:0}
+  .iact button{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.09);
+               display:grid;place-items:center;font-size:14px}
+  .iact button:active{background:rgba(255,255,255,.2)}
+  .toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:4px 0}
+  .toggle span{font-size:14px;font-weight:700}
+  .sw{width:52px;height:31px;border-radius:16px;background:rgba(255,255,255,.16);position:relative;flex-shrink:0;transition:background .15s}
+  .sw i{position:absolute;top:3px;left:3px;width:25px;height:25px;border-radius:50%;background:#fff;transition:left .15s}
+  .sw.on{background:var(--good)}
+  .sw.on i{left:24px}
+  .note{background:rgba(78,205,196,.1);border:1px solid rgba(78,205,196,.28);border-radius:14px;
+        padding:14px;font-size:12.5px;line-height:1.55;color:#cfeeeb}
+  .note b{color:#fff}
+  .emrow{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+  .emrow button{width:40px;height:40px;border-radius:11px;background:rgba(0,0,0,.28);font-size:20px;
+                display:grid;place-items:center;border:2px solid transparent}
+  .emrow button.sel{border-color:var(--accent);background:rgba(255,138,61,.16)}
+  .toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 26px);transform:translateX(-50%);
+         background:#fff;color:#1a1330;font-size:13.5px;font-weight:800;padding:13px 20px;border-radius:14px;
+         box-shadow:0 10px 34px rgba(0,0,0,.45);z-index:99;max-width:88%;text-align:center;
+         opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(-6px)}
+</style>
+</head>
+<body>
+
+<!-- ============ KID: LIBRARY ============ -->
+<div id="kid" class="screen">
+  <div class="kidbar">
+    <h1><span>🌟</span><em id="kidTitle" style="font-style:normal">Let's Learn!</em></h1>
+    <button class="gear" id="gearBtn" aria-label="Grown-ups">⚙️</button>
+  </div>
+  <div id="kidGrid" class="grid"></div>
+  <div id="kidEmpty" class="empty" style="display:none">
+    <div class="big">📺</div>
+    <h2>No videos yet</h2>
+    <p>A grown-up needs to add some videos first. Hold the button below for 2 seconds.</p>
+    <button class="btn" id="emptyAdd">Grown-ups: add videos</button>
+  </div>
+</div>
+
+<!-- ============ KID: PLAYER ============ -->
+<div id="play" class="screen">
+  <div class="stage">
+    <div id="ytmount"></div>
+    <div id="vimeoMount"></div>
+    <div class="loading" id="loadingMsg">Loading…</div>
+    <div class="shield" id="shield"></div>
+    <button class="tap2play" id="tap2play" style="display:none">▶</button>
+  </div>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="ctl">
+    <button class="cbtn" id="btnReplay" aria-label="Start over">↺</button>
+    <button class="cbtn main" id="btnPlay" aria-label="Play or pause">⏸</button>
+    <button class="cbtn" id="btnHome" aria-label="Back to videos">🏠</button>
+  </div>
+  <div class="nowplaying" id="nowPlaying"></div>
+  <div class="strip" id="strip">
+    <h3>MORE VIDEOS</h3>
+    <div class="srow" id="stripRow"></div>
+  </div>
+  <div class="oops" id="oops" style="display:none">
+    <div style="font-size:52px">🙈</div>
+    <p><b>This video can't play here.</b><br>Its owner turned off embedding, so it only works on YouTube itself. A grown-up can swap it for a different one.</p>
+    <button class="btn ghost" id="oopsBack">Back to videos</button>
+  </div>
+</div>
+
+<!-- ============ ALL DONE ============ -->
+<div id="done" class="screen">
+  <div class="big">🌙</div>
+  <h2>All done for today!</h2>
+  <p id="doneMsg">Screen time is finished. Let's go play something else!</p>
+  <button class="btn ghost" id="doneGear">Grown-ups</button>
+</div>
+
+<!-- ============ PARENT GATE ============ -->
+<div id="gate" class="screen">
+  <div class="gatebox" id="gateBox">
+    <h2>Grown-ups only</h2>
+    <p>Type these numbers to continue</p>
+    <div class="code" id="gateWords">—</div>
+    <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div class="pad" id="pad"></div>
+  </div>
+</div>
+
+<!-- ============ PARENT PANEL ============ -->
+<div id="parent" class="screen">
+  <div class="phead">
+    <h2>Grown-up settings</h2>
+    <button class="x" id="parentClose" aria-label="Close">✕</button>
+  </div>
+  <div class="pbody">
+
+    <div class="sec">
+      <h3>ADD VIDEOS</h3>
+      <div class="panel">
+        <label class="fl" for="addBox">Paste video links (one per line)</label>
+        <textarea id="addBox" placeholder="https://www.youtube.com/watch?v=…&#10;https://youtu.be/…&#10;https://vimeo.com/…" spellcheck="false" autocapitalize="off"></textarea>
+        <div class="hint">
+          Open <a href="https://www.msrachel.com/pages/videos" target="_blank" rel="noopener">msrachel.com/pages/videos</a>
+          on this phone, tap a video, then copy its link and paste it above.
+          YouTube links, Shorts, playlists and Vimeo links all work.
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="addBtn">Add to library</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>LIBRARY (<span id="cnt">0</span>)</h3>
+      <div id="list"></div>
+      <div class="hint" id="listEmpty" style="display:none">Nothing here yet — paste a link above to get started.</div>
+    </div>
+
+    <div class="sec">
+      <h3>SCREEN TIME</h3>
+      <div class="panel">
+        <label class="fl" for="limitSel">Daily limit</label>
+        <select id="limitSel">
+          <option value="0">No limit</option>
+          <option value="10">10 minutes</option>
+          <option value="15">15 minutes</option>
+          <option value="20">20 minutes</option>
+          <option value="30">30 minutes</option>
+          <option value="45">45 minutes</option>
+          <option value="60">1 hour</option>
+        </select>
+        <div class="hint" id="usedMsg"></div>
+        <div class="hint">Starts at 20 minutes a day. When the time is up the video stops and a
+          "all done for today" screen appears, so the answer comes from the app instead of from you.
+          Change it or switch it off any time.</div>
+        <button class="btn ghost wide" id="resetUse" style="margin-top:12px">Reset today's timer</button>
+      </div>
+      <div class="panel">
+        <div class="toggle">
+          <span>Play the next video automatically</span>
+          <button class="sw" id="swAuto" aria-label="Autoplay next"><i></i></button>
+        </div>
+        <div class="hint">Off means the video stops at the end and he picks the next one himself.</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>BACKUP</h3>
+      <div class="panel">
+        <div class="row">
+          <button class="btn ghost" id="expBtn">Copy backup link</button>
+          <button class="btn ghost" id="impBtn">Paste backup</button>
+        </div>
+        <div class="hint">The library lives on this phone only. Copy the backup link to move it to another device, or to restore it if the browser data gets cleared.</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>HOW THIS KEEPS HIM OFF YOUTUBE</h3>
+      <div class="note">
+        Videos play through YouTube's <b>no-cookie</b> player with its own buttons switched off, and an
+        invisible layer covers the video so taps can't reach the YouTube logo, the title, or the
+        end-screen suggestion cards. There is no search, no comments, no sidebar, and no way to browse —
+        only the videos you added.<br><br>
+        <b>Worth knowing:</b> the video itself is still streamed by YouTube, so the picture may include
+        anything baked into the video (Ms Rachel has ads switched off on hers). If you want fully
+        YouTube-free playback, her show is also on Netflix.
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>ADD TO HOME SCREEN</h3>
+      <div class="panel">
+        <div class="hint" style="margin-top:0">
+          <b style="color:#fff">iPhone / iPad:</b> open this page in Safari → tap Share
+          <b style="color:#fff">↑</b> → <b style="color:#fff">Add to Home Screen</b>.<br><br>
+          <b style="color:#fff">Android:</b> open in Chrome → menu <b style="color:#fff">⋮</b> →
+          <b style="color:#fff">Add to Home screen</b>.<br><br>
+          It then opens full screen with no address bar, so he can't type his way out.
+          On iPhone, turn on <b style="color:#fff">Guided Access</b>
+          (Settings → Accessibility) and triple-click the side button to lock him into this one app.
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>DANGER ZONE</h3>
+      <button class="btn danger wide" id="wipeBtn">Delete every video</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------------- storage ---------------- */
+var KEY='kidtv.v1';
+// Defaults are tuned for a toddler: a 20-minute daily cap, and no autoplay so a
+// video ending is a natural stopping point rather than a slide into the next one.
+var db={v:1,items:[],settings:{limitMin:20,autoNext:false},usage:{day:'',sec:0}};
+
+function today(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(raw){
+      var p=JSON.parse(raw);
+      if(p&&typeof p==='object'){
+        db.items=Array.isArray(p.items)?p.items:[];
+        db.settings=Object.assign(db.settings,p.settings||{});
+        db.usage=Object.assign(db.usage,p.usage||{});
+      }
+    }
+  }catch(e){}
+  if(db.usage.day!==today()){db.usage.day=today();db.usage.sec=0;}
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){toast("Couldn't save — phone storage is full");}}
+
+/* ---------------- helpers ---------------- */
+function $(id){return document.getElementById(id);}
+function el(tag,cls,txt){var n=document.createElement(tag);if(cls)n.className=cls;if(txt!=null)n.textContent=txt;return n;}
+var toastTimer;
+function toast(msg){
+  var t=$('toast');t.textContent=msg;t.classList.add('on');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on');},2600);
+}
+function show(id){
+  ['kid','play','done','gate','parent'].forEach(function(s){$(s).classList.toggle('on',s===id);});
+  window.scrollTo(0,0);
+}
+var EMOJI=['🌟','🎵','🐶','🚂','🦖','🎨','🐘','⚽','🍎','🌈','🐟','🚗','🧸','🌻','🐝','🦄'];
+function uid(){return Math.random().toString(36).slice(2,9);}
+
+/* ---------------- link parsing ---------------- */
+// Returns {kind:'yt'|'ytpl'|'vimeo', vid:string} or null.
+function parseLink(raw){
+  var s=(raw||'').trim();
+  if(!s) return null;
+  if(/^[A-Za-z0-9_-]{11}$/.test(s)) return {kind:'yt',vid:s};
+
+  var url=null;
+  try{ url=new URL(s.indexOf('//')===-1 ? 'https://'+s : s); }catch(e){ return null; }
+  var host=url.hostname.replace(/^www\.|^m\./,'').toLowerCase();
+  var path=url.pathname;
+
+  if(host==='youtu.be'){
+    var m=path.slice(1).split('/')[0];
+    return /^[A-Za-z0-9_-]{11}$/.test(m)?{kind:'yt',vid:m}:null;
+  }
+  if(host==='youtube.com'||host==='youtube-nocookie.com'||host==='music.youtube.com'){
+    var list=url.searchParams.get('list');
+    var v=url.searchParams.get('v');
+    if(v&&/^[A-Za-z0-9_-]{11}$/.test(v)) return {kind:'yt',vid:v};
+    if(/^\/(shorts|embed|live|v)\//.test(path)){
+      var seg=path.split('/')[2]||'';
+      if(/^[A-Za-z0-9_-]{11}$/.test(seg)) return {kind:'yt',vid:seg};
+    }
+    if(list&&/^[A-Za-z0-9_-]{12,}$/.test(list)) return {kind:'ytpl',vid:list};
+    return null;
+  }
+  if(host==='vimeo.com'||host==='player.vimeo.com'){
+    var mm=path.match(/(\d{6,})/);
+    return mm?{kind:'vimeo',vid:mm[1]}:null;
+  }
+  return null;
+}
+function thumbUrl(it){
+  if(it.kind==='yt') return 'https://i.ytimg.com/vi/'+it.vid+'/hqdefault.jpg';
+  return '';
+}
+function defaultName(it,n){
+  if(it.kind==='ytpl') return 'Playlist '+n;
+  return 'Video '+n;
+}
+// Best-effort title lookup; silently gives up if the network blocks it.
+function fetchTitle(it,cb){
+  var api;
+  if(it.kind==='yt') api='https://www.youtube.com/oembed?format=json&url='+encodeURIComponent('https://www.youtube.com/watch?v='+it.vid);
+  else if(it.kind==='vimeo') api='https://vimeo.com/api/oembed.json?url='+encodeURIComponent('https://vimeo.com/'+it.vid);
+  else return cb(null);
+  var done=false, t=setTimeout(function(){if(!done){done=true;cb(null);}},6000);
+  fetch(api).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(done)return; done=true; clearTimeout(t);
+    cb(j&&j.title?String(j.title).slice(0,90):null);
+  }).catch(function(){ if(!done){done=true;clearTimeout(t);cb(null);} });
+}
+
+/* ---------------- kid library ---------------- */
+// Fills a .thumb node: real thumbnail where one exists, big emoji where it doesn't.
+// The corner emoji badge only rides on top of a real image, so it never doubles up.
+function fillThumb(th,it,badges){
+  var fallback=function(){
+    th.innerHTML='';
+    th.appendChild(document.createTextNode(it.emoji||'🎬'));
+    if(badges&&it.kind==='ytpl') th.appendChild(el('div','pl','LIST'));
+  };
+  th.innerHTML='';
+  var src=thumbUrl(it);
+  if(!src){ fallback(); return; }
+  var img=document.createElement('img');
+  img.src=src; img.alt=''; img.loading='lazy';
+  img.onerror=fallback;
+  th.appendChild(img);
+  if(badges){
+    if(it.emoji) th.appendChild(el('div','em',it.emoji));
+    if(it.kind==='ytpl') th.appendChild(el('div','pl','LIST'));
+  }
+}
+
+function renderKid(){
+  var g=$('kidGrid'); g.innerHTML='';
+  var has=db.items.length>0;
+  g.style.display=has?'grid':'none';
+  $('kidEmpty').style.display=has?'none':'block';
+  db.items.forEach(function(it){
+    var b=el('button','tile');
+    var th=el('div','thumb');
+    fillThumb(th,it,true);
+    b.appendChild(th);
+    b.appendChild(el('div','nm',it.title));
+    b.addEventListener('click',function(){ startVideo(it.id); });
+    g.appendChild(b);
+  });
+}
+
+/* ---------------- screen time ---------------- */
+function limitSec(){return (db.settings.limitMin||0)*60;}
+function outOfTime(){return limitSec()>0 && db.usage.sec>=limitSec();}
+function tickUsage(){
+  if(db.usage.day!==today()){db.usage.day=today();db.usage.sec=0;}
+  db.usage.sec++;
+  if(db.usage.sec%10===0) save();
+  if(outOfTime()){ stopPlayback(); save(); show('done'); }
+}
+
+/* ---------------- player ---------------- */
+var current=null, ytPlayer=null, ytReady=false, ytPending=null, usageTimer=null, progTimer=null, wakeLock=null;
+
+function loadYTApi(){
+  if(window.YT&&window.YT.Player){ytReady=true;return;}
+  if(document.getElementById('ytapi'))return;
+  var s=document.createElement('script');
+  s.id='ytapi'; s.src='https://www.youtube.com/iframe_api';
+  s.onerror=function(){ showOops("Couldn't reach the video player. Check the internet connection."); };
+  document.head.appendChild(s);
+}
+window.onYouTubeIframeAPIReady=function(){
+  ytReady=true;
+  if(ytPending){var f=ytPending;ytPending=null;f();}
+};
+
+function requestWake(){
+  if(!('wakeLock' in navigator))return;
+  navigator.wakeLock.request('screen').then(function(w){wakeLock=w;}).catch(function(){});
+}
+function releaseWake(){ if(wakeLock){try{wakeLock.release();}catch(e){} wakeLock=null;} }
+
+function clearStage(){
+  if(ytPlayer){ try{ytPlayer.destroy();}catch(e){} ytPlayer=null; }
+  $('ytmount').innerHTML='';
+  $('vimeoMount').innerHTML='';
+  clearInterval(usageTimer); usageTimer=null;
+  clearInterval(progTimer); progTimer=null;
+  $('prog').style.width='0';
+}
+function stopPlayback(){ clearStage(); releaseWake(); current=null; }
+
+function showOops(msg){
+  $('oops').style.display='block';
+  $('strip').style.display='none';
+  if(msg) $('oops').querySelector('p').innerHTML='<b>'+msg+'</b>';
+  $('loadingMsg').style.display='none';
+  hideTapToPlay();
+  // the transport controls do nothing once playback has failed — take them away
+  document.querySelector('#play .ctl').style.display='none';
+  document.querySelector('#play .bar').style.display='none';
+  $('nowPlaying').style.display='none';
+}
+var OOPS_DEFAULT=$('oops').querySelector('p').innerHTML;
+function hideOops(){
+  $('oops').querySelector('p').innerHTML=OOPS_DEFAULT;
+  $('oops').style.display='none';
+  $('strip').style.display='block';
+  document.querySelector('#play .ctl').style.display='flex';
+  document.querySelector('#play .bar').style.display='block';
+  $('nowPlaying').style.display='block';
+}
+
+function startVideo(id){
+  if(outOfTime()){ show('done'); return; }
+  var it=null;
+  for(var i=0;i<db.items.length;i++){ if(db.items[i].id===id){it=db.items[i];break;} }
+  if(!it)return;
+  current=it;
+  clearStage();
+  hideOops();
+  $('loadingMsg').style.display='grid';
+  hideTapToPlay();
+  $('nowPlaying').textContent=it.title;
+  $('btnPlay').textContent='⏸';
+  renderStrip();
+  show('play');
+  requestWake();
+  if(it.kind==='vimeo') mountVimeo(it); else mountYT(it);
+  usageTimer=setInterval(function(){ if(isPlaying()) tickUsage(); },1000);
+}
+
+function isPlaying(){
+  if(ytPlayer&&ytPlayer.getPlayerState) { try{ return ytPlayer.getPlayerState()===1; }catch(e){ return false; } }
+  return vimeoPlaying;
+}
+
+function mountYT(it){
+  var go=function(){
+    var vars={
+      autoplay:1, controls:0, rel:0, modestbranding:1, playsinline:1, fs:0,
+      disablekb:1, iv_load_policy:3, cc_load_policy:0
+    };
+    var opts={ host:'https://www.youtube-nocookie.com', width:'100%', height:'100%',
+               playerVars:vars, events:{
+      onReady:function(e){ $('loadingMsg').style.display='none'; try{e.target.playVideo();}catch(err){} startProg(); armTapToPlay(); },
+      onStateChange:function(e){
+        if(e.data===0) onEnded();
+        if(e.data===1){ $('btnPlay').textContent='⏸'; $('loadingMsg').style.display='none'; hideTapToPlay(); }
+        if(e.data===2){ $('btnPlay').textContent='▶'; }
+      },
+      onError:function(){ showOops(); }
+    }};
+    if(it.kind==='ytpl'){ opts.playerVars.listType='playlist'; opts.playerVars.list=it.vid; }
+    else { opts.videoId=it.vid; }
+    try{ ytPlayer=new YT.Player('ytmount',opts); }
+    catch(e){ showOops("The player didn't load. Try closing and reopening the app."); }
+  };
+  if(ytReady) go(); else { ytPending=go; loadYTApi(); }
+}
+var tapTimer=null;
+function armTapToPlay(){
+  clearTimeout(tapTimer);
+  tapTimer=setTimeout(function(){ if(!isPlaying()) $('tap2play').style.display='grid'; },1800);
+}
+function hideTapToPlay(){ clearTimeout(tapTimer); $('tap2play').style.display='none'; }
+
+function startProg(){
+  clearInterval(progTimer);
+  progTimer=setInterval(function(){
+    if(!ytPlayer||!ytPlayer.getDuration)return;
+    try{
+      var d=ytPlayer.getDuration(), c=ytPlayer.getCurrentTime();
+      if(d>0) $('prog').style.width=Math.min(100,(c/d)*100)+'%';
+    }catch(e){}
+  },500);
+}
+
+/* Vimeo via postMessage — no SDK needed */
+var vimeoPlaying=false;
+function mountVimeo(it){
+  vimeoPlaying=false;
+  var f=document.createElement('iframe');
+  f.src='https://player.vimeo.com/video/'+it.vid+'?autoplay=1&title=0&byline=0&portrait=0&playsinline=1';
+  f.allow='autoplay; fullscreen';
+  f.setAttribute('frameborder','0');
+  $('vimeoMount').appendChild(f);
+  $('loadingMsg').style.display='none';
+  vimeoPlaying=true;
+}
+function vimeoSend(method){
+  var f=$('vimeoMount').querySelector('iframe');
+  if(!f||!f.contentWindow)return;
+  try{ f.contentWindow.postMessage(JSON.stringify({method:method}),'https://player.vimeo.com'); }catch(e){}
+}
+window.addEventListener('message',function(ev){
+  if(ev.origin!=='https://player.vimeo.com')return;
+  var d;
+  try{ d=typeof ev.data==='string'?JSON.parse(ev.data):ev.data; }catch(e){ return; }
+  if(!d)return;
+  if(d.event==='ready'){
+    var f=$('vimeoMount').querySelector('iframe');
+    if(f&&f.contentWindow){
+      try{
+        f.contentWindow.postMessage(JSON.stringify({method:'addEventListener',value:'finish'}),'https://player.vimeo.com');
+        f.contentWindow.postMessage(JSON.stringify({method:'addEventListener',value:'playProgress'}),'https://player.vimeo.com');
+      }catch(e){}
+    }
+  }
+  if(d.event==='finish') onEnded();
+  if(d.event==='playProgress'&&d.data&&d.data.percent){
+    $('prog').style.width=Math.min(100,d.data.percent*100)+'%';
+  }
+});
+
+function onEnded(){
+  $('prog').style.width='100%';
+  $('btnPlay').textContent='▶';
+  if(outOfTime()){ show('done'); return; }
+  if(db.settings.autoNext){
+    var i=db.items.indexOf(current);
+    if(i>-1&&db.items.length>1){ startVideo(db.items[(i+1)%db.items.length].id); return; }
+  }
+  goHome();
+}
+function goHome(){ stopPlayback(); renderKid(); show('kid'); }
+
+function togglePlay(){
+  if(ytPlayer&&ytPlayer.getPlayerState){
+    try{
+      var st=ytPlayer.getPlayerState();
+      if(st===1){ ytPlayer.pauseVideo(); $('btnPlay').textContent='▶'; }
+      else { ytPlayer.playVideo(); $('btnPlay').textContent='⏸'; }
+    }catch(e){}
+    return;
+  }
+  if($('vimeoMount').querySelector('iframe')){
+    vimeoPlaying=!vimeoPlaying;
+    vimeoSend(vimeoPlaying?'play':'pause');
+    $('btnPlay').textContent=vimeoPlaying?'⏸':'▶';
+  }
+}
+function replay(){
+  if(ytPlayer&&ytPlayer.seekTo){ try{ ytPlayer.seekTo(0,true); ytPlayer.playVideo(); $('btnPlay').textContent='⏸'; }catch(e){} return; }
+  var f=$('vimeoMount').querySelector('iframe');
+  if(f&&f.contentWindow){
+    try{
+      f.contentWindow.postMessage(JSON.stringify({method:'setCurrentTime',value:0}),'https://player.vimeo.com');
+      vimeoSend('play'); vimeoPlaying=true; $('btnPlay').textContent='⏸';
+    }catch(e){}
+  }
+}
+
+function renderStrip(){
+  var row=$('stripRow'); row.innerHTML='';
+  var others=db.items.filter(function(x){return !current||x.id!==current.id;});
+  $('strip').style.display=others.length?'block':'none';
+  others.forEach(function(it){
+    var b=el('button','scard');
+    var th=el('div','thumb');
+    fillThumb(th,it,false);
+    b.appendChild(th);
+    b.appendChild(el('div','nm',it.title));
+    b.addEventListener('click',function(){ startVideo(it.id); });
+    row.appendChild(b);
+  });
+}
+
+/* ---------------- parent gate ---------------- */
+var WORDS=['zero','one','two','three','four','five','six','seven','eight','nine'];
+var gateCode='', gateTyped='', gateThen=null;
+function openGate(then){
+  gateThen=then;
+  gateCode=''; gateTyped='';
+  for(var i=0;i<3;i++) gateCode+=String(Math.floor(Math.random()*10));
+  $('gateWords').textContent=gateCode.split('').map(function(d){return WORDS[+d];}).join(' · ');
+  paintDots();
+  show('gate');
+}
+function paintDots(){
+  var dots=document.querySelectorAll('#gate .dot');
+  for(var i=0;i<dots.length;i++) dots[i].classList.toggle('f',i<gateTyped.length);
+}
+function gateKey(d){
+  if(d==='del'){ gateTyped=gateTyped.slice(0,-1); paintDots(); return; }
+  if(d==='back'){ goHome(); return; }
+  if(gateTyped.length>=3)return;
+  gateTyped+=d; paintDots();
+  if(gateTyped.length===3){
+    if(gateTyped===gateCode){ setTimeout(function(){ openParent(); },160); }
+    else {
+      $('gateBox').classList.add('shake');
+      setTimeout(function(){ $('gateBox').classList.remove('shake'); gateTyped=''; paintDots(); },380);
+    }
+  }
+}
+(function buildPad(){
+  var pad=$('pad');
+  ['1','2','3','4','5','6','7','8','9','back','0','del'].forEach(function(k){
+    var b=el('button','key'+(k==='back'||k==='del'?' sm':''));
+    b.textContent = k==='back'?'Back':(k==='del'?'⌫':k);
+    b.addEventListener('click',function(){ gateKey(k); });
+    pad.appendChild(b);
+  });
+})();
+
+/* hold-to-open on the gear */
+function holdToOpen(node){
+  var timer=null;
+  var start=function(e){
+    clearTimeout(timer);
+    timer=setTimeout(function(){ openGate(); },1400);
+  };
+  var cancel=function(){ clearTimeout(timer); };
+  node.addEventListener('touchstart',start,{passive:true});
+  node.addEventListener('touchend',cancel);
+  node.addEventListener('touchcancel',cancel);
+  node.addEventListener('mousedown',start);
+  node.addEventListener('mouseup',cancel);
+  node.addEventListener('mouseleave',cancel);
+}
+
+/* ---------------- parent panel ---------------- */
+function openParent(){ stopPlayback(); renderParent(); show('parent'); }
+
+function renderParent(){
+  $('cnt').textContent=db.items.length;
+  var list=$('list'); list.innerHTML='';
+  $('listEmpty').style.display=db.items.length?'none':'block';
+
+  db.items.forEach(function(it,idx){
+    var row=el('div','item');
+    var th=el('div','th');
+    fillThumb(th,it,false);
+    row.appendChild(th);
+
+    var meta=el('div','meta');
+    var nameInput=document.createElement('input');
+    nameInput.type='text'; nameInput.value=it.title;
+    nameInput.style.cssText='background:transparent;border:none;padding:0;font-size:13px;font-weight:800;width:100%';
+    nameInput.addEventListener('change',function(){
+      it.title=nameInput.value.trim()||it.title; save(); nameInput.value=it.title;
+    });
+    meta.appendChild(nameInput);
+    meta.appendChild(el('small',null,(it.kind==='ytpl'?'YouTube playlist':it.kind==='vimeo'?'Vimeo':'YouTube')+' · '+it.vid));
+    row.appendChild(meta);
+
+    var act=el('div','iact');
+    var up=el('button',null,'↑'); up.addEventListener('click',function(){ move(idx,-1); });
+    var dn=el('button',null,'↓'); dn.addEventListener('click',function(){ move(idx,1); });
+    var em=el('button',null,it.emoji||'🙂'); em.addEventListener('click',function(){ cycleEmoji(it); });
+    var rm=el('button',null,'🗑'); rm.addEventListener('click',function(){
+      if(confirm('Remove "'+it.title+'"?')){ db.items.splice(idx,1); save(); renderParent(); }
+    });
+    act.appendChild(up);act.appendChild(dn);act.appendChild(em);act.appendChild(rm);
+    row.appendChild(act);
+    list.appendChild(row);
+  });
+
+  $('limitSel').value=String(db.settings.limitMin||0);
+  $('swAuto').classList.toggle('on',!!db.settings.autoNext);
+  var lim=limitSec();
+  $('usedMsg').textContent = lim>0
+    ? 'Used today: '+Math.floor(db.usage.sec/60)+' of '+db.settings.limitMin+' minutes.'
+    : 'Watched today: '+Math.floor(db.usage.sec/60)+' minutes.';
+}
+function move(i,d){
+  var j=i+d;
+  if(j<0||j>=db.items.length)return;
+  var t=db.items[i]; db.items[i]=db.items[j]; db.items[j]=t;
+  save(); renderParent();
+}
+function cycleEmoji(it){
+  var i=EMOJI.indexOf(it.emoji);
+  it.emoji=EMOJI[(i+1)%EMOJI.length];
+  save(); renderParent();
+}
+
+function addLinks(text){
+  var lines=String(text||'').split(/[\s,]+/).filter(Boolean);
+  if(!lines.length){ toast('Paste a link first'); return; }
+  var added=0, dupes=0, bad=0, fresh=[];
+  lines.forEach(function(line){
+    var p=parseLink(line);
+    if(!p){ bad++; return; }
+    var exists=db.items.some(function(x){return x.kind===p.kind&&x.vid===p.vid;});
+    if(exists){ dupes++; return; }
+    var it={id:uid(),kind:p.kind,vid:p.vid,emoji:EMOJI[db.items.length%EMOJI.length],
+            title:defaultName(p,db.items.length+1),added:Date.now()};
+    db.items.push(it); fresh.push(it); added++;
+  });
+  save(); renderParent();
+  var msg=added+(added===1?' video added':' videos added');
+  if(dupes) msg+=', '+dupes+' already there';
+  if(bad) msg+=", "+bad+" link"+(bad===1?"":"s")+" not recognised";
+  toast(msg);
+  if(added) $('addBox').value='';
+  // try to fill in real titles in the background
+  fresh.forEach(function(it){
+    fetchTitle(it,function(t){
+      if(t){ it.title=t; save(); if($('parent').classList.contains('on')) renderParent(); }
+    });
+  });
+}
+
+/* ---------------- backup ---------------- */
+function enc(s){ return btoa(String.fromCharCode.apply(null,new TextEncoder().encode(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function dec(s){
+  s=s.replace(/-/g,'+').replace(/_/g,'/');
+  var bin=atob(s), arr=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(arr);
+}
+function backupLink(){
+  var payload=JSON.stringify(db.items.map(function(i){return {k:i.kind,v:i.vid,t:i.title,e:i.emoji};}));
+  return location.origin+location.pathname+'#lib='+enc(payload);
+}
+function importFrom(str){
+  var raw=String(str||'').trim();
+  var m=raw.match(/#lib=([A-Za-z0-9\-_]+)/);
+  var code=m?m[1]:raw;
+  var arr;
+  try{ arr=JSON.parse(dec(code)); }catch(e){ toast("That doesn't look like a backup link"); return; }
+  if(!Array.isArray(arr)){ toast('Backup was empty'); return; }
+  var n=0;
+  arr.forEach(function(o){
+    if(!o||!o.k||!o.v)return;
+    if(db.items.some(function(x){return x.kind===o.k&&x.vid===o.v;}))return;
+    db.items.push({id:uid(),kind:o.k,vid:String(o.v),title:o.t||'Video',
+                   emoji:o.e||EMOJI[db.items.length%EMOJI.length],added:Date.now()});
+    n++;
+  });
+  save(); renderParent();
+  toast(n?(n+' video'+(n===1?'':'s')+' restored'):'Everything was already here');
+}
+
+/* ---------------- wiring ---------------- */
+$('gearBtn').addEventListener('click',function(){ toast('Grown-ups: hold this button down'); });
+holdToOpen($('gearBtn'));
+$('emptyAdd').addEventListener('click',function(){ openGate(); });
+$('doneGear').addEventListener('click',function(){ openGate(); });
+$('parentClose').addEventListener('click',function(){ goHome(); });
+
+$('btnPlay').addEventListener('click',togglePlay);
+$('btnReplay').addEventListener('click',replay);
+$('btnHome').addEventListener('click',goHome);
+$('oopsBack').addEventListener('click',goHome);
+$('shield').addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); });
+$('tap2play').addEventListener('click',function(e){
+  e.stopPropagation();
+  hideTapToPlay();
+  if(ytPlayer&&ytPlayer.playVideo){ try{ ytPlayer.playVideo(); }catch(err){} }
+  else { vimeoSend('play'); vimeoPlaying=true; }
+  $('btnPlay').textContent='⏸';
+});
+
+$('addBtn').addEventListener('click',function(){ addLinks($('addBox').value); });
+$('limitSel').addEventListener('change',function(){
+  db.settings.limitMin=parseInt($('limitSel').value,10)||0; save(); renderParent();
+});
+$('swAuto').addEventListener('click',function(){
+  db.settings.autoNext=!db.settings.autoNext; save(); renderParent();
+});
+$('resetUse').addEventListener('click',function(){
+  db.usage.day=today(); db.usage.sec=0; save(); renderParent(); toast("Today's timer reset");
+});
+$('expBtn').addEventListener('click',function(){
+  var link=backupLink();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(function(){ toast('Backup link copied'); },
+      function(){ prompt('Copy this backup link:',link); });
+  } else prompt('Copy this backup link:',link);
+});
+$('impBtn').addEventListener('click',function(){
+  var s=prompt('Paste your backup link:');
+  if(s) importFrom(s);
+});
+$('wipeBtn').addEventListener('click',function(){
+  if(confirm('Delete all '+db.items.length+' videos? This cannot be undone.')){
+    db.items=[]; save(); renderParent(); toast('Library cleared');
+  }
+});
+
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden && isPlaying()) togglePlay();
+});
+document.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+
+/* ---------------- boot ---------------- */
+load();
+var hash=location.hash||'';
+if(hash.indexOf('#lib=')===0){
+  history.replaceState(null,'',location.pathname);
+  var pending=hash;
+  openGate();
+  var origOpen=openParent;
+  openParent=function(){ origOpen(); importFrom(pending); };
+} else {
+  renderKid();
+  show(outOfTime()?'done':'kid');
+}
+if(db.items.length) loadYTApi();
+})();
+</script>
+</body>
+</html>
