@@ -272,6 +272,10 @@
       <h3>LIBRARY (<span id="cnt">0</span>)</h3>
       <div id="list"></div>
       <div class="hint" id="listEmpty" style="display:none">Nothing here yet — paste a link above to get started.</div>
+      <button class="btn ghost wide" id="pruneBtn" style="display:none;margin-top:6px">Remove unavailable videos</button>
+      <div class="hint">The channel name under each video is who published it on YouTube.
+        Anything that does not say <b style="color:#fff">Ms Rachel</b> is somebody else's re-upload —
+        bin it with 🗑 if you would rather he did not see it.</div>
     </div>
 
     <div class="sec">
@@ -397,14 +401,16 @@ function uid(){return Math.random().toString(36).slice(2,9);}
 /* Ms Rachel videos loaded on first run so a small child can just open the app and
    tap a picture. A grown-up can delete any of these or add their own. */
 var STARTER=[
-  ['F2oYXi7Kzq4','First Words & Songs','🌟'],
   ['hTqtGJwsJVE','First Words & Nursery Rhymes','🎵'],
   ['zwL2o4jZxbc',"Baby's First Words",'🧸'],
-  ['PnXS5wvTOO4','More First Words','🍎'],
   ['xkYved-ucGg','Learn to Talk','🐶'],
   ['h67AgK4EHq4','Nursery Rhymes & Kids Songs','🎨'],
   ['zmEv7vTOQGE','Songs & Sign Language','🌈'],
-  ['IdtZ0ntcB9o','Going to the Beach','🚗'],
+  ['VzcorttkUV0','Counting 1 to 10','🔢'],
+  ['hOHrqPI9bVk','Numbers, Colors & Shapes','🟠'],
+  ['K_Aq4H03Nm4','Shapes, Letters & Numbers','🔤'],
+  ['_R0xRT2y7Uo','The Alphabet & Letter Sounds','🔠'],
+  ['1v3Dk41C_10','Phonics & Letter Sounds','📚'],
   ['7zYkZ9inbkU','5 Little Fishes','🐟'],
   ['JuwhORzgBA8','3 Hungry Ants','🐝'],
   ['rMHX2yBWRvY','Elevator Up','🚂'],
@@ -463,8 +469,11 @@ function defaultName(it,n){
   if(it.kind==='ytpl') return 'Playlist '+n;
   return 'Video '+n;
 }
-// Best-effort title lookup; silently gives up if the network blocks it.
-function fetchTitle(it,cb){
+// Best-effort lookup of a video's real title and channel; silently gives up if
+// the network or the browser blocks it. The channel matters: plenty of accounts
+// re-upload Ms Rachel's videos under near-identical names, and this is how a
+// grown-up can tell a copy from the real thing.
+function fetchMeta(it,cb){
   var api;
   if(it.kind==='yt') api='https://www.youtube.com/oembed?format=json&url='+encodeURIComponent('https://www.youtube.com/watch?v='+it.vid);
   else if(it.kind==='vimeo') api='https://vimeo.com/api/oembed.json?url='+encodeURIComponent('https://vimeo.com/'+it.vid);
@@ -472,14 +481,15 @@ function fetchTitle(it,cb){
   var done=false, t=setTimeout(function(){if(!done){done=true;cb(null);}},6000);
   fetch(api).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(done)return; done=true; clearTimeout(t);
-    cb(j&&j.title?String(j.title).slice(0,90):null);
+    cb(j?{title:j.title?String(j.title).slice(0,90):null,
+          author:j.author_name?String(j.author_name).slice(0,60):null}:null);
   }).catch(function(){ if(!done){done=true;clearTimeout(t);cb(null);} });
 }
 
 /* ---------------- kid library ---------------- */
 // Fills a .thumb node: real thumbnail where one exists, big emoji where it doesn't.
 // The corner emoji badge only rides on top of a real image, so it never doubles up.
-function fillThumb(th,it,badges){
+function fillThumb(th,it,badges,onDead){
   var fallback=function(){
     th.innerHTML='';
     th.appendChild(document.createTextNode(it.emoji||'🎬'));
@@ -491,6 +501,14 @@ function fillThumb(th,it,badges){
   var img=document.createElement('img');
   img.src=src; img.alt=''; img.loading='lazy';
   img.onerror=fallback;
+  // A video that no longer exists still returns an image: YouTube's grey 120x90
+  // "no thumbnail" placeholder. Real thumbnails come back 480 wide, so the width
+  // tells us the video is gone before he ever taps it.
+  img.onload=function(){
+    var missing=img.naturalWidth>0 && img.naturalWidth<=120;
+    if(missing!==!!it.dead){ it.dead=missing; save(); }
+    if(missing && onDead) onDead();
+  };
   th.appendChild(img);
   if(badges){
     if(it.emoji) th.appendChild(el('div','em',it.emoji));
@@ -504,9 +522,10 @@ function renderKid(){
   g.style.display=has?'grid':'none';
   $('kidEmpty').style.display=has?'none':'block';
   db.items.forEach(function(it){
+    if(it.dead) return;   // known-missing video: never put it in front of him
     var b=el('button','tile');
     var th=el('div','thumb');
-    fillThumb(th,it,true);
+    fillThumb(th,it,true,function(){ if(b.parentNode) b.parentNode.removeChild(b); });
     b.appendChild(th);
     b.appendChild(el('div','nm',it.title));
     b.addEventListener('click',function(){ startVideo(it.id); });
@@ -746,7 +765,7 @@ function replay(){
 
 function renderStrip(){
   var row=$('stripRow'); row.innerHTML='';
-  var others=db.items.filter(function(x){return !current||x.id!==current.id;});
+  var others=db.items.filter(function(x){return !x.dead && (!current||x.id!==current.id);});
   $('strip').style.display=others.length?'block':'none';
   others.forEach(function(it){
     var b=el('button','scard');
@@ -820,6 +839,7 @@ function renderParent(){
   $('cnt').textContent=db.items.length;
   var list=$('list'); list.innerHTML='';
   $('listEmpty').style.display=db.items.length?'none':'block';
+  $('pruneBtn').style.display=db.items.some(function(x){return x.dead;})?'block':'none';
 
   db.items.forEach(function(it,idx){
     var row=el('div','item');
@@ -835,8 +855,22 @@ function renderParent(){
       it.title=nameInput.value.trim()||it.title; save(); nameInput.value=it.title;
     });
     meta.appendChild(nameInput);
-    meta.appendChild(el('small',null,(it.kind==='ytpl'?'YouTube playlist':it.kind==='vimeo'?'Vimeo':'YouTube')+' · '+it.vid));
+    var src=(it.kind==='ytpl'?'YouTube playlist':it.kind==='vimeo'?'Vimeo':'YouTube');
+    var line=el('small',null, it.dead ? '⚠️ no longer available'
+                                      : src+' · '+(it.channel||it.vid));
+    if(it.dead) line.style.color='#ff9d9d';
+    else if(it.channel) line.style.color='#8fe3dd';
+    meta.appendChild(line);
     row.appendChild(meta);
+    if(it.dead) row.style.opacity='.55';
+    // ask YouTube who actually published it, once per video
+    if(!it.channel && !it.channelChecked){
+      it.channelChecked=true;
+      fetchMeta(it,function(m){
+        if(m&&m.author){ it.channel=m.author; save();
+          if($('parent').classList.contains('on')) renderParent(); }
+      });
+    }
 
     var act=el('div','iact');
     var up=el('button',null,'↑'); up.addEventListener('click',function(){ move(idx,-1); });
@@ -888,10 +922,13 @@ function addLinks(text){
   if(bad) msg+=", "+bad+" link"+(bad===1?"":"s")+" not recognised";
   toast(msg);
   if(added) $('addBox').value='';
-  // try to fill in real titles in the background
+  // try to fill in real titles and channel names in the background
   fresh.forEach(function(it){
-    fetchTitle(it,function(t){
-      if(t){ it.title=t; save(); if($('parent').classList.contains('on')) renderParent(); }
+    fetchMeta(it,function(m){
+      if(!m)return;
+      if(m.title) it.title=m.title;
+      if(m.author) it.channel=m.author;
+      save(); if($('parent').classList.contains('on')) renderParent();
     });
   });
 }
@@ -948,6 +985,11 @@ $('tap2play').addEventListener('click',function(e){
 });
 
 $('addBtn').addEventListener('click',function(){ addLinks($('addBox').value); });
+$('pruneBtn').addEventListener('click',function(){
+  var n=db.items.length;
+  db.items=db.items.filter(function(x){return !x.dead;});
+  save(); renderParent(); toast((n-db.items.length)+' removed');
+});
 $('starterBtn').addEventListener('click',function(){
   var n=addStarter();
   db.seeded=true; save(); renderParent();
