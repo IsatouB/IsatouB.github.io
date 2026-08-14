@@ -1,5 +1,5 @@
 {
-  "_readme": "Shared starting point for Board Hub (board.html). Whoever keeps the board records can edit this file and commit it; everyone else gets a 'shared file updated' nudge in the widget and can merge it in. Bump updatedAt whenever you change anything. Every entry below is marked \"example\": true so the widget can offer to clear them in one tap — drop that flag on anything real.",
+  "_readme": "FALLBACK COPY ONLY. The live board records belong in the separate IsatouB/board-data repository, which the widget reads first; this file is what it falls back to while that repo does not exist yet, so it only holds examples. Once board-data is published, leave this file alone — the person keeping the records publishes to that repo from inside the widget (Settings > Publish). Every entry below is marked \"example\": true so the widget can clear them in one tap.",
   "v": 1,
   "org": "Board of Directors",
   "updatedAt": "2026-08-14T09:00:00.000Z",

@@ -301,8 +301,20 @@
    ============================================================ */
 
 var KEY = 'boardhub.v1';
-var REMOTE = 'board-data.json';
-var README_NOTE = "Shared board records for Board Hub (board.html). Whoever keeps the records publishes this file from inside the widget: Settings > Publish. Everyone else gets a nudge to pull the changes in. Don't hand-edit unless you're comfortable with JSON.";
+
+/* The shared records live in their own small repository, so the person who
+   keeps them can be given access to that and nothing else. Until it exists,
+   the copy bundled with this site is used instead — so the widget works
+   today and switches over on its own the moment the repo is published. */
+var DATA_OWNER  = 'IsatouB';
+var DATA_REPO   = 'board-data';
+var DATA_BRANCH = 'main';
+var DATA_FILE   = 'board-data.json';
+var REMOTE_URL  = 'https://raw.githubusercontent.com/' + DATA_OWNER + '/' + DATA_REPO +
+                  '/' + DATA_BRANCH + '/' + DATA_FILE;
+var LOCAL_URL   = 'board-data.json';
+
+var README_NOTE = "Shared board records for Board Hub (isatoub.github.io/board.html). Whoever keeps the records publishes this file from inside the widget: Settings > Publish. Everyone else's copy follows it automatically. Don't hand-edit unless you're comfortable with JSON. NOTE: this repository is public, so treat anything in here as readable by anyone.";
 var AVCOLORS = ['#d9a92e','#4d8df6','#35c793','#f0a83c','#c77dff','#f06565','#4ecdc4','#ff9f7f'];
 
 var db = null;
@@ -387,7 +399,8 @@ function save(){
 }
 function blank(){
   return { v:1, org:'Board of Directors', orgSet:false, updatedAt:new Date().toISOString(),
-           meId:null, remoteSeen:null, members:[], meetings:[], tasks:[], docs:[] };
+           meId:null, role:'viewer', localDone:{}, remoteSeen:null,
+           members:[], meetings:[], tasks:[], docs:[] };
 }
 function normalize(d){
   var b = blank();
@@ -395,7 +408,8 @@ function normalize(d){
   /* meId / orgSet / remoteSeen describe the person reading, not the board.
      They are stripped when publishing and ignored when seeding, so nobody
      inherits the publisher's identity. */
-  ['org','orgSet','meId','remoteSeen','updatedAt'].forEach(function(k){ if(d[k]!=null) b[k]=d[k]; });
+  ['org','orgSet','meId','role','remoteSeen','updatedAt'].forEach(function(k){ if(d[k]!=null) b[k]=d[k]; });
+  if(d.localDone && typeof d.localDone==='object') b.localDone = d.localDone;
   ['members','meetings','tasks','docs'].forEach(function(k){ if(Array.isArray(d[k])) b[k]=d[k]; });
   b.members.forEach(function(m){ if(!m.id) m.id=uid('m'); });
   b.meetings.forEach(function(m){
@@ -450,13 +464,21 @@ function nextMeeting(){
   var up = sortedMeetings().filter(isUpcoming);
   return up.length ? up[0] : null;
 }
-function openTasks(){ return db.tasks.filter(function(t){ return t.status!=='done'; }); }
+/* Members can tick their own items off without being able to edit the board.
+   That tick is theirs alone, kept beside the published record so it survives
+   the next publish instead of being wiped by it. */
+function canEdit(){ return db.role === 'maintainer'; }
+function tstatus(t){
+  if(db.localDone && db.localDone[t.id]) return 'done';
+  return t.status || 'open';
+}
+function openTasks(){ return db.tasks.filter(function(t){ return tstatus(t)!=='done'; }); }
 function isOverdue(t){
-  if(t.status==='done' || !t.due) return false;
+  if(tstatus(t)==='done' || !t.due) return false;
   var d = parseDT(t.due); return d ? daysBetween(new Date(), d) < 0 : false;
 }
 function dueSoon(t){
-  if(t.status==='done' || !t.due) return false;
+  if(tstatus(t)==='done' || !t.due) return false;
   var d = parseDT(t.due); if(!d) return false;
   var n = daysBetween(new Date(), d); return n>=0 && n<=7;
 }
@@ -480,6 +502,8 @@ function render(){
       var s=document.createElement('span'); s.className='dot'; s.textContent=over; b.appendChild(s);
     }
   });
+
+  el('fab').style.display = canEdit() ? 'grid' : 'none';
 
   var v = el('view');
   if(ui.tab==='home') v.innerHTML = viewHome();
@@ -521,8 +545,8 @@ function viewHome(){
     h += '<div class="hero"><div class="when">No meeting scheduled</div>' +
          '<h3>Nothing on the calendar</h3>' +
          '<div class="sub">Add the next board meeting so everyone can see it.</div>' +
-         '<div class="hero-row" style="margin-top:13px">' +
-         '<button class="btn sm" data-act="new-meeting">Schedule a meeting</button></div></div>';
+         (canEdit() ? '<div class="hero-row" style="margin-top:13px">' +
+           '<button class="btn sm" data-act="new-meeting">Schedule a meeting</button></div>' : '') + '</div>';
   }
 
   h += examplesBanner();
@@ -576,6 +600,7 @@ function remoteBanner(){
     '</div>';
 }
 function examplesBanner(){
+  if(!canEdit()) return '';
   var n = countExamples();
   if(!n) return '';
   return '<div class="banner gold"><span class="bi">👋</span>' +
@@ -605,9 +630,11 @@ function viewMeetings(){
   var past = all.filter(function(m){ return !isUpcoming(m); }).reverse();
   var h = '';
   h += '<div class="sec"><div class="sec-h"><h2>Upcoming</h2><span class="count">'+up.length+'</span>' +
-       '<button class="sh-act" data-act="new-meeting">+ Add</button></div>';
+       (canEdit() ? '<button class="sh-act" data-act="new-meeting">+ Add</button>' : '') + '</div>';
   h += up.length ? '<div class="card">' + up.map(meetingRow).join('') + '</div>'
-                 : emptyBox('📅','No meetings scheduled','Put the next board meeting on here and everyone will see the date, the link and the agenda in one place.','Schedule a meeting','new-meeting');
+                 : (canEdit()
+                    ? emptyBox('📅','No meetings scheduled','Put the next board meeting on here and everyone will see the date, the link and the agenda in one place.','Schedule a meeting','new-meeting')
+                    : emptyBox('📅','No meetings scheduled','Nothing has been published yet. It will appear here once the board meetings are added.',null,null));
   h += '</div>';
   if(past.length){
     h += '<div class="sec"><div class="sec-h"><h2>Past</h2><span class="count">'+past.length+'</span>' +
@@ -640,13 +667,13 @@ function meetingRow(m){
 function viewTasks(){
   var f = ui.taskFilter;
   var list = db.tasks.slice();
-  if(f==='open') list = list.filter(function(t){ return t.status!=='done'; });
-  else if(f==='mine') list = list.filter(function(t){ return t.owner===db.meId && t.status!=='done'; });
-  else if(f==='done') list = list.filter(function(t){ return t.status==='done'; });
+  if(f==='open') list = list.filter(function(t){ return tstatus(t)!=='done'; });
+  else if(f==='mine') list = list.filter(function(t){ return t.owner===db.meId && tstatus(t)!=='done'; });
+  else if(f==='done') list = list.filter(function(t){ return tstatus(t)==='done'; });
 
   list.sort(function(a,b){
-    if(a.status==='done' && b.status!=='done') return 1;
-    if(b.status==='done' && a.status!=='done') return -1;
+    if(tstatus(a)==='done' && tstatus(b)!=='done') return 1;
+    if(tstatus(b)==='done' && tstatus(a)!=='done') return -1;
     var ad=a.due?parseDT(a.due):null, bd=b.due?parseDT(b.due):null;
     if(ad&&bd) return ad-bd; if(ad) return -1; if(bd) return 1;
     return 0;
@@ -656,22 +683,22 @@ function viewTasks(){
     chip('open','Open', openTasks().length) +
     chip('mine','Mine', db.meId ? openTasks().filter(function(t){return t.owner===db.meId;}).length : 0) +
     chip('all','Everything', db.tasks.length) +
-    chip('done','Done', db.tasks.filter(function(t){return t.status==='done';}).length) +
+    chip('done','Done', db.tasks.filter(function(t){return tstatus(t)==='done';}).length) +
     '</div>';
 
   if(!list.length){
     h += emptyBox('✅', f==='mine'?'Nothing assigned to you':'No action items here',
       'Action items decided in a meeting live here — with who owns them and when they are due.',
-      'Add an action item','new-task');
+      canEdit()?'Add an action item':null, 'new-task');
     return h;
   }
 
   var groups = [
     { k:'Overdue', f:function(t){ return isOverdue(t); } },
     { k:'Next 7 days', f:function(t){ return dueSoon(t); } },
-    { k:'Later', f:function(t){ return t.status!=='done' && t.due && !isOverdue(t) && !dueSoon(t); } },
-    { k:'No due date', f:function(t){ return t.status!=='done' && !t.due; } },
-    { k:'Done', f:function(t){ return t.status==='done'; } }
+    { k:'Later', f:function(t){ return tstatus(t)!=='done' && t.due && !isOverdue(t) && !dueSoon(t); } },
+    { k:'No due date', f:function(t){ return tstatus(t)!=='done' && !t.due; } },
+    { k:'Done', f:function(t){ return tstatus(t)==='done'; } }
   ];
   groups.forEach(function(g){
     var items = list.filter(g.f);
@@ -693,13 +720,14 @@ function taskRow(t){
   if(d) bits.push('Due ' + relLower(d));
   var mtg = t.meetingId ? meetingById(t.meetingId) : null;
   if(mtg) bits.push('from ' + (mtg.title||'meeting'));
-  return '<div class="row'+(t.status==='done'?' done':'')+'">' +
-    '<button class="check'+(t.status==='done'?' on':(t.status==='doing'?' doing':''))+'" data-act="toggle-task" data-id="'+t.id+'" aria-label="Toggle">' +
-      (t.status==='done'?'✓':(t.status==='doing'?'●':'✓')) + '</button>' +
+  var st = tstatus(t);
+  return '<div class="row'+(st==='done'?' done':'')+'">' +
+    '<button class="check'+(st==='done'?' on':(st==='doing'?' doing':''))+'" data-act="toggle-task" data-id="'+t.id+'" aria-label="Toggle">' +
+      (st==='done'?'✓':(st==='doing'?'●':'✓')) + '</button>' +
     '<button class="body" style="text-align:left" data-act="task" data-id="'+t.id+'">' +
       '<div class="title">'+esc(t.title)+'</div>' +
       '<div class="meta">'+esc(bits.join(' · '))+'</div></button>' +
-    (over ? '<span class="pill red">Overdue</span>' : (t.status==='doing' ? '<span class="pill blue">Doing</span>' : '')) +
+    (over ? '<span class="pill red">Overdue</span>' : (st==='doing' ? '<span class="pill blue">Doing</span>' : '')) +
     (t.owner ? avatar(t.owner,true) : '') +
     '</div>';
 }
@@ -708,8 +736,9 @@ function taskRow(t){
 function viewDocs(){
   if(!db.docs.length){
     return emptyBox('📁','No documents yet',
-      'Keep the links that always get asked for — bylaws, budget, minutes, the shared drive — right here.',
-      'Add a document','new-doc');
+      canEdit() ? 'Keep the links that always get asked for — bylaws, budget, minutes, the shared drive — right here.'
+                : 'Board documents will show up here once they are published.',
+      canEdit()?'Add a document':null, 'new-doc');
   }
   var h = '';
   var pinned = db.docs.filter(function(d){ return d.pinned; });
@@ -728,7 +757,7 @@ function viewDocs(){
     h += '<div class="sec"><div class="sec-h"><h2>'+esc(k)+'</h2><span class="count">'+cats[k].length+'</span></div>' +
       '<div class="card">' + cats[k].map(docRow).join('') + '</div></div>';
   });
-  h += '<button class="btn ghost wide" data-act="new-doc">+ Add a document</button>';
+  if(canEdit()) h += '<button class="btn ghost wide" data-act="new-doc">+ Add a document</button>';
   return h;
 }
 function docIcon(d){
@@ -744,14 +773,17 @@ function docIcon(d){
 function docRow(d){
   var inner = '<div class="title">'+esc(d.title)+'</div>' +
               '<div class="meta">'+esc(d.url ? (d.note || d.category || 'Open link')
-                                             : 'No link yet — tap to add one')+'</div>';
+                                             : (canEdit() ? 'No link yet — tap to add one'
+                                                          : 'No link published yet'))+'</div>';
   /* without a URL the row would be a dead link, so make it open the editor instead */
-  var body = d.url
-    ? '<a class="body" style="flex:1;min-width:0;color:inherit" href="'+esc(d.url)+'" target="_blank" rel="noopener">'+inner+'</a>'
-    : '<button class="body" style="flex:1;min-width:0;text-align:left" data-act="doc" data-id="'+d.id+'">'+inner+'</button>';
+  var body;
+  if(d.url) body = '<a class="body" style="flex:1;min-width:0;color:inherit" href="'+esc(d.url)+'" target="_blank" rel="noopener">'+inner+'</a>';
+  else if(canEdit()) body = '<button class="body" style="flex:1;min-width:0;text-align:left" data-act="doc" data-id="'+d.id+'">'+inner+'</button>';
+  else body = '<div class="body" style="flex:1;min-width:0;opacity:.6">'+inner+'</div>';
   return '<div class="doc">' +
     '<div class="ico">'+docIcon(d)+'</div>' + body +
-    '<button class="mini" data-act="doc" data-id="'+d.id+'" aria-label="Edit">⋯</button></div>';
+    (canEdit() ? '<button class="mini" data-act="doc" data-id="'+d.id+'" aria-label="Edit">⋯</button>' : '') +
+    '</div>';
 }
 
 function emptyBox(icon,title,text,btnLabel,act){
@@ -798,7 +830,7 @@ function sheetMeeting(id){
   if(m.link) h += '<a class="btn blue sm" href="'+esc(m.link)+'" target="_blank" rel="noopener">Join</a>';
   h += '<button class="btn ghost sm" data-act="ics-one" data-id="'+m.id+'">📆 Calendar</button>';
   h += '<button class="btn ghost sm" data-act="wa-meeting" data-id="'+m.id+'">💬 Copy for WhatsApp</button>';
-  h += '<button class="btn ghost sm" data-act="edit-meeting" data-id="'+m.id+'">Edit</button>';
+  if(canEdit()) h += '<button class="btn ghost sm" data-act="edit-meeting" data-id="'+m.id+'">Edit</button>';
   h += '</div>';
 
   h += '<div class="divider"></div>';
@@ -807,7 +839,9 @@ function sheetMeeting(id){
        '</div>';
 
   if(!m.agenda.length){
-    h += '<p class="hint" style="margin:0 0 10px">Nothing on the agenda yet. Add the items to be discussed, who is leading each one, and how long it should take.</p>';
+    h += '<p class="hint" style="margin:0 0 10px">' + (canEdit()
+      ? 'Nothing on the agenda yet. Add the items to be discussed, who is leading each one, and how long it should take.'
+      : 'No agenda has been published for this meeting yet.') + '</p>';
   }
   m.agenda.forEach(function(a,i){
     var bits = [];
@@ -820,22 +854,23 @@ function sheetMeeting(id){
           (bits.length ? '<div class="m">'+ (a.owner?avatar(a.owner,true):'') + '<span>'+esc(bits.join(' · '))+'</span></div>' : '') +
           (a.notes ? '<div class="nt">'+esc(a.notes)+'</div>' : '') +
         '</div>' +
-        '<div class="ag-x">' +
+        (canEdit() ? '<div class="ag-x">' +
           '<button class="mini" data-act="ag-done" data-id="'+m.id+'" data-aid="'+a.id+'" aria-label="Covered">'+(a.done?'✓':'○')+'</button>' +
           '<button class="mini" data-act="ag-edit" data-id="'+m.id+'" data-aid="'+a.id+'" aria-label="Edit">✏️</button>' +
-        '</div>' +
+        '</div>' : '') +
       '</div></div>';
   });
-  h += '<button class="addbox" data-act="ag-add" data-id="'+m.id+'">+ Add agenda item</button>';
+  if(canEdit()) h += '<button class="addbox" data-act="ag-add" data-id="'+m.id+'">+ Add agenda item</button>';
 
   h += '<div class="divider"></div>';
   h += '<div class="sec-h"><h2>Action items from this meeting</h2><span class="count">'+linked.length+'</span></div>';
   h += linked.length ? '<div class="card">' + linked.map(taskRow).join('') + '</div>'
                      : '<p class="hint" style="margin:0 0 10px">None yet.</p>';
-  h += '<div style="height:10px"></div>';
-  h += '<button class="addbox" data-act="new-task" data-mid="'+m.id+'">+ Add an action item</button>';
-
-  h += '<div class="acts"><button class="btn danger wide" data-act="del-meeting" data-id="'+m.id+'">Delete meeting</button></div>';
+  if(canEdit()){
+    h += '<div style="height:10px"></div>';
+    h += '<button class="addbox" data-act="new-task" data-mid="'+m.id+'">+ Add an action item</button>';
+    h += '<div class="acts"><button class="btn danger wide" data-act="del-meeting" data-id="'+m.id+'">Delete meeting</button></div>';
+  }
 
   openSheet(m.title || 'Board meeting', h);
 }
@@ -900,6 +935,7 @@ function sheetAgenda(mid, aid){
 /* ---------- task edit ---------- */
 function sheetTask(id, presetMeeting, presetTitle){
   var t = id ? taskById(id) : null;
+  if(t && !canEdit()) return sheetTaskRead(t);
   var isNew = !t;
   t = t || { id:'', title:presetTitle||'', owner:db.meId||'', due:'', status:'open',
              notes:'', meetingId:presetMeeting||'' };
@@ -926,6 +962,27 @@ function sheetTask(id, presetMeeting, presetTitle){
        '<button class="btn" data-act="save-task" data-id="'+(id||'')+'">Save</button></div>';
   openSheet(isNew ? 'New action item' : 'Action item', h);
   setTimeout(function(){ var x=el('t-title'); if(x && isNew) x.focus(); },120);
+}
+
+/* Members see an action item, they don't edit it — but they can still mark
+   their own copy done from here. */
+function sheetTaskRead(t){
+  var st = tstatus(t);
+  var LABEL = { open:'To do', doing:'In progress', done:'Done' };
+  var d = t.due ? parseDT(t.due) : null;
+  var mtg = t.meetingId ? meetingById(t.meetingId) : null;
+  var h = '';
+  h += '<div class="kv"><div class="k">Owner</div><div class="v">'+esc(memberName(t.owner))+'</div></div>';
+  if(d) h += '<div class="kv"><div class="k">Due</div><div class="v">' + esc(fmtDate(d,true)) +
+             (isOverdue(t) ? ' <span class="pill red">Overdue</span>' : '') + '</div></div>';
+  h += '<div class="kv"><div class="k">Status</div><div class="v">'+esc(LABEL[st]||st)+
+       (db.localDone && db.localDone[t.id] ? ' <span class="pill gray">ticked by you</span>' : '')+'</div></div>';
+  if(mtg) h += '<div class="kv"><div class="k">Meeting</div><div class="v">'+esc(mtg.title||'Meeting')+'</div></div>';
+  if(t.notes) h += '<div class="kv"><div class="k">Notes</div><div class="v" style="white-space:pre-wrap">'+esc(t.notes)+'</div></div>';
+  h += '<div class="acts"><button class="btn wide" data-act="toggle-task-here" data-id="'+t.id+'">' +
+       (st==='done' ? 'Mark as not done' : 'Mark it done') + '</button></div>';
+  h += '<p class="hint">Ticking it off here is just for you. The board&#39;s own record is whatever the meeting secretary publishes.</p>';
+  openSheet(t.title, h);
 }
 
 /* ---------- doc edit ---------- */
@@ -958,8 +1015,10 @@ function sheetDoc(id){
 
 /* ---------- settings ---------- */
 function sheetSettings(){
+  var maint = canEdit();
   var h = '';
-  h += fld('Board name','<input id="s-org" value="'+esc(db.org||'')+'">');
+
+  if(maint) h += fld('Board name','<input id="s-org" value="'+esc(db.org||'')+'">');
   h += fld('I am','<select id="s-me">'+memberOptions(db.meId)+'</select>');
   h += '<div class="hint" style="margin:-6px 0 14px">Used for the “Mine” filter on action items.</div>';
   h += '<button class="btn ghost wide" data-act="save-settings">Save</button>';
@@ -970,24 +1029,41 @@ function sheetSettings(){
     h += '<div class="memrow">' + avatar(m.id) +
       '<div class="body"><div class="nm">'+esc(m.name)+(m.id===db.meId?' <span class="pill gray">you</span>':'')+'</div>' +
       '<div class="rl">'+esc(m.role||'Member')+'</div></div>' +
-      '<button class="mini" data-act="del-member" data-id="'+m.id+'" aria-label="Remove">🗑</button></div>';
+      (maint ? '<button class="mini" data-act="del-member" data-id="'+m.id+'" aria-label="Remove">🗑</button>' : '') +
+      '</div>';
   });
-  h += '<div class="f2" style="margin-top:12px">' +
-       '<div class="f"><input id="m-name" placeholder="Name"></div>' +
-       '<div class="f"><input id="m-role" placeholder="Role (optional)"></div></div>';
-  h += '<button class="btn ghost wide" data-act="add-member">+ Add member</button>';
+  if(maint){
+    h += '<div class="f2" style="margin-top:12px">' +
+         '<div class="f"><input id="m-name" placeholder="Name"></div>' +
+         '<div class="f"><input id="m-role" placeholder="Role (optional)"></div></div>';
+    h += '<button class="btn ghost wide" data-act="add-member">+ Add member</button>';
+  }
 
   h += '<div class="divider"></div>';
   h += '<div class="sec-h"><h2>Keeping everyone in step</h2></div>';
-  h += '<p class="hint" style="margin:0 0 12px">Each person&#39;s copy lives on their own phone. Whoever keeps the board records <b>publishes</b>, and everyone else <b>pulls the changes in</b>.</p>';
-  h += '<button class="btn wide" data-act="publish">📤 Publish to everyone</button>';
+  if(maint){
+    h += '<p class="hint" style="margin:0 0 12px">You are keeping the board records. <b>Publish</b> when you have made changes, and everyone else&#39;s copy follows within a few minutes.</p>';
+    h += '<button class="btn wide" data-act="publish">📤 Publish to everyone</button>';
+  } else {
+    h += '<p class="hint" style="margin:0 0 12px">Your copy follows the published board automatically, so there is nothing to keep in sync by hand.</p>';
+  }
   h += '<div class="toolbar">' +
     '<button class="btn ghost sm" data-act="check-remote">🔄 Check for updates</button>' +
-    '<button class="btn ghost sm" data-act="paste-json">📥 Paste a snapshot</button>' +
-    '<button class="btn ghost sm" data-act="copy-json">📋 Copy a snapshot</button>' +
-    '<button class="btn ghost sm" data-act="download-json">⬇️ Back up to a file</button>' +
+    (maint ? '<button class="btn ghost sm" data-act="paste-json">📥 Paste a snapshot</button>' +
+             '<button class="btn ghost sm" data-act="copy-json">📋 Copy a snapshot</button>' +
+             '<button class="btn ghost sm" data-act="download-json">⬇️ Back up to a file</button>' : '') +
     '<button class="btn ghost sm" data-act="wa-digest">💬 Copy full digest</button>' +
     '</div>';
+
+  h += '<div class="divider"></div>';
+  h += '<div class="sec-h"><h2>Who keeps the records</h2></div>';
+  if(maint){
+    h += '<p class="hint" style="margin:0 0 12px">This device can edit the board and publish it. If that is not meant to be you, hand it back to read-only.</p>';
+    h += '<button class="btn ghost wide" data-act="set-role" data-role="viewer">Switch to read-only</button>';
+  } else {
+    h += '<p class="hint" style="margin:0 0 12px">This device is read-only: you see the published board and can tick off your own action items. Only the person who keeps the board records should turn this on.</p>';
+    h += '<button class="btn ghost wide" data-act="set-role" data-role="maintainer">I keep the board records</button>';
+  }
 
   h += '<div class="divider"></div>';
   h += '<button class="btn danger wide" data-act="reset">Erase everything on this device</button>';
@@ -1075,9 +1151,14 @@ function handle(act, id, aid, b){
     case 'task': sheetTask(id); break;
     case 'new-task': sheetTask(null, b.dataset.mid || ''); break;
     case 'save-task': saveTask(id); break;
+    case 'toggle-task-here': {
+      var th = taskById(id);
+      toggleTask(th); save(); render(); sheetTaskRead(th);
+      break;
+    }
     case 'toggle-task': {
       var t = taskById(id);
-      t.status = t.status==='done' ? 'open' : 'done';
+      toggleTask(t);
       save(); render();
       if(el('sheetwrap').classList.contains('on') && t.meetingId) sheetMeeting(t.meetingId);
       break;
@@ -1118,11 +1199,19 @@ function handle(act, id, aid, b){
         save(); sheetSettings(); render();
       }
       break;
-    case 'save-settings':
-      db.org = (el('s-org').value||'').trim() || 'Board of Directors';
-      db.orgSet = true;
+    case 'save-settings': {
+      var orgIn = el('s-org');
+      if(orgIn){ db.org = (orgIn.value||'').trim() || 'Board of Directors'; db.orgSet = true; }
       db.meId = el('s-me').value || null;
       save(); closeSheet(); render(); toast('Saved');
+      break;
+    }
+    case 'set-role':
+      if(b.dataset.role==='maintainer' &&
+         !confirm('Turn on record keeping?\n\nOnly the person who keeps the board records should do this. Everyone else should stay read-only so their copy keeps following the published board.')) return;
+      db.role = b.dataset.role;
+      save(); sheetSettings(); render();
+      toast(canEdit() ? 'You can now edit and publish' : 'Back to read-only');
       break;
     case 'clear-examples': clearExamples(); break;
 
@@ -1157,6 +1246,18 @@ function handle(act, id, aid, b){
     case 'ics-all': downloadIcs(sortedMeetings().filter(isUpcoming)); break;
     case 'wa-meeting': copyText(waMeeting(meetingById(id)), 'Copied — paste it into the group'); break;
     case 'wa-digest': copyText(waDigest(), 'Digest copied — paste it into the group'); break;
+  }
+}
+
+function toggleTask(t){
+  if(!t) return;
+  if(canEdit()){
+    t.status = t.status==='done' ? 'open' : 'done';
+    if(db.localDone) delete db.localDone[t.id];
+  } else {
+    db.localDone = db.localDone || {};
+    if(tstatus(t)==='done') delete db.localDone[t.id];
+    else db.localDone[t.id] = true;
   }
 }
 
@@ -1277,32 +1378,49 @@ function publishPayload(){
     docs: db.docs
   }, null, 2);
 }
-/* A user Pages site lives at <owner>.github.io, so its repo is the same
-   name — which gives us a direct link to edit the file on GitHub. */
 function ghEditUrl(){
-  var m = String(location.hostname).match(/^([^.]+)\.github\.io$/i);
-  if(!m) return null;
-  return 'https://github.com/' + m[1] + '/' + m[1] + '.github.io/edit/main/' + REMOTE;
+  return 'https://github.com/' + DATA_OWNER + '/' + DATA_REPO +
+         '/edit/' + DATA_BRANCH + '/' + DATA_FILE;
+}
+function ghNewFileUrl(){
+  return 'https://github.com/' + DATA_OWNER + '/' + DATA_REPO +
+         '/new/' + DATA_BRANCH + '?filename=' + DATA_FILE;
+}
+/* Reads the shared file, preferring the dedicated repo and falling back to
+   the copy bundled with this site. raw.githubusercontent caches for five
+   minutes, hence the cache-buster. */
+function fetchShared(){
+  var bust = '?v=' + Date.now();
+  return fetch(REMOTE_URL + bust, { cache:'no-store' })
+    .then(function(r){ if(!r.ok) throw new Error('remote ' + r.status); return r.json(); })
+    .then(function(j){ return { json:j, source:'repo' }; })
+    .catch(function(){
+      return fetch(LOCAL_URL + bust, { cache:'no-store' })
+        .then(function(r){ if(!r.ok) throw new Error('local ' + r.status); return r.json(); })
+        .then(function(j){ return { json:j, source:'bundled' }; });
+    });
 }
 function sheetPublish(){
   var payload = publishPayload();
-  var gh = ghEditUrl();
   var h = '';
-  h += '<p class="hint" style="margin:0 0 14px">This copies the whole board — meetings, agendas, action items and documents — into the shared file everyone else reads. Your own “I am” setting is left out.</p>';
+  h += '<p class="hint" style="margin:0 0 14px">This puts the whole board — meetings, agendas, action items and documents — into the shared file everyone else reads. Your own “I am” setting and your private ticks stay behind.</p>';
   h += '<div class="steps">';
   h += '<div class="step"><b>1</b><div>Copy the board records.' +
        '<div class="bact" style="margin-top:8px"><button class="btn sm" data-act="copy-publish">📋 Copy</button></div></div></div>';
-  if(gh){
-    h += '<div class="step"><b>2</b><div>Open the shared file on GitHub. It opens ready to edit.' +
-         '<div class="bact" style="margin-top:8px"><a class="btn ghost sm" href="'+esc(gh)+'" target="_blank" rel="noopener">Open board-data.json ↗</a></div></div></div>';
-    h += '<div class="step"><b>3</b><div>Select everything in the box (Ctrl+A / ⌘A), paste over it, then press <b>Commit changes</b>.</div></div>';
-    h += '<div class="step"><b>4</b><div>Give it a minute. Everyone else sees a “shared file was updated” nudge next time they open the widget.</div></div>';
-  } else {
-    h += '<div class="step"><b>2</b><div>Paste it over the contents of <b>' + REMOTE + '</b> in the site repository and commit.</div></div>';
-  }
+  h += '<div class="step"><b>2</b><div>Open <b>' + esc(DATA_FILE) + '</b> in the <b>' + esc(DATA_REPO) +
+       '</b> repository. It opens ready to edit.' +
+       '<div class="bact" style="margin-top:8px">' +
+       '<a class="btn ghost sm" href="'+esc(ghEditUrl())+'" target="_blank" rel="noopener">Open the file ↗</a>' +
+       '<a class="btn ghost sm" href="'+esc(ghNewFileUrl())+'" target="_blank" rel="noopener">First time? ↗</a>' +
+       '</div></div></div>';
+  h += '<div class="step"><b>3</b><div>Select everything in the box (Ctrl+A / ⌘A), paste over it, then press <b>Commit changes</b>.</div></div>';
+  h += '<div class="step"><b>4</b><div>Within about five minutes everyone else&#39;s copy picks it up on its own.</div></div>';
   h += '</div>';
   h += '<div class="divider"></div>';
-  h += '<p class="hint" style="margin:0 0 8px">Publishing needs write access to the site repository. If you don&#39;t have it, send this snapshot to whoever does and they can paste it in.</p>';
+  h += '<div class="banner gold" style="margin:0 0 12px"><span class="bi">⚠️</span><div class="bt">' +
+       'That repository is <b>public</b> — anything published here can be read by anyone. Keep confidential matters out of it.</div></div>';
+  h += '<p class="hint" style="margin:0 0 8px">Publishing needs write access to the <b>' + esc(DATA_REPO) +
+       '</b> repository. Without it, send this to whoever has it and they can paste it in.</p>';
   h += '<div class="toolbar" style="margin-top:0">' +
        '<button class="btn ghost sm" data-act="download-publish">⬇️ Save as a file</button></div>';
   h += '<div class="divider"></div>';
@@ -1322,9 +1440,14 @@ function importJson(mode){
 }
 function mergeInto(incoming, mode){
   if(mode==='replace'){
-    var me = db.meId, wasNamed = db.orgSet, myName = db.org;
+    /* the board's records are replaced; who you are on this device is not */
+    var me = db.meId, role = db.role, ticks = db.localDone || {},
+        wasNamed = db.orgSet, myName = db.org;
     db = incoming;
     db.meId = (me && member(me)) ? me : null;
+    db.role = role;
+    db.localDone = {};
+    Object.keys(ticks).forEach(function(tid){ if(taskById(tid)) db.localDone[tid] = true; });
     if(wasNamed){ db.org = myName; db.orgSet = true; }
     save(); return;
   }
@@ -1345,26 +1468,42 @@ function mergeInto(incoming, mode){
 
 /* ---------- shared repo file ---------- */
 function checkRemote(loud){
-  fetch(REMOTE, { cache:'no-store' })
-    .then(function(r){ if(!r.ok) throw new Error('no file'); return r.json(); })
-    .then(function(j){
+  return fetchShared()
+    .then(function(res){
+      var j = res.json;
       ui.remote = normalize(j);
       ui.remote.updatedAt = j.updatedAt || ui.remote.updatedAt;
+      var changed = db.remoteSeen !== ui.remote.updatedAt;
+
+      /* A read-only copy just follows the published board — no nudge, no
+         decision to make, nothing to drift. Whoever keeps the records is
+         asked first, because their own unpublished edits are at stake. */
+      if(changed && !canEdit()){
+        applyRemote('replace', true);
+        if(loud) toast('Up to date with the published board');
+        else toast('Board updated');
+        return;
+      }
       if(loud){
-        if(db.remoteSeen === ui.remote.updatedAt) toast('You already have the latest shared file');
-        else { closeSheet(); toast('The shared file has changes'); }
+        if(!changed) toast('You already have the latest published board');
+        else { closeSheet(); toast('The published board has changes'); }
       }
       render();
     })
-    .catch(function(){ if(loud) toast('No shared file published yet'); });
+    .catch(function(){ if(loud) toast('Nothing published yet'); });
 }
-function applyRemote(mode){
+function applyRemote(mode, quiet){
   if(!ui.remote) return;
   var stamp = ui.remote.updatedAt;
-  mergeInto(ui.remote, mode);
+  /* copy it — a replace adopts the object wholesale, and saving would
+     otherwise rewrite the very timestamp we compare against next time */
+  var incoming;
+  try{ incoming = JSON.parse(JSON.stringify(ui.remote)); }
+  catch(e){ incoming = ui.remote; }
+  mergeInto(incoming, mode);
   db.remoteSeen = stamp;
   save(); render();
-  toast(mode==='replace' ? 'Now matching the shared file' : 'Shared changes merged in');
+  if(!quiet) toast(mode==='replace' ? 'Now matching the published board' : 'Published changes merged in');
 }
 
 /* ---------- calendar ---------- */
@@ -1419,7 +1558,7 @@ function waMeeting(m){
       L.push((i+1)+'. ' + a.title + (extra.length ? ' — ' + extra.join(', ') : ''));
     });
   }
-  var linked = db.tasks.filter(function(t){ return t.meetingId===m.id && t.status!=='done'; });
+  var linked = db.tasks.filter(function(t){ return t.meetingId===m.id && tstatus(t)!=='done'; });
   if(linked.length){
     L.push(''); L.push('*Outstanding actions*');
     linked.forEach(function(t){
@@ -1479,13 +1618,18 @@ function boot(){
     checkRemote(false);
     return;
   }
-  /* first run on this device — take the shared file as the starting point */
-  fetch(REMOTE, { cache:'no-store' })
-    .then(function(r){ if(!r.ok) throw new Error('none'); return r.json(); })
-    .then(function(j){
+  /* First run has to wait on the network, so say so rather than showing
+     a blank screen — the fallback means it can be two requests. */
+  el('view').innerHTML = '<div class="empty" style="padding-top:70px">' +
+    '<div class="big">🏛️</div><h3>Fetching the board…</h3>' +
+    '<p>Getting the latest meetings, agendas and documents.</p></div>';
+  fetchShared()
+    .then(function(res){
+      var j = res.json;
       db = normalize(j);
       db.meId = null;        /* you are whoever is holding this phone */
       db.orgSet = false;
+      db.role = 'viewer';    /* read-only until someone says otherwise */
       db.remoteSeen = j.updatedAt || db.updatedAt;
       save(); render();
     })
