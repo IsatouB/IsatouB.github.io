@@ -238,8 +238,14 @@
   .memrow .body{flex:1;min-width:0}
   .memrow .nm{font-size:13.5px;font-weight:700}
   .memrow .rl{font-size:11.5px;color:var(--dim);font-weight:600}
+  .steps{display:flex;flex-direction:column;gap:12px}
+  .step{display:flex;gap:11px;align-items:flex-start;font-size:13px;line-height:1.5;color:var(--dim);font-weight:600}
+  .step > b{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#241a00;font-size:11px;
+            font-weight:900;display:grid;place-items:center;flex-shrink:0;margin-top:1px}
+  .step b{color:var(--text)}
   code.blk{display:block;background:#0a1119;border:1px solid var(--line);border-radius:10px;padding:10px;
-           font-size:11px;line-height:1.5;color:var(--dim);max-height:150px;overflow:auto;word-break:break-all;
+           font-size:11px;line-height:1.5;color:var(--dim);max-height:190px;overflow:auto;
+           white-space:pre-wrap;word-break:break-word;
            font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 </style>
 </head>
@@ -296,6 +302,7 @@
 
 var KEY = 'boardhub.v1';
 var REMOTE = 'board-data.json';
+var README_NOTE = "Shared board records for Board Hub (board.html). Whoever keeps the records publishes this file from inside the widget: Settings > Publish. Everyone else gets a nudge to pull the changes in. Don't hand-edit unless you're comfortable with JSON.";
 var AVCOLORS = ['#d9a92e','#4d8df6','#35c793','#f0a83c','#c77dff','#f06565','#4ecdc4','#ff9f7f'];
 
 var db = null;
@@ -385,6 +392,9 @@ function blank(){
 function normalize(d){
   var b = blank();
   d = d || {};
+  /* meId / orgSet / remoteSeen describe the person reading, not the board.
+     They are stripped when publishing and ignored when seeding, so nobody
+     inherits the publisher's identity. */
   ['org','orgSet','meId','remoteSeen','updatedAt'].forEach(function(k){ if(d[k]!=null) b[k]=d[k]; });
   ['members','meetings','tasks','docs'].forEach(function(k){ if(Array.isArray(d[k])) b[k]=d[k]; });
   b.members.forEach(function(m){ if(!m.id) m.id=uid('m'); });
@@ -968,13 +978,14 @@ function sheetSettings(){
   h += '<button class="btn ghost wide" data-act="add-member">+ Add member</button>';
 
   h += '<div class="divider"></div>';
-  h += '<div class="sec-h"><h2>Sharing &amp; backup</h2></div>';
-  h += '<p class="hint" style="margin:0 0 12px">Everything is stored on this device. To get the same board onto everyone else&#39;s phone, copy a snapshot and send it once — they paste it in here.</p>';
-  h += '<div class="toolbar" style="margin-top:0">' +
-    '<button class="btn ghost sm" data-act="copy-json">📋 Copy snapshot</button>' +
-    '<button class="btn ghost sm" data-act="download-json">⬇️ Download file</button>' +
+  h += '<div class="sec-h"><h2>Keeping everyone in step</h2></div>';
+  h += '<p class="hint" style="margin:0 0 12px">Each person&#39;s copy lives on their own phone. Whoever keeps the board records <b>publishes</b>, and everyone else <b>pulls the changes in</b>.</p>';
+  h += '<button class="btn wide" data-act="publish">📤 Publish to everyone</button>';
+  h += '<div class="toolbar">' +
+    '<button class="btn ghost sm" data-act="check-remote">🔄 Check for updates</button>' +
     '<button class="btn ghost sm" data-act="paste-json">📥 Paste a snapshot</button>' +
-    '<button class="btn ghost sm" data-act="check-remote">🔄 Check shared file</button>' +
+    '<button class="btn ghost sm" data-act="copy-json">📋 Copy a snapshot</button>' +
+    '<button class="btn ghost sm" data-act="download-json">⬇️ Back up to a file</button>' +
     '<button class="btn ghost sm" data-act="wa-digest">💬 Copy full digest</button>' +
     '</div>';
 
@@ -1116,7 +1127,16 @@ function handle(act, id, aid, b){
     case 'clear-examples': clearExamples(); break;
 
     /* sharing */
-    case 'copy-json': copyText(JSON.stringify(db,null,2), 'Snapshot copied — paste it to the board'); break;
+    case 'publish': sheetPublish(); break;
+    case 'copy-publish': {
+      var payload = publishPayload();
+      copyText(payload, 'Copied — now paste it over board-data.json');
+      /* don't nudge the publisher about their own change */
+      try{ db.remoteSeen = JSON.parse(payload).updatedAt; save(); }catch(e){}
+      break;
+    }
+    case 'download-publish': downloadFile('board-data.json', publishPayload(), 'application/json'); break;
+    case 'copy-json': copyText(JSON.stringify(db,null,2), 'Snapshot copied — send it to the board'); break;
     case 'download-json': downloadFile('board-data.json', JSON.stringify(db,null,2), 'application/json'); break;
     case 'paste-json': sheetPasteJson(); break;
     case 'import-json': importJson(b.dataset.mode); break;
@@ -1243,6 +1263,53 @@ function downloadFile(name, text, mime){
     toast('Downloaded ' + name);
   }catch(e){ toast("This browser wouldn't download it — use Copy instead"); }
 }
+/* What goes into the shared file: the board's records, none of the
+   reader's personal settings. */
+function publishPayload(){
+  return JSON.stringify({
+    _readme: README_NOTE,
+    v: 1,
+    org: db.org,
+    updatedAt: new Date().toISOString(),
+    members: db.members,
+    meetings: db.meetings,
+    tasks: db.tasks,
+    docs: db.docs
+  }, null, 2);
+}
+/* A user Pages site lives at <owner>.github.io, so its repo is the same
+   name — which gives us a direct link to edit the file on GitHub. */
+function ghEditUrl(){
+  var m = String(location.hostname).match(/^([^.]+)\.github\.io$/i);
+  if(!m) return null;
+  return 'https://github.com/' + m[1] + '/' + m[1] + '.github.io/edit/main/' + REMOTE;
+}
+function sheetPublish(){
+  var payload = publishPayload();
+  var gh = ghEditUrl();
+  var h = '';
+  h += '<p class="hint" style="margin:0 0 14px">This copies the whole board — meetings, agendas, action items and documents — into the shared file everyone else reads. Your own “I am” setting is left out.</p>';
+  h += '<div class="steps">';
+  h += '<div class="step"><b>1</b><div>Copy the board records.' +
+       '<div class="bact" style="margin-top:8px"><button class="btn sm" data-act="copy-publish">📋 Copy</button></div></div></div>';
+  if(gh){
+    h += '<div class="step"><b>2</b><div>Open the shared file on GitHub. It opens ready to edit.' +
+         '<div class="bact" style="margin-top:8px"><a class="btn ghost sm" href="'+esc(gh)+'" target="_blank" rel="noopener">Open board-data.json ↗</a></div></div></div>';
+    h += '<div class="step"><b>3</b><div>Select everything in the box (Ctrl+A / ⌘A), paste over it, then press <b>Commit changes</b>.</div></div>';
+    h += '<div class="step"><b>4</b><div>Give it a minute. Everyone else sees a “shared file was updated” nudge next time they open the widget.</div></div>';
+  } else {
+    h += '<div class="step"><b>2</b><div>Paste it over the contents of <b>' + REMOTE + '</b> in the site repository and commit.</div></div>';
+  }
+  h += '</div>';
+  h += '<div class="divider"></div>';
+  h += '<p class="hint" style="margin:0 0 8px">Publishing needs write access to the site repository. If you don&#39;t have it, send this snapshot to whoever does and they can paste it in.</p>';
+  h += '<div class="toolbar" style="margin-top:0">' +
+       '<button class="btn ghost sm" data-act="download-publish">⬇️ Save as a file</button></div>';
+  h += '<div class="divider"></div>';
+  h += '<label style="display:block;font-size:10.5px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:var(--faint);margin-bottom:6px">What gets published</label>';
+  h += '<code class="blk">' + esc(payload) + '</code>';
+  openSheet('Publish to everyone', h);
+}
 function importJson(mode){
   var raw = (el('p-json').value||'').trim();
   if(!raw){ toast('Paste the snapshot first'); return; }
@@ -1255,9 +1322,10 @@ function importJson(mode){
 }
 function mergeInto(incoming, mode){
   if(mode==='replace'){
-    var me = db.meId;
+    var me = db.meId, wasNamed = db.orgSet, myName = db.org;
     db = incoming;
-    if(me && member(me)) db.meId = me;
+    db.meId = (me && member(me)) ? me : null;
+    if(wasNamed){ db.org = myName; db.orgSet = true; }
     save(); return;
   }
   ['members','meetings','tasks','docs'].forEach(function(k){
@@ -1416,6 +1484,8 @@ function boot(){
     .then(function(r){ if(!r.ok) throw new Error('none'); return r.json(); })
     .then(function(j){
       db = normalize(j);
+      db.meId = null;        /* you are whoever is holding this phone */
+      db.orgSet = false;
       db.remoteSeen = j.updatedAt || db.updatedAt;
       save(); render();
     })
