@@ -1,0 +1,97 @@
+{
+  "_readme": "FALLBACK COPY ONLY. The live board records belong in the separate IsatouB/board-data repository, which the widget reads first; this file is what it falls back to while that repo does not exist yet, so it only holds examples. Once board-data is published, leave this file alone — the person keeping the records publishes to that repo from inside the widget (Settings > Publish). Every entry below is marked \"example\": true so the widget can clear them in one tap.",
+  "v": 1,
+  "org": "Board of Directors",
+  "updatedAt": "2026-08-14T09:00:00.000Z",
+  "meId": null,
+  "remoteSeen": null,
+
+  "members": [
+    { "id": "m-chair",     "name": "A. Chairperson", "role": "Chair",     "example": true },
+    { "id": "m-secretary", "name": "S. Secretary",   "role": "Secretary", "example": true },
+    { "id": "m-treasurer", "name": "T. Treasurer",   "role": "Treasurer", "example": true }
+  ],
+
+  "meetings": [
+    {
+      "id": "g-example-1",
+      "title": "Example: Quarterly board meeting",
+      "date": "2026-09-10T18:00",
+      "durationMin": 90,
+      "location": "Zoom",
+      "link": "",
+      "notes": "This meeting is an example so you can see how the agenda works. Edit it or delete it.",
+      "example": true,
+      "agenda": [
+        { "id": "a-ex-1", "title": "Welcome and apologies",            "owner": "m-chair",     "mins": 5,  "notes": "" },
+        { "id": "a-ex-2", "title": "Minutes of the last meeting",      "owner": "m-secretary", "mins": 10, "notes": "Circulate the draft two days beforehand so nobody reads it cold." },
+        { "id": "a-ex-3", "title": "Treasurer's report",               "owner": "m-treasurer", "mins": 20, "notes": "" },
+        { "id": "a-ex-4", "title": "Any other business",               "owner": "m-chair",     "mins": 10, "notes": "" }
+      ]
+    },
+    {
+      "id": "g-example-2",
+      "title": "Example: Annual general meeting",
+      "date": "2026-11-12T18:00",
+      "durationMin": 120,
+      "location": "To be confirmed",
+      "link": "",
+      "notes": "",
+      "example": true,
+      "agenda": []
+    }
+  ],
+
+  "tasks": [
+    {
+      "id": "t-ex-1",
+      "title": "Example: circulate the draft minutes",
+      "owner": "m-secretary",
+      "due": "2026-09-08",
+      "status": "open",
+      "notes": "Tap an action item to change the owner, the due date or the status.",
+      "meetingId": "g-example-1",
+      "example": true
+    },
+    {
+      "id": "t-ex-2",
+      "title": "Example: confirm the venue for the AGM",
+      "owner": "m-chair",
+      "due": "2026-10-15",
+      "status": "open",
+      "notes": "",
+      "meetingId": "g-example-2",
+      "example": true
+    }
+  ],
+
+  "docs": [
+    {
+      "id": "d-ex-1",
+      "title": "Example: Bylaws",
+      "url": "",
+      "category": "Governance",
+      "note": "Paste the real link and this becomes one tap away",
+      "pinned": true,
+      "example": true
+    },
+    {
+      "id": "d-ex-2",
+      "title": "Example: Shared drive",
+      "url": "",
+      "category": "General",
+      "note": "Where the board papers live",
+      "pinned": true,
+      "example": true
+    },
+    {
+      "id": "d-ex-3",
+      "title": "Example: Budget 2026",
+      "url": "",
+      "category": "Finance",
+      "note": "",
+      "pinned": false,
+      "example": true
+    }
+  ]
+}
