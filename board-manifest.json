@@ -1,0 +1,25 @@
+{
+  "name": "Board Hub",
+  "short_name": "Board Hub",
+  "description": "Meetings, agendas, action items and board documents in one place — so none of it has to live in a WhatsApp thread.",
+  "start_url": "/board.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b131c",
+  "theme_color": "#0f1a26",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/board-icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/board-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

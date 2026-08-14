@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Board Hub</title>
+<link rel="manifest" href="board-manifest.json">
+<meta name="theme-color" content="#0f1a26">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Board Hub">
+<link rel="apple-touch-icon" href="board-icon-180.png">
+<link rel="icon" href="board-icon-180.png">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#0b131c; --panel:#111d29; --card:#16232f; --card2:#1c2b3a;
+    --gold:#d9a92e; --gold-soft:rgba(217,169,46,.14);
+    --blue:#4d8df6; --green:#35c793; --red:#f06565; --amber:#f0a83c;
+    --text:#eef4fa; --dim:rgba(238,244,250,.58); --faint:rgba(238,244,250,.34);
+    --line:rgba(255,255,255,.09);
+    --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif;
+    background:var(--bg);color:var(--text);overscroll-behavior-y:none;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer;font-size:inherit}
+  input,textarea,select{font-family:inherit;font-size:16px;color:var(--text)}
+  a{color:var(--blue);text-decoration:none}
+
+  .app{max-width:560px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;
+       background:radial-gradient(900px 420px at 50% -8%,#17293a 0%,transparent 62%),var(--bg)}
+  @media(min-width:600px){
+    body{padding:24px 16px;background:linear-gradient(165deg,#070d13,#101c28 55%,#070d13)}
+    .app{min-height:0;height:calc(100dvh - 48px);border-radius:22px;overflow:hidden;
+         box-shadow:0 26px 70px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06)}
+  }
+
+  /* ---------- header ---------- */
+  .hd{padding:calc(var(--safe-t) + 14px) 16px 12px;display:flex;align-items:center;gap:12px;
+      background:linear-gradient(135deg,#16283a,#0f1a26);border-bottom:1px solid var(--line);flex-shrink:0}
+  .crest{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:grid;place-items:center;
+         background:linear-gradient(140deg,var(--gold),#b8861a);color:#2a1f00;font-weight:900;font-size:15px;
+         box-shadow:0 4px 14px rgba(217,169,46,.28)}
+  .hd-t{flex:1;min-width:0}
+  .hd-t h1{font-size:16px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hd-t p{font-size:11.5px;color:var(--dim);margin-top:1px;font-weight:600}
+  .iconbtn{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.07);display:grid;
+           place-items:center;font-size:16px;flex-shrink:0}
+  .iconbtn:active{transform:scale(.93)}
+
+  /* ---------- main scroller ---------- */
+  main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 88px;min-height:0}
+  .sec{margin-bottom:20px}
+  .sec-h{display:flex;align-items:center;gap:8px;margin:0 2px 9px}
+  .sec-h h2{font-size:11px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
+  .sec-h .sh-act{margin-left:auto;font-size:12px;font-weight:800;color:var(--gold)}
+  .count{background:rgba(255,255,255,.08);color:var(--dim);font-size:10px;font-weight:800;
+         padding:2px 7px;border-radius:20px}
+
+  /* ---------- next meeting hero ---------- */
+  .hero{background:linear-gradient(150deg,#1d3145,#152534);border-radius:18px;padding:16px;
+        border:1px solid rgba(217,169,46,.22);position:relative;overflow:hidden;margin-bottom:18px}
+  .hero::after{content:'';position:absolute;right:-40px;top:-50px;width:150px;height:150px;border-radius:50%;
+               background:radial-gradient(circle,rgba(217,169,46,.16),transparent 68%)}
+  .hero .when{font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
+  .hero h3{font-size:19px;font-weight:800;margin:6px 0 3px;letter-spacing:-.3px;position:relative}
+  .hero .sub{font-size:13px;color:var(--dim);font-weight:600}
+  .hero .cd{display:flex;gap:8px;margin:13px 0 12px;position:relative}
+  .cd-box{background:rgba(0,0,0,.28);border-radius:11px;padding:7px 0;flex:1;text-align:center;
+          border:1px solid rgba(255,255,255,.06)}
+  .cd-box b{display:block;font-size:19px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+  .cd-box span{font-size:9px;font-weight:800;color:var(--faint);letter-spacing:.8px;text-transform:uppercase}
+  .hero-row{display:flex;gap:8px;position:relative;flex-wrap:wrap}
+  .live{display:inline-flex;align-items:center;gap:6px;background:rgba(53,199,147,.16);color:var(--green);
+        font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;letter-spacing:.6px}
+  .live i{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s infinite}
+  @keyframes blink{50%{opacity:.25}}
+
+  .btn{background:var(--gold);color:#241a00;font-weight:800;font-size:13px;padding:11px 16px;
+       border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn:active{transform:scale(.97)}
+  .btn.ghost{background:rgba(255,255,255,.09);color:var(--text)}
+  .btn.blue{background:var(--blue);color:#031228}
+  .btn.danger{background:rgba(240,101,101,.16);color:#ff9b9b}
+  .btn.wide{display:flex;width:100%}
+  .btn.sm{padding:8px 12px;font-size:12px;border-radius:10px}
+
+  /* ---------- generic card / row ---------- */
+  .card{background:var(--card);border-radius:15px;border:1px solid var(--line);overflow:hidden}
+  .card + .card{margin-top:9px}
+  .row{display:flex;align-items:center;gap:11px;padding:12px 13px;width:100%;text-align:left}
+  .row:active{background:rgba(255,255,255,.04)}
+  .row .body{flex:1;min-width:0}
+  .title{font-size:14px;font-weight:700;line-height:1.3}
+  .meta{font-size:11.5px;color:var(--dim);margin-top:3px;font-weight:600;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .chev{color:var(--faint);font-size:15px;flex-shrink:0}
+  .datechip{flex-shrink:0;width:44px;text-align:center;background:rgba(255,255,255,.06);border-radius:10px;
+            padding:5px 0;border:1px solid var(--line)}
+  .datechip b{display:block;font-size:16px;font-weight:900;line-height:1}
+  .datechip span{font-size:9px;font-weight:800;color:var(--faint);text-transform:uppercase;letter-spacing:.5px}
+  .datechip.soon{background:var(--gold-soft);border-color:rgba(217,169,46,.3)}
+  .datechip.soon b{color:var(--gold)}
+
+  .av{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
+      font-size:10px;font-weight:900;color:#06121c}
+  .av.sm{width:21px;height:21px;font-size:8.5px}
+  .av.none{background:rgba(255,255,255,.12);color:var(--faint)}
+
+  .pill{font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.3px;flex-shrink:0}
+  .pill.red{background:rgba(240,101,101,.16);color:#ff9b9b}
+  .pill.amber{background:rgba(240,168,60,.16);color:#ffc978}
+  .pill.green{background:rgba(53,199,147,.16);color:#6fe0ba}
+  .pill.blue{background:rgba(77,141,246,.16);color:#93bcff}
+  .pill.gray{background:rgba(255,255,255,.08);color:var(--dim)}
+
+  /* ---------- task check ---------- */
+  .check{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.24);flex-shrink:0;
+         display:grid;place-items:center;font-size:11px;color:transparent}
+  .check.on{background:var(--green);border-color:var(--green);color:#052c1e}
+  .check.doing{border-color:var(--blue);color:var(--blue);font-size:9px}
+  .done .title{text-decoration:line-through;color:var(--faint)}
+
+  /* ---------- tabs ---------- */
+  .tabbar{display:flex;background:rgba(10,17,24,.94);backdrop-filter:blur(12px);
+          border-top:1px solid var(--line);padding-bottom:var(--safe-b);flex-shrink:0}
+  .tb{flex:1;padding:9px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;
+      font-size:9.5px;font-weight:800;color:var(--faint);letter-spacing:.3px;position:relative}
+  .tb i{font-size:18px;font-style:normal;line-height:1}
+  .tb.on{color:var(--gold)}
+  .tb .dot{position:absolute;top:6px;right:calc(50% - 18px);min-width:15px;height:15px;border-radius:9px;
+           background:var(--red);color:#fff;font-size:9px;font-weight:900;display:grid;place-items:center;padding:0 4px}
+
+  /* ---------- filter chips ---------- */
+  .chips{display:flex;gap:7px;overflow-x:auto;padding:0 2px 12px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex-shrink:0;padding:6px 13px;font-size:12px;font-weight:800;border-radius:20px;
+        border:1px solid var(--line);color:var(--dim);background:transparent;white-space:nowrap}
+  .chip.on{background:var(--gold);border-color:var(--gold);color:#241a00}
+
+  /* ---------- empty ---------- */
+  .empty{text-align:center;padding:34px 24px;color:var(--dim)}
+  .empty .big{font-size:38px;margin-bottom:10px;opacity:.75}
+  .empty h3{font-size:15px;font-weight:800;color:var(--text);margin-bottom:5px}
+  .empty p{font-size:12.5px;line-height:1.5;max-width:270px;margin:0 auto 16px}
+
+  /* ---------- banner ---------- */
+  .banner{background:rgba(77,141,246,.1);border:1px solid rgba(77,141,246,.28);border-radius:13px;
+          padding:10px 12px;margin-bottom:10px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+  .banner.gold{background:var(--gold-soft);border-color:rgba(217,169,46,.3)}
+  .banner .bi{font-size:15px;line-height:1.2}
+  .banner .bt{flex:1;min-width:150px;font-size:12px;line-height:1.4;color:var(--dim);font-weight:600}
+  .banner .bt b{color:var(--text);font-weight:800}
+  .banner .bact{display:flex;gap:6px;flex-wrap:wrap}
+  .banner .btn.sm{padding:6px 11px;font-size:11.5px}
+
+  /* ---------- sheet ---------- */
+  .sheetwrap{position:fixed;inset:0;z-index:50;display:none}
+  .sheetwrap.on{display:block}
+  .bd{position:absolute;inset:0;background:rgba(0,0,0,.62);animation:fade .18s}
+  @keyframes fade{from{opacity:0}}
+  .sheet{position:absolute;left:0;right:0;bottom:0;max-height:92dvh;background:var(--panel);
+         border-radius:22px 22px 0 0;display:flex;flex-direction:column;animation:up .24s cubic-bezier(.2,.8,.3,1);
+         max-width:560px;margin:0 auto;border-top:1px solid rgba(255,255,255,.12)}
+  @keyframes up{from{transform:translateY(100%)}}
+  .sheet-hd{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--line);flex-shrink:0}
+  .sheet-hd h2{font-size:16px;font-weight:800;flex:1;letter-spacing:-.2px}
+  .sheet-bd{overflow-y:auto;padding:16px;padding-bottom:calc(var(--safe-b) + 26px);-webkit-overflow-scrolling:touch}
+  .grab{width:36px;height:4px;border-radius:3px;background:rgba(255,255,255,.18);margin:8px auto 0}
+
+  /* ---------- form ---------- */
+  .f{margin-bottom:13px}
+  .f label{display:block;font-size:10.5px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;
+           color:var(--faint);margin-bottom:6px}
+  .f input,.f textarea,.f select{width:100%;background:var(--card);border:1px solid var(--line);
+    border-radius:11px;padding:11px 12px;font-size:15px;outline:none}
+  .f input:focus,.f textarea:focus,.f select:focus{border-color:rgba(217,169,46,.5)}
+  .f textarea{resize:vertical;min-height:72px;line-height:1.45}
+  .f select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' stroke='%237f8b96' stroke-width='2' fill='none'/></svg>");
+            background-repeat:no-repeat;background-position:right 13px center}
+  .f2{display:flex;gap:10px}
+  .f2 > *{flex:1;min-width:0}
+  .hint{font-size:11.5px;color:var(--faint);margin-top:6px;line-height:1.45}
+  .acts{display:flex;gap:9px;margin-top:18px}
+  .acts .btn{flex:1}
+
+  /* ---------- agenda editor ---------- */
+  .ag{background:var(--card);border-radius:12px;border:1px solid var(--line);margin-bottom:8px;overflow:hidden}
+  .ag-top{display:flex;align-items:flex-start;gap:10px;padding:11px 12px}
+  .ag-n{width:20px;height:20px;border-radius:6px;background:rgba(217,169,46,.16);color:var(--gold);
+        font-size:10px;font-weight:900;display:grid;place-items:center;flex-shrink:0;margin-top:1px}
+  .ag-b{flex:1;min-width:0}
+  .ag-b .t{font-size:13.5px;font-weight:700;line-height:1.35}
+  .ag-b .m{font-size:11px;color:var(--dim);margin-top:3px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .ag-b .nt{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.45;white-space:pre-wrap;
+            border-left:2px solid var(--line);padding-left:8px}
+  .ag.done .ag-b .t{text-decoration:line-through;color:var(--faint)}
+  .ag-x{display:flex;gap:4px;flex-shrink:0}
+  .mini{width:27px;height:27px;border-radius:8px;background:rgba(255,255,255,.07);display:grid;
+        place-items:center;font-size:12px;color:var(--dim)}
+  .mini:active{transform:scale(.9)}
+  .addbox{border:1px dashed rgba(255,255,255,.18);border-radius:12px;padding:11px;text-align:center;
+          font-size:12.5px;font-weight:800;color:var(--dim);width:100%}
+  .addbox:active{background:rgba(255,255,255,.04)}
+
+  /* ---------- detail bits ---------- */
+  .kv{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .kv .k{color:var(--faint);font-weight:700;width:78px;flex-shrink:0;font-size:12px}
+  .kv .v{flex:1;font-weight:600;word-break:break-word}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+  .totals{display:flex;gap:8px;align-items:center;font-size:11.5px;color:var(--faint);
+          font-weight:700;margin:2px 2px 10px}
+
+  /* ---------- docs ---------- */
+  .doc{display:flex;align-items:center;gap:11px;padding:12px 13px;width:100%;text-align:left}
+  .doc .ico{width:34px;height:34px;border-radius:10px;background:rgba(77,141,246,.14);display:grid;
+            place-items:center;font-size:16px;flex-shrink:0}
+  .doc:active{background:rgba(255,255,255,.04)}
+
+  /* ---------- misc ---------- */
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 78px);
+         background:#eef4fa;color:#0b131c;font-size:13px;font-weight:800;padding:11px 18px;border-radius:22px;
+         z-index:99;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:88%;text-align:center;
+         box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(-6px)}
+  .divider{height:1px;background:var(--line);margin:16px 0}
+  .fab{position:absolute;right:16px;bottom:calc(var(--safe-b) + 66px);width:52px;height:52px;border-radius:50%;
+       background:var(--gold);color:#241a00;font-size:26px;font-weight:300;display:grid;place-items:center;
+       box-shadow:0 8px 24px rgba(217,169,46,.35);z-index:20}
+  .fab:active{transform:scale(.93)}
+  .app{position:relative}
+  .memrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .memrow .body{flex:1;min-width:0}
+  .memrow .nm{font-size:13.5px;font-weight:700}
+  .memrow .rl{font-size:11.5px;color:var(--dim);font-weight:600}
+  code.blk{display:block;background:#0a1119;border:1px solid var(--line);border-radius:10px;padding:10px;
+           font-size:11px;line-height:1.5;color:var(--dim);max-height:150px;overflow:auto;word-break:break-all;
+           font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="hd">
+    <div class="crest" id="crest">BD</div>
+    <div class="hd-t">
+      <h1 id="orgName">Board Hub</h1>
+      <p id="orgSub">Loading…</p>
+    </div>
+    <button class="iconbtn" id="btnSettings" aria-label="Settings">⚙️</button>
+  </header>
+
+  <main id="view"></main>
+
+  <button class="fab" id="fab" aria-label="Add">+</button>
+
+  <nav class="tabbar">
+    <button class="tb on" data-tab="home"><i>🏛️</i>Home</button>
+    <button class="tb" data-tab="meetings"><i>📅</i>Meetings</button>
+    <button class="tb" data-tab="tasks"><i>✅</i>Tasks</button>
+    <button class="tb" data-tab="docs"><i>📁</i>Documents</button>
+  </nav>
+</div>
+
+<div class="sheetwrap" id="sheetwrap">
+  <div class="bd" data-close="1"></div>
+  <div class="sheet">
+    <div class="grab" data-close="1"></div>
+    <div class="sheet-hd">
+      <h2 id="sheetTitle"></h2>
+      <button class="iconbtn" data-close="1" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-bd" id="sheetBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Board Hub — a shared home for meetings, agendas, action items
+   and documents, so none of it has to live in a WhatsApp thread.
+
+   Data lives in this browser (localStorage). The shared starting
+   point is board-data.json in this repo; whoever keeps the board
+   records can update that file and everyone else gets a nudge to
+   pull it in. Between updates, Share exports a snapshot anybody
+   can import.
+   ============================================================ */
+
+var KEY = 'boardhub.v1';
+var REMOTE = 'board-data.json';
+var AVCOLORS = ['#d9a92e','#4d8df6','#35c793','#f0a83c','#c77dff','#f06565','#4ecdc4','#ff9f7f'];
+
+var db = null;
+var ui = { tab:'home', taskFilter:'open', showPast:false, remote:null };
+
+/* ---------- tiny helpers ---------- */
+function $(s,r){ return (r||document).querySelector(s); }
+function el(id){ return document.getElementById(id); }
+function uid(p){ return (p||'x') + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function toast(m){ var t=el('toast'); t.textContent=m; t.classList.add('on');
+  clearTimeout(toast._t); toast._t=setTimeout(function(){ t.classList.remove('on'); },2300); }
+
+/* ---------- dates ----------
+   Meetings store a local wall-clock string "YYYY-MM-DDTHH:MM" and tasks
+   store "YYYY-MM-DD". Keeping them as plain local strings means a 6pm
+   meeting reads as 6pm for everyone, with no timezone surprises. */
+function parseDT(s){
+  if(!s) return null;
+  var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
+  if(!m) return null;
+  return new Date(+m[1], +m[2]-1, +m[3], +(m[4]||0), +(m[5]||0), 0, 0);
+}
+var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDate(d,withYear){
+  if(!d) return '';
+  var s = DAYS[d.getDay()]+' '+d.getDate()+' '+MONS[d.getMonth()];
+  if(withYear || d.getFullYear()!==new Date().getFullYear()) s += ' ' + d.getFullYear();
+  return s;
+}
+function fmtTime(d){
+  if(!d) return '';
+  var h=d.getHours(), m=d.getMinutes(), ap=h<12?'AM':'PM';
+  h = h%12; if(h===0) h=12;
+  return h + (m? ':'+String(m).padStart(2,'0') : '') + ' ' + ap;
+}
+function startOfDay(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
+function daysBetween(a,b){ return Math.round((startOfDay(b)-startOfDay(a))/86400000); }
+function relDay(d){
+  if(!d) return '';
+  var n = daysBetween(new Date(), d);
+  if(n===0) return 'Today';
+  if(n===1) return 'Tomorrow';
+  if(n===-1) return 'Yesterday';
+  if(n>1 && n<7) return 'In '+n+' days';
+  if(n<-1 && n>-7) return n*-1+' days ago';
+  if(n<0) return fmtDate(d);
+  return fmtDate(d);
+}
+/* "Today" / "In 3 days" are relative and read fine mid-sentence in lower case;
+   a real date like "Tue 8 Sep" must not be. */
+function isRelative(d){
+  var n = Math.abs(daysBetween(new Date(), d));
+  return n < 7;
+}
+function relLower(d){
+  var s = relDay(d);
+  return isRelative(d) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+}
+function meetingStart(m){ return parseDT(m.date); }
+function meetingEnd(m){
+  var s = meetingStart(m); if(!s) return null;
+  return new Date(s.getTime() + (m.durationMin||60)*60000);
+}
+function isUpcoming(m){ var e=meetingEnd(m); return e ? e.getTime() >= Date.now() : true; }
+function isLive(m){
+  var s=meetingStart(m), e=meetingEnd(m); if(!s||!e) return false;
+  var n=Date.now(); return n>=s.getTime() && n<=e.getTime();
+}
+
+/* ---------- storage ---------- */
+function load(){
+  try{ var raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw); }catch(e){}
+  return null;
+}
+function save(){
+  db.updatedAt = new Date().toISOString();
+  try{ localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch(e){ toast("Couldn't save — this device's storage is full"); }
+}
+function blank(){
+  return { v:1, org:'Board of Directors', orgSet:false, updatedAt:new Date().toISOString(),
+           meId:null, remoteSeen:null, members:[], meetings:[], tasks:[], docs:[] };
+}
+function normalize(d){
+  var b = blank();
+  d = d || {};
+  ['org','orgSet','meId','remoteSeen','updatedAt'].forEach(function(k){ if(d[k]!=null) b[k]=d[k]; });
+  ['members','meetings','tasks','docs'].forEach(function(k){ if(Array.isArray(d[k])) b[k]=d[k]; });
+  b.members.forEach(function(m){ if(!m.id) m.id=uid('m'); });
+  b.meetings.forEach(function(m){
+    if(!m.id) m.id=uid('g');
+    if(!Array.isArray(m.agenda)) m.agenda=[];
+    m.agenda.forEach(function(a){ if(!a.id) a.id=uid('a'); });
+  });
+  b.tasks.forEach(function(t){ if(!t.id) t.id=uid('t'); if(!t.status) t.status='open'; });
+  b.docs.forEach(function(x){ if(!x.id) x.id=uid('d'); });
+  return b;
+}
+
+/* ---------- lookups ---------- */
+function member(id){
+  for(var i=0;i<db.members.length;i++) if(db.members[i].id===id) return db.members[i];
+  return null;
+}
+function memberName(id){ var m=member(id); return m ? m.name : 'Unassigned'; }
+function initials(name){
+  var p = String(name||'?').trim().split(/\s+/);
+  return ((p[0]||'?')[0] + (p.length>1 ? p[p.length-1][0] : '')).toUpperCase();
+}
+function avColor(id){
+  var s=String(id||''), h=0;
+  for(var i=0;i<s.length;i++) h=(h*31 + s.charCodeAt(i))>>>0;
+  return AVCOLORS[h % AVCOLORS.length];
+}
+function avatar(id,small){
+  var m = member(id);
+  if(!m) return '<div class="av none'+(small?' sm':'')+'">?</div>';
+  return '<div class="av'+(small?' sm':'')+'" style="background:'+avColor(m.id)+'">'+esc(initials(m.name))+'</div>';
+}
+function meetingById(id){
+  for(var i=0;i<db.meetings.length;i++) if(db.meetings[i].id===id) return db.meetings[i];
+  return null;
+}
+function taskById(id){
+  for(var i=0;i<db.tasks.length;i++) if(db.tasks[i].id===id) return db.tasks[i];
+  return null;
+}
+function docById(id){
+  for(var i=0;i<db.docs.length;i++) if(db.docs[i].id===id) return db.docs[i];
+  return null;
+}
+function sortedMeetings(){
+  return db.meetings.slice().sort(function(a,b){
+    var x=parseDT(a.date), y=parseDT(b.date);
+    return (x?x.getTime():0) - (y?y.getTime():0);
+  });
+}
+function nextMeeting(){
+  var up = sortedMeetings().filter(isUpcoming);
+  return up.length ? up[0] : null;
+}
+function openTasks(){ return db.tasks.filter(function(t){ return t.status!=='done'; }); }
+function isOverdue(t){
+  if(t.status==='done' || !t.due) return false;
+  var d = parseDT(t.due); return d ? daysBetween(new Date(), d) < 0 : false;
+}
+function dueSoon(t){
+  if(t.status==='done' || !t.due) return false;
+  var d = parseDT(t.due); if(!d) return false;
+  var n = daysBetween(new Date(), d); return n>=0 && n<=7;
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  el('orgName').textContent = db.org || 'Board Hub';
+  el('crest').textContent = initials(db.org || 'Board');
+  var nm = nextMeeting();
+  el('orgSub').textContent = nm
+    ? 'Next: ' + relDay(meetingStart(nm)) + ' · ' + fmtTime(meetingStart(nm))
+    : (db.meetings.length ? 'No meetings scheduled' : 'Add your first meeting');
+
+  var over = db.tasks.filter(isOverdue).length;
+  document.querySelectorAll('.tb').forEach(function(b){
+    b.classList.toggle('on', b.dataset.tab===ui.tab);
+    var d = $('.dot', b); if(d) d.remove();
+    if(b.dataset.tab==='tasks' && over>0){
+      var s=document.createElement('span'); s.className='dot'; s.textContent=over; b.appendChild(s);
+    }
+  });
+
+  var v = el('view');
+  if(ui.tab==='home') v.innerHTML = viewHome();
+  else if(ui.tab==='meetings') v.innerHTML = viewMeetings();
+  else if(ui.tab==='tasks') v.innerHTML = viewTasks();
+  else v.innerHTML = viewDocs();
+  v.scrollTop = 0;
+}
+
+/* ---------- HOME ---------- */
+function viewHome(){
+  var h = '';
+  h += remoteBanner();
+
+  var nm = nextMeeting();
+  if(nm){
+    var s = meetingStart(nm), live = isLive(nm);
+    var diff = s ? s.getTime() - Date.now() : 0;
+    var d = Math.max(0, Math.floor(diff/86400000));
+    var hh = Math.max(0, Math.floor(diff/3600000)%24);
+    var mm = Math.max(0, Math.floor(diff/60000)%60);
+    h += '<div class="hero">';
+    h += '<div class="when">' + (live ? '<span class="live"><i></i>HAPPENING NOW</span>' : 'Next meeting · ' + esc(relDay(s))) + '</div>';
+    h += '<h3>' + esc(nm.title||'Board meeting') + '</h3>';
+    h += '<div class="sub">' + esc(fmtDate(s)) + ' · ' + esc(fmtTime(s)) +
+         (nm.location ? ' · ' + esc(nm.location) : '') + '</div>';
+    if(!live){
+      h += '<div class="cd">' +
+           '<div class="cd-box"><b>'+d+'</b><span>days</span></div>' +
+           '<div class="cd-box"><b>'+hh+'</b><span>hours</span></div>' +
+           '<div class="cd-box"><b>'+mm+'</b><span>mins</span></div></div>';
+    } else { h += '<div style="height:12px"></div>'; }
+    h += '<div class="hero-row">';
+    if(nm.link) h += '<a class="btn blue sm" href="'+esc(nm.link)+'" target="_blank" rel="noopener">Join →</a>';
+    h += '<button class="btn ghost sm" data-act="meeting" data-id="'+nm.id+'">Agenda ('+nm.agenda.length+')</button>';
+    h += '<button class="btn ghost sm" data-act="wa-meeting" data-id="'+nm.id+'">Copy for WhatsApp</button>';
+    h += '</div></div>';
+  } else {
+    h += '<div class="hero"><div class="when">No meeting scheduled</div>' +
+         '<h3>Nothing on the calendar</h3>' +
+         '<div class="sub">Add the next board meeting so everyone can see it.</div>' +
+         '<div class="hero-row" style="margin-top:13px">' +
+         '<button class="btn sm" data-act="new-meeting">Schedule a meeting</button></div></div>';
+  }
+
+  h += examplesBanner();
+  h += whoBanner();
+
+  /* needs attention */
+  var mine = db.meId ? openTasks().filter(function(t){ return t.owner===db.meId; }) : [];
+  var att = openTasks().filter(function(t){ return isOverdue(t) || dueSoon(t); })
+                       .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
+  if(att.length){
+    h += '<div class="sec"><div class="sec-h"><h2>Needs attention</h2>' +
+         '<span class="count">'+att.length+'</span>' +
+         '<button class="sh-act" data-act="tab" data-tab="tasks">All tasks</button></div>';
+    h += '<div class="card">' + att.slice(0,5).map(taskRow).join('') + '</div></div>';
+  } else if(db.meId && mine.length){
+    h += '<div class="sec"><div class="sec-h"><h2>Your action items</h2>' +
+         '<span class="count">'+mine.length+'</span></div>';
+    h += '<div class="card">' + mine.slice(0,5).map(taskRow).join('') + '</div></div>';
+  }
+
+  /* pinned docs */
+  var pinned = db.docs.filter(function(d){ return d.pinned; });
+  var show = pinned.length ? pinned : db.docs.slice(0,4);
+  if(show.length){
+    h += '<div class="sec"><div class="sec-h"><h2>' + (pinned.length?'Pinned documents':'Documents') + '</h2>' +
+         '<button class="sh-act" data-act="tab" data-tab="docs">See all</button></div>';
+    h += '<div class="card">' + show.map(docRow).join('') + '</div></div>';
+  }
+
+  /* later meetings */
+  var later = sortedMeetings().filter(isUpcoming).slice(1,4);
+  if(later.length){
+    h += '<div class="sec"><div class="sec-h"><h2>Also coming up</h2>' +
+         '<button class="sh-act" data-act="tab" data-tab="meetings">See all</button></div>';
+    h += '<div class="card">' + later.map(meetingRow).join('') + '</div></div>';
+  }
+  return h;
+}
+
+function remoteBanner(){
+  var r = ui.remote;
+  if(!r || !r.updatedAt) return '';
+  if(db.remoteSeen === r.updatedAt) return '';
+  var d = new Date(r.updatedAt);
+  return '<div class="banner"><span class="bi">🔄</span>' +
+    '<div class="bt"><b>The shared board file was updated</b>' +
+    (isNaN(d) ? '' : ' on ' + esc(fmtDate(d))) + '. Pull it in to match everyone else.</div>' +
+    '<div class="bact"><button class="btn sm" data-act="remote-merge">Merge in</button>' +
+    '<button class="btn ghost sm" data-act="remote-replace">Replace mine</button>' +
+    '<button class="btn ghost sm" data-act="remote-dismiss">Not now</button></div>' +
+    '</div>';
+}
+function examplesBanner(){
+  var n = countExamples();
+  if(!n) return '';
+  return '<div class="banner gold"><span class="bi">👋</span>' +
+    '<div class="bt"><b>' + n + ' example entries</b> are here to show how it works.</div>' +
+    '<div class="bact"><button class="btn sm" data-act="clear-examples">Clear them</button></div>' +
+    '</div>';
+}
+function countExamples(){
+  var n=0;
+  db.meetings.forEach(function(x){ if(x.example) n++; });
+  db.tasks.forEach(function(x){ if(x.example) n++; });
+  db.docs.forEach(function(x){ if(x.example) n++; });
+  db.members.forEach(function(x){ if(x.example) n++; });
+  return n;
+}
+function whoBanner(){
+  if(db.meId || !db.members.length) return '';
+  return '<div class="banner"><span class="bi">🙋</span>' +
+    '<div class="bt"><b>Which one are you?</b> So the widget can flag what is yours.</div>' +
+    '<div class="bact"><button class="btn sm" data-act="pick-me">Choose</button></div></div>';
+}
+
+/* ---------- MEETINGS ---------- */
+function viewMeetings(){
+  var all = sortedMeetings();
+  var up = all.filter(isUpcoming);
+  var past = all.filter(function(m){ return !isUpcoming(m); }).reverse();
+  var h = '';
+  h += '<div class="sec"><div class="sec-h"><h2>Upcoming</h2><span class="count">'+up.length+'</span>' +
+       '<button class="sh-act" data-act="new-meeting">+ Add</button></div>';
+  h += up.length ? '<div class="card">' + up.map(meetingRow).join('') + '</div>'
+                 : emptyBox('📅','No meetings scheduled','Put the next board meeting on here and everyone will see the date, the link and the agenda in one place.','Schedule a meeting','new-meeting');
+  h += '</div>';
+  if(past.length){
+    h += '<div class="sec"><div class="sec-h"><h2>Past</h2><span class="count">'+past.length+'</span>' +
+         '<button class="sh-act" data-act="toggle-past">' + (ui.showPast?'Hide':'Show') + '</button></div>';
+    if(ui.showPast) h += '<div class="card">' + past.map(meetingRow).join('') + '</div>';
+    h += '</div>';
+  }
+  if(up.length){
+    h += '<button class="btn ghost wide" data-act="ics-all">📆 Add all upcoming to my calendar</button>';
+  }
+  return h;
+}
+function meetingRow(m){
+  var s = meetingStart(m);
+  var soon = s && daysBetween(new Date(), s)>=0 && daysBetween(new Date(), s)<=7;
+  var openCount = m.agenda.filter(function(a){ return !a.done; }).length;
+  var bits = [];
+  if(s) bits.push(fmtTime(s));
+  if(m.location) bits.push(m.location);
+  if(m.agenda.length) bits.push(m.agenda.length + ' agenda item' + (m.agenda.length===1?'':'s'));
+  return '<button class="row" data-act="meeting" data-id="'+m.id+'">' +
+    '<div class="datechip'+(soon?' soon':'')+'"><b>'+(s?s.getDate():'–')+'</b><span>'+(s?MONS[s.getMonth()]:'')+'</span></div>' +
+    '<div class="body"><div class="title">'+esc(m.title||'Board meeting')+
+      (isLive(m)?' <span class="pill green">NOW</span>':'')+'</div>' +
+      '<div class="meta">'+esc(bits.join(' · '))+'</div></div>' +
+    '<span class="chev">›</span></button>';
+}
+
+/* ---------- TASKS ---------- */
+function viewTasks(){
+  var f = ui.taskFilter;
+  var list = db.tasks.slice();
+  if(f==='open') list = list.filter(function(t){ return t.status!=='done'; });
+  else if(f==='mine') list = list.filter(function(t){ return t.owner===db.meId && t.status!=='done'; });
+  else if(f==='done') list = list.filter(function(t){ return t.status==='done'; });
+
+  list.sort(function(a,b){
+    if(a.status==='done' && b.status!=='done') return 1;
+    if(b.status==='done' && a.status!=='done') return -1;
+    var ad=a.due?parseDT(a.due):null, bd=b.due?parseDT(b.due):null;
+    if(ad&&bd) return ad-bd; if(ad) return -1; if(bd) return 1;
+    return 0;
+  });
+
+  var h = '<div class="chips">' +
+    chip('open','Open', openTasks().length) +
+    chip('mine','Mine', db.meId ? openTasks().filter(function(t){return t.owner===db.meId;}).length : 0) +
+    chip('all','Everything', db.tasks.length) +
+    chip('done','Done', db.tasks.filter(function(t){return t.status==='done';}).length) +
+    '</div>';
+
+  if(!list.length){
+    h += emptyBox('✅', f==='mine'?'Nothing assigned to you':'No action items here',
+      'Action items decided in a meeting live here — with who owns them and when they are due.',
+      'Add an action item','new-task');
+    return h;
+  }
+
+  var groups = [
+    { k:'Overdue', f:function(t){ return isOverdue(t); } },
+    { k:'Next 7 days', f:function(t){ return dueSoon(t); } },
+    { k:'Later', f:function(t){ return t.status!=='done' && t.due && !isOverdue(t) && !dueSoon(t); } },
+    { k:'No due date', f:function(t){ return t.status!=='done' && !t.due; } },
+    { k:'Done', f:function(t){ return t.status==='done'; } }
+  ];
+  groups.forEach(function(g){
+    var items = list.filter(g.f);
+    if(!items.length) return;
+    h += '<div class="sec"><div class="sec-h"><h2>'+g.k+'</h2><span class="count">'+items.length+'</span></div>' +
+         '<div class="card">' + items.map(taskRow).join('') + '</div></div>';
+  });
+  return h;
+}
+function chip(k,label,n){
+  return '<button class="chip'+(ui.taskFilter===k?' on':'')+'" data-act="task-filter" data-f="'+k+'">' +
+    esc(label) + (n?' <span style="opacity:.65">'+n+'</span>':'') + '</button>';
+}
+function taskRow(t){
+  var d = t.due ? parseDT(t.due) : null;
+  var over = isOverdue(t);
+  var bits = [];
+  if(t.owner) bits.push(memberName(t.owner));
+  if(d) bits.push('Due ' + relLower(d));
+  var mtg = t.meetingId ? meetingById(t.meetingId) : null;
+  if(mtg) bits.push('from ' + (mtg.title||'meeting'));
+  return '<div class="row'+(t.status==='done'?' done':'')+'">' +
+    '<button class="check'+(t.status==='done'?' on':(t.status==='doing'?' doing':''))+'" data-act="toggle-task" data-id="'+t.id+'" aria-label="Toggle">' +
+      (t.status==='done'?'✓':(t.status==='doing'?'●':'✓')) + '</button>' +
+    '<button class="body" style="text-align:left" data-act="task" data-id="'+t.id+'">' +
+      '<div class="title">'+esc(t.title)+'</div>' +
+      '<div class="meta">'+esc(bits.join(' · '))+'</div></button>' +
+    (over ? '<span class="pill red">Overdue</span>' : (t.status==='doing' ? '<span class="pill blue">Doing</span>' : '')) +
+    (t.owner ? avatar(t.owner,true) : '') +
+    '</div>';
+}
+
+/* ---------- DOCS ---------- */
+function viewDocs(){
+  if(!db.docs.length){
+    return emptyBox('📁','No documents yet',
+      'Keep the links that always get asked for — bylaws, budget, minutes, the shared drive — right here.',
+      'Add a document','new-doc');
+  }
+  var h = '';
+  var pinned = db.docs.filter(function(d){ return d.pinned; });
+  if(pinned.length){
+    h += '<div class="sec"><div class="sec-h"><h2>Pinned</h2></div><div class="card">' +
+      pinned.map(docRow).join('') + '</div></div>';
+  }
+  /* pinned items already appear above — don't list them twice */
+  var cats = {};
+  db.docs.filter(function(d){ return !d.pinned; }).forEach(function(d){
+    var c = d.category || 'General';
+    (cats[c] = cats[c] || []).push(d);
+  });
+  var keys = Object.keys(cats).sort();
+  keys.forEach(function(k){
+    h += '<div class="sec"><div class="sec-h"><h2>'+esc(k)+'</h2><span class="count">'+cats[k].length+'</span></div>' +
+      '<div class="card">' + cats[k].map(docRow).join('') + '</div></div>';
+  });
+  h += '<button class="btn ghost wide" data-act="new-doc">+ Add a document</button>';
+  return h;
+}
+function docIcon(d){
+  var u = (d.url||'').toLowerCase(), t=(d.title||'').toLowerCase();
+  if(u.indexOf('docs.google')>-1) return '📝';
+  if(u.indexOf('sheets.google')>-1 || t.indexOf('budget')>-1 || t.indexOf('financ')>-1) return '📊';
+  if(u.indexOf('drive.google')>-1 || u.indexOf('dropbox')>-1) return '🗂️';
+  if(u.indexOf('.pdf')>-1) return '📄';
+  if(t.indexOf('minute')>-1) return '🗒️';
+  if(t.indexOf('bylaw')>-1 || t.indexOf('constitution')>-1 || t.indexOf('polic')>-1) return '📜';
+  return '🔗';
+}
+function docRow(d){
+  var inner = '<div class="title">'+esc(d.title)+'</div>' +
+              '<div class="meta">'+esc(d.url ? (d.note || d.category || 'Open link')
+                                             : 'No link yet — tap to add one')+'</div>';
+  /* without a URL the row would be a dead link, so make it open the editor instead */
+  var body = d.url
+    ? '<a class="body" style="flex:1;min-width:0;color:inherit" href="'+esc(d.url)+'" target="_blank" rel="noopener">'+inner+'</a>'
+    : '<button class="body" style="flex:1;min-width:0;text-align:left" data-act="doc" data-id="'+d.id+'">'+inner+'</button>';
+  return '<div class="doc">' +
+    '<div class="ico">'+docIcon(d)+'</div>' + body +
+    '<button class="mini" data-act="doc" data-id="'+d.id+'" aria-label="Edit">⋯</button></div>';
+}
+
+function emptyBox(icon,title,text,btnLabel,act){
+  return '<div class="empty"><div class="big">'+icon+'</div><h3>'+esc(title)+'</h3><p>'+esc(text)+'</p>' +
+    (btnLabel ? '<button class="btn" data-act="'+act+'">'+esc(btnLabel)+'</button>' : '') + '</div>';
+}
+
+/* ============================================================
+   SHEETS
+   ============================================================ */
+function openSheet(title, body){
+  el('sheetTitle').textContent = title;
+  el('sheetBody').innerHTML = body;
+  el('sheetwrap').classList.add('on');
+  el('sheetBody').scrollTop = 0;
+}
+function closeSheet(){ el('sheetwrap').classList.remove('on'); }
+
+function memberOptions(sel){
+  var h = '<option value="">Unassigned</option>';
+  db.members.forEach(function(m){
+    h += '<option value="'+m.id+'"'+(m.id===sel?' selected':'')+'>'+esc(m.name)+'</option>';
+  });
+  return h;
+}
+
+/* ---------- meeting detail ---------- */
+function sheetMeeting(id){
+  var m = meetingById(id); if(!m) return;
+  var s = meetingStart(m), e = meetingEnd(m);
+  var mins = m.agenda.reduce(function(a,x){ return a + (+x.mins||0); }, 0);
+  var linked = db.tasks.filter(function(t){ return t.meetingId===m.id; });
+
+  var h = '';
+  h += '<div class="kv"><div class="k">When</div><div class="v">' +
+       esc(fmtDate(s,true)) + '<br>' + esc(fmtTime(s)) + (e ? ' – ' + esc(fmtTime(e)) : '') +
+       (s && isRelative(s) ? ' <span style="color:var(--gold)">· ' + esc(relDay(s)) + '</span>' : '') +
+       '</div></div>';
+  if(m.location) h += '<div class="kv"><div class="k">Where</div><div class="v">'+esc(m.location)+'</div></div>';
+  if(m.link) h += '<div class="kv"><div class="k">Link</div><div class="v"><a href="'+esc(m.link)+'" target="_blank" rel="noopener">'+esc(m.link)+'</a></div></div>';
+  if(m.notes) h += '<div class="kv"><div class="k">Notes</div><div class="v" style="white-space:pre-wrap">'+esc(m.notes)+'</div></div>';
+
+  h += '<div class="toolbar">';
+  if(m.link) h += '<a class="btn blue sm" href="'+esc(m.link)+'" target="_blank" rel="noopener">Join</a>';
+  h += '<button class="btn ghost sm" data-act="ics-one" data-id="'+m.id+'">📆 Calendar</button>';
+  h += '<button class="btn ghost sm" data-act="wa-meeting" data-id="'+m.id+'">💬 Copy for WhatsApp</button>';
+  h += '<button class="btn ghost sm" data-act="edit-meeting" data-id="'+m.id+'">Edit</button>';
+  h += '</div>';
+
+  h += '<div class="divider"></div>';
+  h += '<div class="sec-h"><h2>Agenda</h2><span class="count">'+m.agenda.length+'</span>' +
+       (mins ? '<span style="margin-left:auto;font-size:11px;color:var(--faint);font-weight:800">'+mins+' min planned</span>' : '') +
+       '</div>';
+
+  if(!m.agenda.length){
+    h += '<p class="hint" style="margin:0 0 10px">Nothing on the agenda yet. Add the items to be discussed, who is leading each one, and how long it should take.</p>';
+  }
+  m.agenda.forEach(function(a,i){
+    var bits = [];
+    if(a.owner) bits.push(memberName(a.owner));
+    if(a.mins) bits.push(a.mins + ' min');
+    h += '<div class="ag'+(a.done?' done':'')+'">' +
+      '<div class="ag-top">' +
+        '<div class="ag-n">'+(i+1)+'</div>' +
+        '<div class="ag-b"><div class="t">'+esc(a.title)+'</div>' +
+          (bits.length ? '<div class="m">'+ (a.owner?avatar(a.owner,true):'') + '<span>'+esc(bits.join(' · '))+'</span></div>' : '') +
+          (a.notes ? '<div class="nt">'+esc(a.notes)+'</div>' : '') +
+        '</div>' +
+        '<div class="ag-x">' +
+          '<button class="mini" data-act="ag-done" data-id="'+m.id+'" data-aid="'+a.id+'" aria-label="Covered">'+(a.done?'✓':'○')+'</button>' +
+          '<button class="mini" data-act="ag-edit" data-id="'+m.id+'" data-aid="'+a.id+'" aria-label="Edit">✏️</button>' +
+        '</div>' +
+      '</div></div>';
+  });
+  h += '<button class="addbox" data-act="ag-add" data-id="'+m.id+'">+ Add agenda item</button>';
+
+  h += '<div class="divider"></div>';
+  h += '<div class="sec-h"><h2>Action items from this meeting</h2><span class="count">'+linked.length+'</span></div>';
+  h += linked.length ? '<div class="card">' + linked.map(taskRow).join('') + '</div>'
+                     : '<p class="hint" style="margin:0 0 10px">None yet.</p>';
+  h += '<div style="height:10px"></div>';
+  h += '<button class="addbox" data-act="new-task" data-mid="'+m.id+'">+ Add an action item</button>';
+
+  h += '<div class="acts"><button class="btn danger wide" data-act="del-meeting" data-id="'+m.id+'">Delete meeting</button></div>';
+
+  openSheet(m.title || 'Board meeting', h);
+}
+
+/* ---------- meeting edit ---------- */
+function sheetMeetingEdit(id){
+  var m = id ? meetingById(id) : null;
+  var isNew = !m;
+  if(!m){
+    var d = new Date(); d.setDate(d.getDate()+7); d.setHours(18,0,0,0);
+    m = { id:'', title:'Board meeting', date:toLocalInput(d), durationMin:90, location:'', link:'', notes:'' };
+  }
+  var h = '';
+  h += fld('Title','<input id="f-title" value="'+esc(m.title)+'" placeholder="Board meeting">');
+  h += '<div class="f2">' +
+       fld('Date &amp; time','<input id="f-date" type="datetime-local" value="'+esc(m.date||'')+'">') +
+       fld('Length (min)','<input id="f-dur" type="number" min="15" step="15" value="'+(m.durationMin||90)+'">') +
+       '</div>';
+  h += fld('Where','<input id="f-loc" value="'+esc(m.location||'')+'" placeholder="Community hall / Zoom">');
+  h += fld('Meeting link','<input id="f-link" type="url" value="'+esc(m.link||'')+'" placeholder="https://…">');
+  h += fld('Notes','<textarea id="f-notes" placeholder="Anything the board should know beforehand">'+esc(m.notes||'')+'</textarea>');
+  h += '<div class="acts">' +
+       '<button class="btn ghost" data-act="cancel">Cancel</button>' +
+       '<button class="btn" data-act="save-meeting" data-id="'+(m.id||'')+'">Save</button></div>';
+  openSheet(isNew ? 'New meeting' : 'Edit meeting', h);
+  setTimeout(function(){ var t=el('f-title'); if(t && isNew) t.select(); },80);
+}
+function fld(label,inner){ return '<div class="f"><label>'+label+'</label>'+inner+'</div>'; }
+function toLocalInput(d){
+  function p(n){ return String(n).padStart(2,'0'); }
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+}
+
+/* ---------- agenda item edit ---------- */
+function sheetAgenda(mid, aid){
+  var m = meetingById(mid); if(!m) return;
+  var a = null;
+  if(aid) m.agenda.forEach(function(x){ if(x.id===aid) a=x; });
+  var isNew = !a;
+  a = a || { id:'', title:'', owner:'', mins:10, notes:'' };
+  var h = '';
+  h += fld('Item','<input id="a-title" value="'+esc(a.title)+'" placeholder="Treasurer&#39;s report">');
+  h += '<div class="f2">' +
+       fld('Led by','<select id="a-owner">'+memberOptions(a.owner)+'</select>') +
+       fld('Minutes','<input id="a-mins" type="number" min="0" step="5" value="'+(a.mins||0)+'">') +
+       '</div>';
+  h += fld('Notes / decision','<textarea id="a-notes" placeholder="Background before the meeting, or what was decided after">'+esc(a.notes||'')+'</textarea>');
+  h += '<div class="acts">' +
+       (isNew ? '' : '<button class="btn danger" data-act="del-agenda" data-id="'+mid+'" data-aid="'+aid+'">Delete</button>') +
+       '<button class="btn" data-act="save-agenda" data-id="'+mid+'" data-aid="'+(aid||'')+'">Save</button></div>';
+  if(!isNew){
+    h += '<div class="divider"></div><div class="toolbar">' +
+      '<button class="btn ghost sm" data-act="ag-up" data-id="'+mid+'" data-aid="'+aid+'">↑ Move up</button>' +
+      '<button class="btn ghost sm" data-act="ag-down" data-id="'+mid+'" data-aid="'+aid+'">↓ Move down</button>' +
+      '<button class="btn ghost sm" data-act="ag-to-task" data-id="'+mid+'" data-aid="'+aid+'">→ Make an action item</button>' +
+      '</div>';
+  }
+  openSheet(isNew ? 'New agenda item' : 'Agenda item', h);
+  setTimeout(function(){ var t=el('a-title'); if(t && isNew) t.focus(); },120);
+}
+
+/* ---------- task edit ---------- */
+function sheetTask(id, presetMeeting, presetTitle){
+  var t = id ? taskById(id) : null;
+  var isNew = !t;
+  t = t || { id:'', title:presetTitle||'', owner:db.meId||'', due:'', status:'open',
+             notes:'', meetingId:presetMeeting||'' };
+  var h = '';
+  h += fld('What needs doing','<input id="t-title" value="'+esc(t.title)+'" placeholder="Send the draft budget to the board">');
+  h += '<div class="f2">' +
+       fld('Owner','<select id="t-owner">'+memberOptions(t.owner)+'</select>') +
+       fld('Due','<input id="t-due" type="date" value="'+esc(t.due||'')+'">') +
+       '</div>';
+  h += fld('Status','<select id="t-status">' +
+       '<option value="open"'+(t.status==='open'?' selected':'')+'>To do</option>' +
+       '<option value="doing"'+(t.status==='doing'?' selected':'')+'>In progress</option>' +
+       '<option value="done"'+(t.status==='done'?' selected':'')+'>Done</option></select>');
+  var mo = '<option value="">Not linked</option>';
+  sortedMeetings().forEach(function(m){
+    mo += '<option value="'+m.id+'"'+(m.id===t.meetingId?' selected':'')+'>' +
+          esc((m.title||'Meeting') + ' · ' + fmtDate(meetingStart(m))) + '</option>';
+  });
+  h += fld('From meeting','<select id="t-meeting">'+mo+'</select>');
+  h += fld('Notes','<textarea id="t-notes" placeholder="Any detail worth keeping">'+esc(t.notes||'')+'</textarea>');
+  h += '<div class="acts">' +
+       (isNew ? '<button class="btn ghost" data-act="cancel">Cancel</button>'
+              : '<button class="btn danger" data-act="del-task" data-id="'+id+'">Delete</button>') +
+       '<button class="btn" data-act="save-task" data-id="'+(id||'')+'">Save</button></div>';
+  openSheet(isNew ? 'New action item' : 'Action item', h);
+  setTimeout(function(){ var x=el('t-title'); if(x && isNew) x.focus(); },120);
+}
+
+/* ---------- doc edit ---------- */
+function sheetDoc(id){
+  var d = id ? docById(id) : null;
+  var isNew = !d;
+  d = d || { id:'', title:'', url:'', category:'General', note:'', pinned:false };
+  var cats = {};
+  db.docs.forEach(function(x){ if(x.category) cats[x.category]=1; });
+  ['General','Governance','Finance','Minutes','Programmes'].forEach(function(c){ cats[c]=1; });
+  var opts = Object.keys(cats).sort().map(function(c){
+    return '<option value="'+esc(c)+'"'+(c===d.category?' selected':'')+'>'+esc(c)+'</option>';
+  }).join('');
+  var h = '';
+  h += fld('Title','<input id="d-title" value="'+esc(d.title)+'" placeholder="Bylaws (2024)">');
+  h += fld('Link','<input id="d-url" type="url" value="'+esc(d.url||'')+'" placeholder="https://docs.google.com/…">');
+  h += '<div class="f2">' +
+       fld('Category','<select id="d-cat">'+opts+'</select>') +
+       fld('Pinned','<select id="d-pin"><option value="0"'+(!d.pinned?' selected':'')+'>No</option>' +
+           '<option value="1"'+(d.pinned?' selected':'')+'>Yes — show on Home</option></select>') +
+       '</div>';
+  h += fld('Note','<input id="d-note" value="'+esc(d.note||'')+'" placeholder="Approved March 2024">');
+  h += '<div class="acts">' +
+       (isNew ? '<button class="btn ghost" data-act="cancel">Cancel</button>'
+              : '<button class="btn danger" data-act="del-doc" data-id="'+id+'">Delete</button>') +
+       '<button class="btn" data-act="save-doc" data-id="'+(id||'')+'">Save</button></div>';
+  openSheet(isNew ? 'Add a document' : 'Document', h);
+  setTimeout(function(){ var x=el('d-title'); if(x && isNew) x.focus(); },120);
+}
+
+/* ---------- settings ---------- */
+function sheetSettings(){
+  var h = '';
+  h += fld('Board name','<input id="s-org" value="'+esc(db.org||'')+'">');
+  h += fld('I am','<select id="s-me">'+memberOptions(db.meId)+'</select>');
+  h += '<div class="hint" style="margin:-6px 0 14px">Used for the “Mine” filter on action items.</div>';
+  h += '<button class="btn ghost wide" data-act="save-settings">Save</button>';
+
+  h += '<div class="divider"></div>';
+  h += '<div class="sec-h"><h2>Board members</h2><span class="count">'+db.members.length+'</span></div>';
+  db.members.forEach(function(m){
+    h += '<div class="memrow">' + avatar(m.id) +
+      '<div class="body"><div class="nm">'+esc(m.name)+(m.id===db.meId?' <span class="pill gray">you</span>':'')+'</div>' +
+      '<div class="rl">'+esc(m.role||'Member')+'</div></div>' +
+      '<button class="mini" data-act="del-member" data-id="'+m.id+'" aria-label="Remove">🗑</button></div>';
+  });
+  h += '<div class="f2" style="margin-top:12px">' +
+       '<div class="f"><input id="m-name" placeholder="Name"></div>' +
+       '<div class="f"><input id="m-role" placeholder="Role (optional)"></div></div>';
+  h += '<button class="btn ghost wide" data-act="add-member">+ Add member</button>';
+
+  h += '<div class="divider"></div>';
+  h += '<div class="sec-h"><h2>Sharing &amp; backup</h2></div>';
+  h += '<p class="hint" style="margin:0 0 12px">Everything is stored on this device. To get the same board onto everyone else&#39;s phone, copy a snapshot and send it once — they paste it in here.</p>';
+  h += '<div class="toolbar" style="margin-top:0">' +
+    '<button class="btn ghost sm" data-act="copy-json">📋 Copy snapshot</button>' +
+    '<button class="btn ghost sm" data-act="download-json">⬇️ Download file</button>' +
+    '<button class="btn ghost sm" data-act="paste-json">📥 Paste a snapshot</button>' +
+    '<button class="btn ghost sm" data-act="check-remote">🔄 Check shared file</button>' +
+    '<button class="btn ghost sm" data-act="wa-digest">💬 Copy full digest</button>' +
+    '</div>';
+
+  h += '<div class="divider"></div>';
+  h += '<button class="btn danger wide" data-act="reset">Erase everything on this device</button>';
+  h += '<p class="hint" style="text-align:center;margin-top:10px">Board Hub · stored on this device only</p>';
+  openSheet('Settings', h);
+}
+
+function sheetPasteJson(){
+  var h = '';
+  h += fld('Paste the snapshot here','<textarea id="p-json" style="min-height:150px" placeholder="{ … }"></textarea>');
+  h += '<div class="acts">' +
+    '<button class="btn ghost" data-act="import-json" data-mode="merge">Merge in</button>' +
+    '<button class="btn" data-act="import-json" data-mode="replace">Replace mine</button></div>';
+  h += '<p class="hint">Merge keeps what you have and adds anything new. Replace throws away this device&#39;s copy and uses the snapshot instead.</p>';
+  openSheet('Paste a snapshot', h);
+}
+
+function sheetPickMe(){
+  var h = '<p class="hint" style="margin:0 0 14px">Pick your name so the widget can flag what is assigned to you.</p>';
+  db.members.forEach(function(m){
+    h += '<button class="row card" style="margin-bottom:8px;width:100%" data-act="set-me" data-id="'+m.id+'">' +
+      avatar(m.id) + '<div class="body"><div class="title">'+esc(m.name)+'</div>' +
+      '<div class="meta">'+esc(m.role||'Member')+'</div></div><span class="chev">›</span></button>';
+  });
+  openSheet('Who are you?', h);
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+document.addEventListener('click', function(ev){
+  var closer = ev.target.closest('[data-close]');
+  if(closer){ closeSheet(); return; }
+  var tab = ev.target.closest('.tb');
+  if(tab){ ui.tab = tab.dataset.tab; render(); return; }
+  var b = ev.target.closest('[data-act]');
+  if(!b) return;
+  var act = b.dataset.act, id = b.dataset.id, aid = b.dataset.aid;
+  handle(act, id, aid, b);
+});
+
+function handle(act, id, aid, b){
+  switch(act){
+    case 'tab': ui.tab = b.dataset.tab; render(); break;
+    case 'cancel': closeSheet(); break;
+    case 'toggle-past': ui.showPast = !ui.showPast; render(); break;
+    case 'task-filter': ui.taskFilter = b.dataset.f; render(); break;
+
+    /* meetings */
+    case 'meeting': sheetMeeting(id); break;
+    case 'new-meeting': sheetMeetingEdit(null); break;
+    case 'edit-meeting': sheetMeetingEdit(id); break;
+    case 'save-meeting': saveMeeting(id); break;
+    case 'del-meeting':
+      if(confirm('Delete this meeting? Its agenda goes with it.')){
+        db.meetings = db.meetings.filter(function(m){ return m.id!==id; });
+        db.tasks.forEach(function(t){ if(t.meetingId===id) t.meetingId=''; });
+        save(); closeSheet(); render(); toast('Meeting deleted');
+      }
+      break;
+
+    /* agenda */
+    case 'ag-add': sheetAgenda(id, null); break;
+    case 'ag-edit': sheetAgenda(id, aid); break;
+    case 'save-agenda': saveAgenda(id, aid); break;
+    case 'del-agenda': {
+      var m = meetingById(id);
+      m.agenda = m.agenda.filter(function(a){ return a.id!==aid; });
+      save(); sheetMeeting(id); render(); break;
+    }
+    case 'ag-done': {
+      var mm = meetingById(id);
+      mm.agenda.forEach(function(a){ if(a.id===aid) a.done = !a.done; });
+      save(); sheetMeeting(id); break;
+    }
+    case 'ag-up': case 'ag-down': moveAgenda(id, aid, act==='ag-up' ? -1 : 1); break;
+    case 'ag-to-task': {
+      var mt = meetingById(id), item=null;
+      mt.agenda.forEach(function(a){ if(a.id===aid) item=a; });
+      if(item) sheetTask(null, id, item.title);
+      break;
+    }
+
+    /* tasks */
+    case 'task': sheetTask(id); break;
+    case 'new-task': sheetTask(null, b.dataset.mid || ''); break;
+    case 'save-task': saveTask(id); break;
+    case 'toggle-task': {
+      var t = taskById(id);
+      t.status = t.status==='done' ? 'open' : 'done';
+      save(); render();
+      if(el('sheetwrap').classList.contains('on') && t.meetingId) sheetMeeting(t.meetingId);
+      break;
+    }
+    case 'del-task':
+      if(confirm('Delete this action item?')){
+        db.tasks = db.tasks.filter(function(x){ return x.id!==id; });
+        save(); closeSheet(); render(); toast('Action item deleted');
+      }
+      break;
+
+    /* docs */
+    case 'doc': sheetDoc(id); break;
+    case 'new-doc': sheetDoc(null); break;
+    case 'save-doc': saveDoc(id); break;
+    case 'del-doc':
+      if(confirm('Remove this document link?')){
+        db.docs = db.docs.filter(function(x){ return x.id!==id; });
+        save(); closeSheet(); render(); toast('Removed');
+      }
+      break;
+
+    /* people + settings */
+    case 'pick-me': sheetPickMe(); break;
+    case 'set-me': db.meId=id; save(); closeSheet(); render(); toast('Got it'); break;
+    case 'add-member': {
+      var n = (el('m-name').value||'').trim();
+      if(!n){ toast('Give the member a name'); return; }
+      db.members.push({ id:uid('m'), name:n, role:(el('m-role').value||'').trim() });
+      save(); sheetSettings(); render(); break;
+    }
+    case 'del-member':
+      if(confirm('Remove this member? Anything assigned to them becomes unassigned.')){
+        db.members = db.members.filter(function(x){ return x.id!==id; });
+        if(db.meId===id) db.meId = null;
+        db.tasks.forEach(function(t){ if(t.owner===id) t.owner=''; });
+        db.meetings.forEach(function(m){ m.agenda.forEach(function(a){ if(a.owner===id) a.owner=''; }); });
+        save(); sheetSettings(); render();
+      }
+      break;
+    case 'save-settings':
+      db.org = (el('s-org').value||'').trim() || 'Board of Directors';
+      db.orgSet = true;
+      db.meId = el('s-me').value || null;
+      save(); closeSheet(); render(); toast('Saved');
+      break;
+    case 'clear-examples': clearExamples(); break;
+
+    /* sharing */
+    case 'copy-json': copyText(JSON.stringify(db,null,2), 'Snapshot copied — paste it to the board'); break;
+    case 'download-json': downloadFile('board-data.json', JSON.stringify(db,null,2), 'application/json'); break;
+    case 'paste-json': sheetPasteJson(); break;
+    case 'import-json': importJson(b.dataset.mode); break;
+    case 'check-remote': checkRemote(true); break;
+    case 'remote-merge': applyRemote('merge'); break;
+    case 'remote-replace': applyRemote('replace'); break;
+    case 'remote-dismiss':
+      if(ui.remote) db.remoteSeen = ui.remote.updatedAt;
+      save(); render(); break;
+    case 'reset':
+      if(confirm('Erase all board data on this device? This cannot be undone.')){
+        localStorage.removeItem(KEY); location.reload();
+      }
+      break;
+
+    /* export */
+    case 'ics-one': downloadIcs([meetingById(id)]); break;
+    case 'ics-all': downloadIcs(sortedMeetings().filter(isUpcoming)); break;
+    case 'wa-meeting': copyText(waMeeting(meetingById(id)), 'Copied — paste it into the group'); break;
+    case 'wa-digest': copyText(waDigest(), 'Digest copied — paste it into the group'); break;
+  }
+}
+
+/* ---------- savers ---------- */
+function saveMeeting(id){
+  var title = (el('f-title').value||'').trim() || 'Board meeting';
+  var date = el('f-date').value;
+  if(!date){ toast('Pick a date and time'); return; }
+  var m = id ? meetingById(id) : null;
+  if(!m){ m = { id:uid('g'), agenda:[] }; db.meetings.push(m); }
+  m.title = title;
+  m.date = date;
+  m.durationMin = Math.max(15, +el('f-dur').value || 90);
+  m.location = (el('f-loc').value||'').trim();
+  m.link = (el('f-link').value||'').trim();
+  m.notes = (el('f-notes').value||'').trim();
+  delete m.example;
+  save(); render(); sheetMeeting(m.id); toast('Meeting saved');
+}
+function saveAgenda(mid, aid){
+  var m = meetingById(mid); if(!m) return;
+  var title = (el('a-title').value||'').trim();
+  if(!title){ toast('Give the item a title'); return; }
+  var a = null;
+  m.agenda.forEach(function(x){ if(x.id===aid) a=x; });
+  if(!a){ a = { id:uid('a') }; m.agenda.push(a); }
+  a.title = title;
+  a.owner = el('a-owner').value;
+  a.mins = +el('a-mins').value || 0;
+  a.notes = (el('a-notes').value||'').trim();
+  save(); sheetMeeting(mid); render();
+}
+function moveAgenda(mid, aid, dir){
+  var m = meetingById(mid); if(!m) return;
+  var i = -1;
+  m.agenda.forEach(function(a,ix){ if(a.id===aid) i=ix; });
+  var j = i + dir;
+  if(i<0 || j<0 || j>=m.agenda.length) return;
+  var tmp = m.agenda[i]; m.agenda[i]=m.agenda[j]; m.agenda[j]=tmp;
+  save(); sheetMeeting(mid);
+}
+function saveTask(id){
+  var title = (el('t-title').value||'').trim();
+  if(!title){ toast('Say what needs doing'); return; }
+  var t = id ? taskById(id) : null;
+  if(!t){ t = { id:uid('t') }; db.tasks.push(t); }
+  t.title = title;
+  t.owner = el('t-owner').value;
+  t.due = el('t-due').value;
+  t.status = el('t-status').value;
+  t.meetingId = el('t-meeting').value;
+  t.notes = (el('t-notes').value||'').trim();
+  delete t.example;
+  save();
+  if(t.meetingId) sheetMeeting(t.meetingId); else closeSheet();
+  render(); toast('Saved');
+}
+function saveDoc(id){
+  var title = (el('d-title').value||'').trim();
+  if(!title){ toast('Give the document a title'); return; }
+  var url = (el('d-url').value||'').trim();
+  if(url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+  var d = id ? docById(id) : null;
+  if(!d){ d = { id:uid('d') }; db.docs.push(d); }
+  d.title = title; d.url = url;
+  d.category = el('d-cat').value || 'General';
+  d.pinned = el('d-pin').value === '1';
+  d.note = (el('d-note').value||'').trim();
+  delete d.example;
+  save(); closeSheet(); render(); toast('Saved');
+}
+function clearExamples(){
+  if(!confirm('Remove the example entries?')) return;
+  db.meetings = db.meetings.filter(function(x){ return !x.example; });
+  db.tasks    = db.tasks.filter(function(x){ return !x.example; });
+  db.docs     = db.docs.filter(function(x){ return !x.example; });
+  db.members  = db.members.filter(function(x){ return !x.example; });
+  if(db.meId && !member(db.meId)) db.meId = null;
+  save(); render(); toast('Examples cleared');
+}
+
+/* ---------- sharing ---------- */
+function copyText(text, okMsg){
+  function fallback(){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast(okMsg); }
+    catch(e){ toast('Copy failed — long-press to select instead'); }
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ toast(okMsg); }, fallback);
+  } else fallback();
+}
+function downloadFile(name, text, mime){
+  try{
+    var blob = new Blob([text], { type: mime || 'text/plain' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    toast('Downloaded ' + name);
+  }catch(e){ toast("This browser wouldn't download it — use Copy instead"); }
+}
+function importJson(mode){
+  var raw = (el('p-json').value||'').trim();
+  if(!raw){ toast('Paste the snapshot first'); return; }
+  var incoming;
+  try{ incoming = JSON.parse(raw); }
+  catch(e){ toast("That doesn't look like a snapshot"); return; }
+  mergeInto(normalize(incoming), mode);
+  closeSheet(); render();
+  toast(mode==='replace' ? 'Replaced with the snapshot' : 'Merged in');
+}
+function mergeInto(incoming, mode){
+  if(mode==='replace'){
+    var me = db.meId;
+    db = incoming;
+    if(me && member(me)) db.meId = me;
+    save(); return;
+  }
+  ['members','meetings','tasks','docs'].forEach(function(k){
+    var byId = {};
+    db[k].forEach(function(x){ byId[x.id]=x; });
+    incoming[k].forEach(function(x){
+      if(byId[x.id]){
+        var keep = byId[x.id];
+        Object.keys(x).forEach(function(p){ keep[p] = x[p]; });
+      } else db[k].push(x);
+    });
+  });
+  /* a merge must not rename a board somebody has already named themselves */
+  if(incoming.org && !db.orgSet) db.org = incoming.org;
+  save();
+}
+
+/* ---------- shared repo file ---------- */
+function checkRemote(loud){
+  fetch(REMOTE, { cache:'no-store' })
+    .then(function(r){ if(!r.ok) throw new Error('no file'); return r.json(); })
+    .then(function(j){
+      ui.remote = normalize(j);
+      ui.remote.updatedAt = j.updatedAt || ui.remote.updatedAt;
+      if(loud){
+        if(db.remoteSeen === ui.remote.updatedAt) toast('You already have the latest shared file');
+        else { closeSheet(); toast('The shared file has changes'); }
+      }
+      render();
+    })
+    .catch(function(){ if(loud) toast('No shared file published yet'); });
+}
+function applyRemote(mode){
+  if(!ui.remote) return;
+  var stamp = ui.remote.updatedAt;
+  mergeInto(ui.remote, mode);
+  db.remoteSeen = stamp;
+  save(); render();
+  toast(mode==='replace' ? 'Now matching the shared file' : 'Shared changes merged in');
+}
+
+/* ---------- calendar ---------- */
+function icsStamp(d){
+  function p(n){ return String(n).padStart(2,'0'); }
+  return d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+'T' +
+         p(d.getUTCHours())+p(d.getUTCMinutes())+p(d.getUTCSeconds())+'Z';
+}
+function icsEsc(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/[;,]/g,function(c){ return '\\'+c; }).replace(/\n/g,'\\n'); }
+function downloadIcs(list){
+  list = (list||[]).filter(Boolean);
+  if(!list.length){ toast('Nothing to add'); return; }
+  var now = icsStamp(new Date());
+  var out = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Board Hub//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  list.forEach(function(m){
+    var s = meetingStart(m), e = meetingEnd(m);
+    if(!s) return;
+    var desc = m.agenda.map(function(a,i){
+      return (i+1)+'. '+a.title + (a.owner ? ' ('+memberName(a.owner)+')' : '');
+    }).join('\n');
+    if(m.notes) desc = (desc ? desc+'\n\n' : '') + m.notes;
+    out.push('BEGIN:VEVENT');
+    out.push('UID:'+m.id+'@boardhub');
+    out.push('DTSTAMP:'+now);
+    out.push('DTSTART:'+icsStamp(s));
+    out.push('DTEND:'+icsStamp(e));
+    out.push('SUMMARY:'+icsEsc(m.title||'Board meeting'));
+    if(m.location) out.push('LOCATION:'+icsEsc(m.location));
+    if(m.link) out.push('URL:'+icsEsc(m.link));
+    if(desc || m.link) out.push('DESCRIPTION:'+icsEsc((m.link ? m.link+'\n\n' : '') + desc));
+    out.push('END:VEVENT');
+  });
+  out.push('END:VCALENDAR');
+  downloadFile('board-meetings.ics', out.join('\r\n'), 'text/calendar');
+}
+
+/* ---------- WhatsApp-ready text ---------- */
+function waMeeting(m){
+  if(!m) return '';
+  var s = meetingStart(m);
+  var L = [];
+  L.push('📋 *' + (m.title||'Board meeting') + '*');
+  L.push('🗓 ' + fmtDate(s,true) + ' · ' + fmtTime(s));
+  if(m.location) L.push('📍 ' + m.location);
+  if(m.link) L.push('🔗 ' + m.link);
+  if(m.agenda.length){
+    L.push(''); L.push('*Agenda*');
+    m.agenda.forEach(function(a,i){
+      var extra = [];
+      if(a.owner) extra.push(memberName(a.owner));
+      if(a.mins) extra.push(a.mins+' min');
+      L.push((i+1)+'. ' + a.title + (extra.length ? ' — ' + extra.join(', ') : ''));
+    });
+  }
+  var linked = db.tasks.filter(function(t){ return t.meetingId===m.id && t.status!=='done'; });
+  if(linked.length){
+    L.push(''); L.push('*Outstanding actions*');
+    linked.forEach(function(t){
+      L.push('• ' + t.title + (t.owner ? ' — ' + memberName(t.owner) : '') +
+        (t.due ? ' (due ' + fmtDate(parseDT(t.due)) + ')' : ''));
+    });
+  }
+  return L.join('\n');
+}
+function waDigest(){
+  var L = ['📋 *' + (db.org||'Board') + ' — update*', ''];
+  var up = sortedMeetings().filter(isUpcoming).slice(0,3);
+  if(up.length){
+    L.push('*Upcoming meetings*');
+    up.forEach(function(m){
+      var s = meetingStart(m);
+      L.push('• ' + (m.title||'Meeting') + ' — ' + fmtDate(s,true) + ', ' + fmtTime(s) +
+        (m.location ? ' (' + m.location + ')' : ''));
+    });
+    L.push('');
+  }
+  var over = db.tasks.filter(isOverdue);
+  var soon = db.tasks.filter(dueSoon);
+  if(over.length){
+    L.push('*Overdue*');
+    over.forEach(function(t){ L.push('• ' + t.title + (t.owner?' — '+memberName(t.owner):'') +
+      (t.due?' (was due '+fmtDate(parseDT(t.due))+')':'')); });
+    L.push('');
+  }
+  if(soon.length){
+    L.push('*Due this week*');
+    soon.forEach(function(t){ L.push('• ' + t.title + (t.owner?' — '+memberName(t.owner):'') +
+      (t.due?' (due '+fmtDate(parseDT(t.due))+')':'')); });
+    L.push('');
+  }
+  var open = openTasks().length;
+  L.push(open + ' open action item' + (open===1?'':'s') + ' in total.');
+  return L.join('\n');
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+el('btnSettings').addEventListener('click', sheetSettings);
+el('fab').addEventListener('click', function(){
+  if(ui.tab==='meetings' || ui.tab==='home') sheetMeetingEdit(null);
+  else if(ui.tab==='tasks') sheetTask(null);
+  else sheetDoc(null);
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeSheet(); });
+
+function boot(){
+  var local = load();
+  if(local){
+    db = normalize(local);
+    render();
+    checkRemote(false);
+    return;
+  }
+  /* first run on this device — take the shared file as the starting point */
+  fetch(REMOTE, { cache:'no-store' })
+    .then(function(r){ if(!r.ok) throw new Error('none'); return r.json(); })
+    .then(function(j){
+      db = normalize(j);
+      db.remoteSeen = j.updatedAt || db.updatedAt;
+      save(); render();
+    })
+    .catch(function(){ db = normalize(blank()); save(); render(); });
+}
+boot();
+
+/* keep the countdown honest without redrawing constantly */
+setInterval(function(){ if(ui.tab==='home' && !el('sheetwrap').classList.contains('on')) render(); }, 30000);
+</script>
+</body>
+</html>
