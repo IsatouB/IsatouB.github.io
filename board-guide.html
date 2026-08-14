@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Board Hub — Guide for the record keeper</title>
+<meta name="theme-color" content="#0f1a26">
+<link rel="apple-touch-icon" href="board-icon-180.png">
+<link rel="icon" href="board-icon-180.png">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0b131c; --panel:#111d29; --card:#16232f;
+    --gold:#d9a92e; --gold-soft:rgba(217,169,46,.12);
+    --blue:#4d8df6; --green:#35c793; --red:#f06565;
+    --text:#eef4fa; --dim:rgba(238,244,250,.62); --faint:rgba(238,244,250,.36);
+    --line:rgba(255,255,255,.09);
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6;
+    -webkit-font-smoothing:antialiased; padding:0 0 60px;
+  }
+  .wrap{max-width:680px;margin:0 auto;padding:0 20px}
+  a{color:var(--blue)}
+
+  header{background:linear-gradient(150deg,#1d3145,#0f1a26);border-bottom:1px solid var(--line);
+         padding:34px 0 26px;margin-bottom:30px}
+  header .wrap{display:flex;gap:16px;align-items:center}
+  .crest{width:52px;height:52px;border-radius:14px;flex-shrink:0;display:grid;place-items:center;
+         background:linear-gradient(140deg,var(--gold),#b8861a);font-size:26px;
+         box-shadow:0 6px 20px rgba(217,169,46,.3)}
+  header h1{font-size:23px;font-weight:900;letter-spacing:-.4px;line-height:1.25}
+  header p{font-size:13.5px;color:var(--dim);margin-top:3px;font-weight:600}
+
+  h2{font-size:12px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold);
+     margin:38px 0 4px}
+  h2 + .lede{font-size:19px;font-weight:800;letter-spacing:-.3px;color:var(--text);
+             margin-bottom:14px;line-height:1.35}
+  p{margin-bottom:13px;color:var(--dim);font-size:15px}
+  p strong,li strong{color:var(--text);font-weight:700}
+
+  ol.steps{list-style:none;counter-reset:s;margin:0 0 20px}
+  ol.steps > li{counter-increment:s;position:relative;padding:0 0 18px 44px;margin:0}
+  ol.steps > li::before{
+    content:counter(s);position:absolute;left:0;top:-1px;width:28px;height:28px;border-radius:50%;
+    background:var(--gold);color:#241a00;font-size:13px;font-weight:900;display:grid;place-items:center}
+  ol.steps > li::after{
+    content:'';position:absolute;left:13.5px;top:32px;bottom:2px;width:1px;background:var(--line)}
+  ol.steps > li:last-child::after{display:none}
+  ol.steps > li b.t{display:block;color:var(--text);font-size:16px;font-weight:800;margin-bottom:4px}
+  ol.steps > li p{margin-bottom:8px;font-size:14.5px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 18px}
+  .card p:last-child{margin-bottom:0}
+  .note{background:var(--gold-soft);border:1px solid rgba(217,169,46,.3);border-radius:14px;
+        padding:14px 16px;margin:0 0 18px;font-size:14.5px;color:var(--dim)}
+  .note b{color:var(--text)}
+  .warn{background:rgba(240,101,101,.1);border-color:rgba(240,101,101,.32)}
+  .good{background:rgba(53,199,147,.09);border-color:rgba(53,199,147,.3)}
+
+  ul.plain{list-style:none;margin:0 0 18px}
+  ul.plain li{position:relative;padding-left:22px;margin-bottom:9px;color:var(--dim);font-size:15px}
+  ul.plain li::before{content:'';position:absolute;left:6px;top:10px;width:5px;height:5px;
+                      border-radius:50%;background:var(--gold)}
+
+  .btnish{display:inline-block;background:rgba(255,255,255,.09);border:1px solid var(--line);
+          border-radius:8px;padding:1px 8px;font-size:13.5px;font-weight:700;color:var(--text);
+          white-space:nowrap}
+  .cta{display:inline-block;background:var(--gold);color:#241a00;font-weight:800;font-size:15px;
+       padding:13px 22px;border-radius:12px;margin:4px 0 8px}
+
+  table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--faint);font-weight:900}
+  td:first-child{color:var(--text);font-weight:700;width:42%}
+  td{color:var(--dim)}
+  .tablewrap{overflow-x:auto}
+
+  footer{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);
+         font-size:13px;color:var(--faint)}
+  @media print{
+    body{background:#fff;color:#111}
+    header{background:none;border-bottom:2px solid #ccc}
+    .card,.note{border:1px solid #ccc;background:none}
+    p,td,ul.plain li{color:#333}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="crest">🏛️</div>
+    <div>
+      <h1>Keeping the board records</h1>
+      <p>A guide for whoever runs the meetings</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <p>Board Hub is a small app that holds the things the board keeps asking about: <strong>when the next meeting is, what's on the agenda, who owes what, and where the documents live</strong>. It lives on everyone's phone and it works with no signal.</p>
+
+  <p>You are the one who keeps it up to date. Everyone else's copy is read-only and quietly follows yours, so there is only ever one version of the truth — no more scrolling back through WhatsApp to find out what was decided.</p>
+
+  <div class="note">
+    <b>Three things you'll need.</b> The link below, a free GitHub account (for the one step where you save changes for everyone), and the board passphrase — sent to you separately from this guide, never in the same message. If nobody has set a passphrase yet, you'll be choosing it; step 3 covers that.
+  </div>
+
+  <div class="note">
+    <b>This is a draft.</b> It works, and it's yours to shape — the example entries are there to be thrown away and replaced with how the board actually runs. If something is missing or the wrong shape, say so and it can be changed.
+  </div>
+
+  <h2>Part one</h2>
+  <div class="lede">Getting set up — about five minutes, once</div>
+
+  <ol class="steps">
+    <li>
+      <b class="t">Open the board</b>
+      <p><a href="board.html">isatoub.github.io/board.html</a></p>
+    </li>
+    <li>
+      <b class="t">Put it on your home screen</b>
+      <p>On iPhone tap the Share button, then <span class="btnish">Add to Home Screen</span>. On Android it's the ⋮ menu, then <span class="btnish">Install app</span>. It then opens like any other app.</p>
+    </li>
+    <li>
+      <b class="t">Unlock it — or lock it, if you're first</b>
+      <p><b>If you see a passphrase box</b>, the board is already locked. Type the passphrase you were given; you only ever do this once on each device.</p>
+      <p><b>If it opens straight into a board full of “Example:” entries</b>, then nothing has been locked yet and you're the one setting it up. Finish step 5 below, then go to ⚙️ → <b>Privacy</b> → <span class="btnish">Lock it with a passphrase</span> and choose one. Make it long — a short phrase of four or five unrelated words beats a mangled single word. Write it down somewhere safe before you go any further.</p>
+    </li>
+    <li>
+      <b class="t">Say who you are</b>
+      <p>Tap <span class="btnish">Choose</span> on the home screen and pick your name. That's what makes the <span class="btnish">Mine</span> filter work on action items.</p>
+    </li>
+    <li>
+      <b class="t">Turn on record keeping</b>
+      <p>Tap the ⚙️ gear, scroll to <b>Who keeps the records</b>, and tap <span class="btnish">I keep the board records</span>. Buttons for adding and editing appear, and so does <b>Publish</b>.</p>
+      <p>Everyone else leaves this switch alone — that's what keeps their copies in step with yours.</p>
+    </li>
+  </ol>
+
+  <h2>Part two</h2>
+  <div class="lede">Putting the board together</div>
+
+  <p>The <b>+</b> button at the bottom right adds whatever the current tab is for — a meeting, an action item or a document.</p>
+
+  <ul class="plain">
+    <li><strong>Meetings.</strong> Give it a date, a time, a place and a link if it's online. Open the meeting to build its agenda: each item can have someone leading it and a number of minutes, and the app adds those up so you can see when ninety minutes of agenda has been squeezed into an hour.</li>
+    <li><strong>Action items.</strong> Anything someone agreed to do. Give it an owner and a due date and it will chase itself — overdue items go red and put a badge on the Tasks tab. From an agenda item you can tap <span class="btnish">→ Make an action item</span> so it stays linked to the meeting that raised it.</li>
+    <li><strong>Documents.</strong> Links to the bylaws, the budget, the minutes, the shared drive. Pin the ones people always ask for and they sit on the home screen.</li>
+  </ul>
+
+  <div class="note">
+    <b>Clear the examples first.</b> The board ships with a few example entries so you can see how it fits together. There's a <span class="btnish">Clear them</span> button on the home screen — use it before you put real business in.
+  </div>
+
+  <h2>Part three</h2>
+  <div class="lede">Publishing — the step that everyone else depends on</div>
+
+  <p>Changes you make stay on your phone until you publish them. Publishing is what pushes the board out to everybody else. <strong>Do it whenever you've finished a round of changes</strong> — after setting the agenda, or after a meeting when you've recorded what was decided.</p>
+
+  <div class="note">
+    <b>Before your first publish</b>, make sure the passphrase is set (⚙️ → Privacy should say <b>🔒 Locked</b>). Anything published while it says <b>🔓 Not locked</b> goes out in plain text and can be read by anyone who finds the file.
+  </div>
+
+  <ol class="steps">
+    <li>
+      <b class="t">Gear → Publish to everyone</b>
+      <p>It spends a moment encrypting the records, then shows you exactly what is about to go out.</p>
+    </li>
+    <li>
+      <b class="t">Tap Copy</b>
+    </li>
+    <li>
+      <b class="t">Tap "Open the file"</b>
+      <p>This takes you to GitHub, to a file called <b>board-data.json</b>, already open for editing. Sign in if it asks. The very first time, when the file doesn't exist yet, use the <span class="btnish">First time?</span> button instead — it creates it for you.</p>
+    </li>
+    <li>
+      <b class="t">Select everything in the box and paste over it</b>
+      <p>Tap in the box, select all (⌘A on a Mac, Ctrl+A on Windows, or long-press → Select All on a phone), then paste. The old contents should be completely replaced, not added to.</p>
+    </li>
+    <li>
+      <b class="t">Press "Commit changes"</b>
+      <p>Then confirm on the green button. That's it — you're published.</p>
+    </li>
+    <li>
+      <b class="t">Everyone else catches up on their own</b>
+      <p>Within about five minutes, every other copy picks up the change next time it's opened. Nobody has to do anything.</p>
+    </li>
+  </ol>
+
+  <div class="note good">
+    <b>It will look like gibberish.</b> What you paste is a wall of random characters, and that's exactly right — the board is encrypted before it leaves your phone. Anyone who stumbles across the file sees nothing but noise.
+  </div>
+
+  <h2>Part four</h2>
+  <div class="lede">Telling the group</div>
+
+  <p>WhatsApp is still where the board actually talks, so the app writes the message for you. Open a meeting and tap <span class="btnish">💬 Copy for WhatsApp</span> — you get the date, the place, the link, the numbered agenda and any outstanding actions, formatted and ready to paste into the group.</p>
+
+  <p>There's also a whole-board version under the gear (<span class="btnish">💬 Copy full digest</span>): upcoming meetings, anything overdue, anything due this week. Good for a Monday morning nudge.</p>
+
+  <p>The chat stays the place people get pinged. The app stays the place they go to look things up.</p>
+
+  <h2>Part five</h2>
+  <div class="lede">What to send everyone else</div>
+
+  <div class="card">
+    <p><strong>Two separate messages.</strong> The link in one, the passphrase in another. Sending them together in the same message rather defeats the point of locking it.</p>
+    <p style="margin-top:12px;color:var(--text)">“Board papers are all in one place now — meetings, agendas, who's doing what, and the documents: <b>isatoub.github.io/board.html</b> Open it on your phone and add it to your home screen. It'll ask for a passphrase, which I'll send separately.”</p>
+  </div>
+
+  <p>All they do is open it, enter the passphrase once, and tap their name. Their copy updates itself from then on. They can tick their own action items off, take a meeting to their calendar and copy things to WhatsApp — but they can't change the board, which is what stops eleven slightly different versions going around.</p>
+
+  <h2>Worth knowing</h2>
+  <div class="lede">Four things that will save you a headache</div>
+
+  <ul class="plain">
+    <li><strong>The passphrase can't be recovered.</strong> There's no reset. If everyone forgets it, the records have to be rebuilt from scratch. Keep a copy somewhere safe.</li>
+    <li><strong>Only one person should keep the records.</strong> If two people both turn on record keeping and both publish, whoever publishes last wins and the other's work is lost.</li>
+    <li><strong>Changing the passphrase takes effect when you publish</strong>, and everyone then needs the new one. Their app will tell them it can't open the latest version and ask for it.</li>
+    <li><strong>Nothing is sent anywhere until you publish.</strong> You can draft an agenda over several days and no one sees it until you're ready.</li>
+  </ul>
+
+  <h2>If something goes wrong</h2>
+  <div class="lede">Troubleshooting</div>
+
+  <div class="tablewrap">
+  <table>
+    <tr><th>What you see</th><th>What to do</th></tr>
+    <tr>
+      <td>“That passphrase doesn't open this board”</td>
+      <td>Check for a stray space or capital letter. If it still won't open, ask whoever set it — it may have been changed.</td>
+    </tr>
+    <tr>
+      <td>Someone says they can't see your changes</td>
+      <td>You probably haven't published, or the paste didn't commit. Open Publish again and check the GitHub page says the file was updated.</td>
+    </tr>
+    <tr>
+      <td>“A newer board was published but the passphrase doesn't open it”</td>
+      <td>The passphrase was changed. Tap <span class="btnish">Enter passphrase</span> on that message and put the new one in.</td>
+    </tr>
+    <tr>
+      <td>GitHub won't let you save</td>
+      <td>You haven't been given access to the board-data repository yet, or you're signed into the wrong GitHub account.</td>
+    </tr>
+    <tr>
+      <td>You want to undo a publish</td>
+      <td>GitHub keeps every version. Open the file, click History, and you can see and restore what was there before.</td>
+    </tr>
+  </table>
+  </div>
+
+  <div class="note warn">
+    <b>One genuine limit.</b> The encryption protects the records from anyone who finds the file, and that's a real protection. But it's a single shared passphrase — anyone who has ever had it can read anything published while it was in use. If someone leaves the board, change it and publish again.
+  </div>
+
+  <p style="margin-top:26px"><a class="cta" href="board.html">Open Board Hub →</a></p>
+
+  <footer>
+    Board Hub · everything is stored on your own phone · nothing is sent anywhere until you publish
+  </footer>
+</div>
+
+</body>
+</html>

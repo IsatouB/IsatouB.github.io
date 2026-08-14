@@ -314,11 +314,75 @@ var REMOTE_URL  = 'https://raw.githubusercontent.com/' + DATA_OWNER + '/' + DATA
                   '/' + DATA_BRANCH + '/' + DATA_FILE;
 var LOCAL_URL   = 'board-data.json';
 
-var README_NOTE = "Shared board records for Board Hub (isatoub.github.io/board.html). Whoever keeps the records publishes this file from inside the widget: Settings > Publish. Everyone else's copy follows it automatically. Don't hand-edit unless you're comfortable with JSON. NOTE: this repository is public, so treat anything in here as readable by anyone.";
+var README_NOTE = "Shared board records for Board Hub (isatoub.github.io/board.html). Whoever keeps the records publishes this file from inside the widget: Settings > Publish. Everyone else's copy follows it automatically. Don't hand-edit unless you're comfortable with JSON. NOTE: this file is NOT locked, so treat anything in here as readable by anyone. Set a passphrase in the widget to lock it.";
+var ENC_README = "Locked board records for Board Hub (isatoub.github.io/board.html). The contents are encrypted with AES-GCM using a key derived from the board's passphrase (PBKDF2-SHA256), so this file is unreadable without it. Open the widget and enter the passphrase to read it. There is no way to recover the contents if the passphrase is lost.";
+
+/* ---------- locking ----------
+   The published file sits in a public repository, so anything confidential
+   has to be unreadable before it leaves the phone. The board's passphrase
+   derives an AES-GCM key; only updatedAt stays in the clear, so a copy can
+   tell whether it is behind without being able to read anything. */
+var PASS_KEY = 'boardhub.pass';
+var KDF_ITER = 200000;
+
+function getPass(){ try{ return localStorage.getItem(PASS_KEY) || null; }catch(e){ return null; } }
+function setPass(p){
+  try{ if(p) localStorage.setItem(PASS_KEY, p); else localStorage.removeItem(PASS_KEY); }catch(e){}
+}
+function cryptoOk(){
+  return !!(window.crypto && window.crypto.subtle && window.TextEncoder);
+}
+function b64enc(buf){
+  var bytes = new Uint8Array(buf), s = '';
+  for(var i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s);
+}
+function b64dec(s){
+  var bin = atob(String(s||'')), bytes = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+function deriveKey(pass, salt, iter){
+  var raw = new TextEncoder().encode(pass);
+  return crypto.subtle.importKey('raw', raw, {name:'PBKDF2'}, false, ['deriveKey'])
+    .then(function(base){
+      return crypto.subtle.deriveKey(
+        { name:'PBKDF2', salt:salt, iterations:iter||KDF_ITER, hash:'SHA-256' },
+        base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+    });
+}
+function isLockedFile(j){ return !!(j && j.boardhub === 'encrypted' && j.data); }
+function encryptBoard(board, pass){
+  var salt = crypto.getRandomValues(new Uint8Array(16));
+  var iv   = crypto.getRandomValues(new Uint8Array(12));
+  return deriveKey(pass, salt, KDF_ITER).then(function(key){
+    return crypto.subtle.encrypt({ name:'AES-GCM', iv:iv }, key,
+      new TextEncoder().encode(JSON.stringify(board)));
+  }).then(function(ct){
+    return {
+      _readme: ENC_README,
+      boardhub: 'encrypted',
+      v: 1,
+      updatedAt: board.updatedAt,
+      kdf: { name:'PBKDF2', hash:'SHA-256', iterations:KDF_ITER, salt:b64enc(salt) },
+      iv: b64enc(iv),
+      data: b64enc(ct)
+    };
+  });
+}
+function decryptBoard(env, pass){
+  var iter = (env.kdf && env.kdf.iterations) || KDF_ITER;
+  return deriveKey(pass, b64dec(env.kdf && env.kdf.salt), iter).then(function(key){
+    return crypto.subtle.decrypt({ name:'AES-GCM', iv:b64dec(env.iv) }, key, b64dec(env.data));
+  }).then(function(pt){
+    return JSON.parse(new TextDecoder().decode(pt));
+  });
+}
 var AVCOLORS = ['#d9a92e','#4d8df6','#35c793','#f0a83c','#c77dff','#f06565','#4ecdc4','#ff9f7f'];
 
 var db = null;
-var ui = { tab:'home', taskFilter:'open', showPast:false, remote:null };
+var ui = { tab:'home', taskFilter:'open', showPast:false, remote:null,
+           locked:false, lockError:null, needPass:null, publish:null };
 
 /* ---------- tiny helpers ---------- */
 function $(s,r){ return (r||document).querySelector(s); }
@@ -503,9 +567,10 @@ function render(){
     }
   });
 
-  el('fab').style.display = canEdit() ? 'grid' : 'none';
+  el('fab').style.display = (canEdit() && !ui.locked) ? 'grid' : 'none';
 
   var v = el('view');
+  if(ui.locked){ v.innerHTML = viewLocked(); return; }
   if(ui.tab==='home') v.innerHTML = viewHome();
   else if(ui.tab==='meetings') v.innerHTML = viewMeetings();
   else if(ui.tab==='tasks') v.innerHTML = viewTasks();
@@ -516,6 +581,7 @@ function render(){
 /* ---------- HOME ---------- */
 function viewHome(){
   var h = '';
+  h += lockedUpdateBanner();
   h += remoteBanner();
 
   var nm = nextMeeting();
@@ -586,6 +652,29 @@ function viewHome(){
   return h;
 }
 
+/* Shown instead of the board when this device has never managed to open it. */
+function viewLocked(){
+  return '<div class="empty" style="padding-top:56px">' +
+    '<div class="big">🔒</div>' +
+    '<h3>This board is locked</h3>' +
+    '<p>The board&#39;s records are encrypted. Enter the passphrase to read them on this device — you only have to do it once.</p>' +
+    '<div style="max-width:300px;margin:0 auto;text-align:left">' +
+      '<div class="f"><input id="lk-pass" type="password" autocomplete="current-password" ' +
+        'placeholder="Board passphrase" value="'+esc(ui.lockDraft||'')+'"' +
+        (ui.unlocking ? ' disabled' : '') + '></div>' +
+      '<button class="btn wide" data-act="unlock"'+(ui.unlocking?' disabled style="opacity:.6"':'')+'>' +
+        (ui.unlocking ? 'Unlocking…' : 'Unlock') + '</button>' +
+      (ui.lockError ? '<p class="hint" style="color:#ff9b9b;text-align:center">'+esc(ui.lockError)+'</p>' : '') +
+      '<p class="hint" style="text-align:center">Ask whoever keeps the board records for it.</p>' +
+    '</div></div>';
+}
+/* Shown when this device has a readable copy but can't open the newest one. */
+function lockedUpdateBanner(){
+  if(!ui.needPass || ui.locked) return '';
+  return '<div class="banner"><span class="bi">🔒</span>' +
+    '<div class="bt"><b>A newer board was published</b> but the passphrase on this device doesn&#39;t open it. You&#39;re looking at the last version you could read.</div>' +
+    '<div class="bact"><button class="btn sm" data-act="ask-pass">Enter passphrase</button></div></div>';
+}
 function remoteBanner(){
   var r = ui.remote;
   if(!r || !r.updatedAt) return '';
@@ -1056,6 +1145,16 @@ function sheetSettings(){
     '</div>';
 
   h += '<div class="divider"></div>';
+  h += '<div class="sec-h"><h2>Privacy</h2></div>';
+  if(getPass()){
+    h += '<p class="hint" style="margin:0 0 12px">🔒 <b>Locked.</b> The published board is encrypted, so the file in the repository can&#39;t be read by anyone without the passphrase.</p>';
+  } else {
+    h += '<p class="hint" style="margin:0 0 12px">🔓 <b>Not locked.</b> The published board sits in a public repository in plain text, so treat it as readable by anyone.</p>';
+  }
+  h += '<button class="btn ghost wide" data-act="ask-pass">' +
+       (getPass() ? 'Change the passphrase' : 'Lock it with a passphrase') + '</button>';
+
+  h += '<div class="divider"></div>';
   h += '<div class="sec-h"><h2>Who keeps the records</h2></div>';
   if(maint){
     h += '<p class="hint" style="margin:0 0 12px">This device can edit the board and publish it. If that is not meant to be you, hand it back to read-only.</p>';
@@ -1066,9 +1165,72 @@ function sheetSettings(){
   }
 
   h += '<div class="divider"></div>';
+  h += '<a class="btn ghost wide" href="board-guide.html" target="_blank" rel="noopener">📖 How to keep the board</a>';
+  h += '<div style="height:9px"></div>';
   h += '<button class="btn danger wide" data-act="reset">Erase everything on this device</button>';
   h += '<p class="hint" style="text-align:center;margin-top:10px">Board Hub · stored on this device only</p>';
   openSheet('Settings', h);
+}
+
+function tryUnlock(pass){
+  if(ui.unlocking) return;                  /* one attempt at a time */
+  pass = String(pass||'').trim();
+  ui.lockDraft = pass;
+  if(!pass){ ui.lockError = 'Enter the passphrase.'; render(); return; }
+  if(!cryptoOk()){ ui.lockError = 'This browser cannot open locked boards.'; render(); return; }
+
+  /* Deriving the key is deliberately slow and the fetch may be slower still,
+     so say what's happening and keep hold of the passphrase that already
+     worked until we know this one does. */
+  var fresh = ui.locked;
+  var prev = getPass();
+  setPass(pass);
+  ui.unlocking = true; ui.lockError = null;
+  render();
+
+  loadShared().then(function(res){
+    ui.unlocking = false; ui.lockError = null; ui.needPass = null;
+    ui.locked = false; ui.lockDraft = null;
+    var incoming = normalize(res.board);
+    incoming.updatedAt = res.updatedAt || incoming.updatedAt;
+    ui.remote = incoming;
+    if(fresh){                              /* first readable copy on this device */
+      db = incoming;
+      db.meId = null; db.orgSet = false; db.role = 'viewer';
+      db.localDone = {}; db.remoteSeen = res.updatedAt || db.updatedAt;
+      save();
+    } else {
+      applyRemote(canEdit() ? 'merge' : 'replace', true);
+    }
+    render(); toast('Unlocked');
+  }).catch(function(err){
+    ui.unlocking = false;
+    setPass(prev);                          /* don't lose one that worked */
+    ui.lockError = (err && err.badPass) ? "That passphrase doesn't open this board."
+                                        : "Couldn't reach the board just now.";
+    if(fresh) ui.locked = true;
+    render();
+    if(!fresh) toast(ui.lockError);
+  });
+}
+
+function sheetPassphrase(){
+  var has = !!getPass();
+  var maint = canEdit();
+  var h = '';
+  h += '<p class="hint" style="margin:0 0 14px">' + (maint
+    ? 'The passphrase encrypts the board before it is published, so the file in the repository is unreadable without it. Everyone on the board needs the same one — send it to them separately from the link.'
+    : 'The board is locked. Enter the passphrase you were given to read it on this device.') + '</p>';
+  h += fld(has ? 'Change the passphrase' : 'Board passphrase',
+    '<input id="pp-pass" type="password" autocomplete="current-password" placeholder="At least 8 characters">');
+  h += '<div class="acts"><button class="btn wide" data-act="save-pass">Save</button></div>';
+  if(maint){
+    h += '<div class="banner gold" style="margin-top:16px"><span class="bi">⚠️</span><div class="bt">' +
+         'Changing it only takes effect when you <b>publish</b>, and everyone will need the new one. There is no way to recover a lost passphrase — the records would have to be rebuilt.</div></div>';
+  }
+  if(has) h += '<div class="acts"><button class="btn danger wide" data-act="clear-pass">Forget it on this device</button></div>';
+  openSheet(has ? 'Board passphrase' : 'Lock the board', h);
+  setTimeout(function(){ var x=el('pp-pass'); if(x) x.focus(); },120);
 }
 
 function sheetPasteJson(){
@@ -1216,15 +1378,34 @@ function handle(act, id, aid, b){
     case 'clear-examples': clearExamples(); break;
 
     /* sharing */
-    case 'publish': sheetPublish(); break;
-    case 'copy-publish': {
-      var payload = publishPayload();
-      copyText(payload, 'Copied — now paste it over board-data.json');
-      /* don't nudge the publisher about their own change */
-      try{ db.remoteSeen = JSON.parse(payload).updatedAt; save(); }catch(e){}
+    case 'unlock': tryUnlock((el('lk-pass')||{}).value); break;
+    case 'ask-pass': sheetPassphrase(); break;
+    case 'save-pass': {
+      var np = (el('pp-pass').value||'').trim();
+      if(!np){ toast('Enter a passphrase'); return; }
+      if(np.length < 8){ toast('Use at least 8 characters'); return; }
+      setPass(np);
+      closeSheet();
+      if(ui.locked || ui.needPass) tryUnlock(np);
+      else { render(); toast(canEdit() ? 'Saved — publish to apply it' : 'Passphrase saved'); }
       break;
     }
-    case 'download-publish': downloadFile('board-data.json', publishPayload(), 'application/json'); break;
+    case 'clear-pass':
+      if(!confirm('Remove the passphrase from this device?\n\nYou will need it again to read the next published board.')) return;
+      setPass(null); closeSheet(); render(); toast('Passphrase removed');
+      break;
+    case 'publish': sheetPublish(); break;
+    case 'copy-publish': {
+      if(!ui.publish){ toast('Still preparing…'); return; }
+      copyText(ui.publish.text, 'Copied — now paste it over board-data.json');
+      /* don't nudge the publisher about their own change */
+      db.remoteSeen = ui.publish.stamp; save();
+      break;
+    }
+    case 'download-publish':
+      if(!ui.publish){ toast('Still preparing…'); return; }
+      downloadFile('board-data.json', ui.publish.text, 'application/json');
+      break;
     case 'copy-json': copyText(JSON.stringify(db,null,2), 'Snapshot copied — send it to the board'); break;
     case 'download-json': downloadFile('board-data.json', JSON.stringify(db,null,2), 'application/json'); break;
     case 'paste-json': sheetPasteJson(); break;
@@ -1367,7 +1548,10 @@ function downloadFile(name, text, mime){
 /* What goes into the shared file: the board's records, none of the
    reader's personal settings. */
 function publishPayload(){
-  return JSON.stringify({
+  return JSON.stringify(publishBoard(), null, 2);
+}
+function publishBoard(){
+  return {
     _readme: README_NOTE,
     v: 1,
     org: db.org,
@@ -1376,7 +1560,18 @@ function publishPayload(){
     meetings: db.meetings,
     tasks: db.tasks,
     docs: db.docs
-  }, null, 2);
+  };
+}
+/* Locked if a passphrase is set on this device, plain JSON otherwise. */
+function buildPublish(){
+  var board = publishBoard();
+  var pass = getPass();
+  if(!pass || !cryptoOk()){
+    return Promise.resolve({ text: JSON.stringify(board, null, 2), locked:false, stamp: board.updatedAt });
+  }
+  return encryptBoard(board, pass).then(function(env){
+    return { text: JSON.stringify(env, null, 2), locked:true, stamp: board.updatedAt };
+  });
 }
 function ghEditUrl(){
   return 'https://github.com/' + DATA_OWNER + '/' + DATA_REPO +
@@ -1386,6 +1581,28 @@ function ghNewFileUrl(){
   return 'https://github.com/' + DATA_OWNER + '/' + DATA_REPO +
          '/new/' + DATA_BRANCH + '?filename=' + DATA_FILE;
 }
+/* Resolves to { board, updatedAt, locked }. A file nobody can read is not
+   an error to swallow — it rejects with .locked so the caller can ask for
+   the passphrase instead of silently showing stale records. */
+function loadShared(){
+  return fetchShared().then(function(res){
+    var j = res.json;
+    if(!isLockedFile(j)) return { board:j, updatedAt:j.updatedAt, locked:false };
+    var stamp = j.updatedAt;
+    var pass = getPass();
+    function fail(why){
+      var e = new Error(why); e.locked = true; e.badPass = (why==='badpass');
+      e.updatedAt = stamp; throw e;
+    }
+    if(!cryptoOk()) fail('nocrypto');
+    if(!pass) fail('nopass');
+    return decryptBoard(j, pass).then(function(board){
+      board.updatedAt = stamp || board.updatedAt;
+      return { board:board, updatedAt:stamp, locked:true };
+    }, function(){ fail('badpass'); });
+  });
+}
+
 /* Reads the shared file, preferring the dedicated repo and falling back to
    the copy bundled with this site. raw.githubusercontent caches for five
    minutes, hence the cache-buster. */
@@ -1401,7 +1618,18 @@ function fetchShared(){
     });
 }
 function sheetPublish(){
-  var payload = publishPayload();
+  openSheet('Publish to everyone',
+    '<div class="empty"><div class="big">🔐</div><h3>Preparing…</h3><p>Locking the board records.</p></div>');
+  buildPublish().then(function(out){
+    ui.publish = out;
+    el('sheetBody').innerHTML = publishBody(out);
+  }, function(){
+    el('sheetBody').innerHTML = '<div class="empty"><div class="big">⚠️</div><h3>Couldn&#39;t prepare it</h3>' +
+      '<p>Something went wrong locking the records. Try again.</p></div>';
+  });
+}
+function publishBody(out){
+  var payload = out.text;
   var h = '';
   h += '<p class="hint" style="margin:0 0 14px">This puts the whole board — meetings, agendas, action items and documents — into the shared file everyone else reads. Your own “I am” setting and your private ticks stay behind.</p>';
   h += '<div class="steps">';
@@ -1417,16 +1645,23 @@ function sheetPublish(){
   h += '<div class="step"><b>4</b><div>Within about five minutes everyone else&#39;s copy picks it up on its own.</div></div>';
   h += '</div>';
   h += '<div class="divider"></div>';
-  h += '<div class="banner gold" style="margin:0 0 12px"><span class="bi">⚠️</span><div class="bt">' +
-       'That repository is <b>public</b> — anything published here can be read by anyone. Keep confidential matters out of it.</div></div>';
+  if(out.locked){
+    h += '<div class="banner" style="margin:0 0 12px"><span class="bi">🔒</span><div class="bt">' +
+         '<b>Locked.</b> The records are encrypted with the board passphrase, so the file below is unreadable to anyone without it — including anyone who finds the repository.</div></div>';
+  } else {
+    h += '<div class="banner gold" style="margin:0 0 12px"><span class="bi">⚠️</span><div class="bt">' +
+         '<b>Not locked.</b> That repository is public, so anything published here can be read by anyone.' +
+         '<div class="bact" style="margin-top:8px"><button class="btn sm" data-act="ask-pass">Lock it with a passphrase</button></div></div></div>';
+  }
   h += '<p class="hint" style="margin:0 0 8px">Publishing needs write access to the <b>' + esc(DATA_REPO) +
        '</b> repository. Without it, send this to whoever has it and they can paste it in.</p>';
   h += '<div class="toolbar" style="margin-top:0">' +
        '<button class="btn ghost sm" data-act="download-publish">⬇️ Save as a file</button></div>';
   h += '<div class="divider"></div>';
-  h += '<label style="display:block;font-size:10.5px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:var(--faint);margin-bottom:6px">What gets published</label>';
+  h += '<label style="display:block;font-size:10.5px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:var(--faint);margin-bottom:6px">' +
+       (out.locked ? 'What gets published (encrypted)' : 'What gets published') + '</label>';
   h += '<code class="blk">' + esc(payload) + '</code>';
-  openSheet('Publish to everyone', h);
+  return h;
 }
 function importJson(mode){
   var raw = (el('p-json').value||'').trim();
@@ -1468,11 +1703,12 @@ function mergeInto(incoming, mode){
 
 /* ---------- shared repo file ---------- */
 function checkRemote(loud){
-  return fetchShared()
+  return loadShared()
     .then(function(res){
-      var j = res.json;
+      var j = res.board;
+      ui.locked = false;
       ui.remote = normalize(j);
-      ui.remote.updatedAt = j.updatedAt || ui.remote.updatedAt;
+      ui.remote.updatedAt = res.updatedAt || ui.remote.updatedAt;
       var changed = db.remoteSeen !== ui.remote.updatedAt;
 
       /* A read-only copy just follows the published board — no nudge, no
@@ -1490,7 +1726,17 @@ function checkRemote(loud){
       }
       render();
     })
-    .catch(function(){ if(loud) toast('Nothing published yet'); });
+    .catch(function(err){
+      /* A locked file we can't open is worth saying out loud — otherwise the
+         board silently stops updating and nobody knows why. */
+      if(err && err.locked && db.remoteSeen !== err.updatedAt){
+        ui.needPass = err.updatedAt;
+        render();
+        if(loud) toast(err.badPass ? "That passphrase doesn't open it" : 'The board is locked');
+        return;
+      }
+      if(loud) toast('Nothing published yet');
+    });
 }
 function applyRemote(mode, quiet){
   if(!ui.remote) return;
@@ -1623,17 +1869,27 @@ function boot(){
   el('view').innerHTML = '<div class="empty" style="padding-top:70px">' +
     '<div class="big">🏛️</div><h3>Fetching the board…</h3>' +
     '<p>Getting the latest meetings, agendas and documents.</p></div>';
-  fetchShared()
+  loadShared()
     .then(function(res){
-      var j = res.json;
-      db = normalize(j);
+      db = normalize(res.board);
       db.meId = null;        /* you are whoever is holding this phone */
       db.orgSet = false;
       db.role = 'viewer';    /* read-only until someone says otherwise */
-      db.remoteSeen = j.updatedAt || db.updatedAt;
+      db.localDone = {};
+      db.remoteSeen = res.updatedAt || db.updatedAt;
       save(); render();
     })
-    .catch(function(){ db = normalize(blank()); save(); render(); });
+    .catch(function(err){
+      db = normalize(blank());
+      if(err && err.locked){
+        /* nothing readable yet — ask before writing an empty board over it */
+        ui.locked = true;
+        if(err.badPass) ui.lockError = "That passphrase doesn't open this board.";
+        render();
+        return;
+      }
+      save(); render();
+    });
 }
 boot();
 
