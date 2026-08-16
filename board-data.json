@@ -1,97 +1,14 @@
 {
-  "_readme": "FALLBACK COPY ONLY. The live board records belong in the separate IsatouB/board-data repository, which the widget reads first; this file is what it falls back to while that repo does not exist yet, so it only holds examples. Once board-data is published, leave this file alone — the person keeping the records publishes to that repo from inside the widget (Settings > Publish). Every entry below is marked \"example\": true so the widget can clear them in one tap.",
+  "_readme": "Locked board records for Board Hub (isatoub.github.io/board.html). The contents are encrypted with AES-GCM using a key derived from the board's passphrase (PBKDF2-SHA256), so this file is unreadable without it. Open the widget and enter the passphrase to read it. There is no way to recover the contents if the passphrase is lost.",
+  "boardhub": "encrypted",
   "v": 1,
-  "org": "Board of Directors",
-  "updatedAt": "2026-08-14T09:00:00.000Z",
-  "meId": null,
-  "remoteSeen": null,
-
-  "members": [
-    { "id": "m-chair",     "name": "A. Chairperson", "role": "Chair",     "example": true },
-    { "id": "m-secretary", "name": "S. Secretary",   "role": "Secretary", "example": true },
-    { "id": "m-treasurer", "name": "T. Treasurer",   "role": "Treasurer", "example": true }
-  ],
-
-  "meetings": [
-    {
-      "id": "g-example-1",
-      "title": "Example: Quarterly board meeting",
-      "date": "2026-09-10T18:00",
-      "durationMin": 90,
-      "location": "Zoom",
-      "link": "",
-      "notes": "This meeting is an example so you can see how the agenda works. Edit it or delete it.",
-      "example": true,
-      "agenda": [
-        { "id": "a-ex-1", "title": "Welcome and apologies",            "owner": "m-chair",     "mins": 5,  "notes": "" },
-        { "id": "a-ex-2", "title": "Minutes of the last meeting",      "owner": "m-secretary", "mins": 10, "notes": "Circulate the draft two days beforehand so nobody reads it cold." },
-        { "id": "a-ex-3", "title": "Treasurer's report",               "owner": "m-treasurer", "mins": 20, "notes": "" },
-        { "id": "a-ex-4", "title": "Any other business",               "owner": "m-chair",     "mins": 10, "notes": "" }
-      ]
-    },
-    {
-      "id": "g-example-2",
-      "title": "Example: Annual general meeting",
-      "date": "2026-11-12T18:00",
-      "durationMin": 120,
-      "location": "To be confirmed",
-      "link": "",
-      "notes": "",
-      "example": true,
-      "agenda": []
-    }
-  ],
-
-  "tasks": [
-    {
-      "id": "t-ex-1",
-      "title": "Example: circulate the draft minutes",
-      "owner": "m-secretary",
-      "due": "2026-09-08",
-      "status": "open",
-      "notes": "Tap an action item to change the owner, the due date or the status.",
-      "meetingId": "g-example-1",
-      "example": true
-    },
-    {
-      "id": "t-ex-2",
-      "title": "Example: confirm the venue for the AGM",
-      "owner": "m-chair",
-      "due": "2026-10-15",
-      "status": "open",
-      "notes": "",
-      "meetingId": "g-example-2",
-      "example": true
-    }
-  ],
-
-  "docs": [
-    {
-      "id": "d-ex-1",
-      "title": "Example: Bylaws",
-      "url": "",
-      "category": "Governance",
-      "note": "Paste the real link and this becomes one tap away",
-      "pinned": true,
-      "example": true
-    },
-    {
-      "id": "d-ex-2",
-      "title": "Example: Shared drive",
-      "url": "",
-      "category": "General",
-      "note": "Where the board papers live",
-      "pinned": true,
-      "example": true
-    },
-    {
-      "id": "d-ex-3",
-      "title": "Example: Budget 2026",
-      "url": "",
-      "category": "Finance",
-      "note": "",
-      "pinned": false,
-      "example": true
-    }
-  ]
+  "updatedAt": "2026-08-16T00:43:02.329Z",
+  "kdf": {
+    "name": "PBKDF2",
+    "hash": "SHA-256",
+    "iterations": 200000,
+    "salt": "eV5lru8dx2Zk4Qodu+w4Uw=="
+  },
+  "iv": "BHSdCkdK19PY+13h",
+  "data": "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"
 }
