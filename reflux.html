@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Reflux Diary</title>
+<link rel="manifest" href="reflux-manifest.json">
+<meta name="description" content="A private diary for GERD and acid reflux — log what you eat, log symptoms, and find the patterns between them.">
+<meta name="theme-color" content="#0c1418">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Reflux Diary">
+<link rel="apple-touch-icon" href="reflux-icon-180.png">
+<link rel="icon" href="reflux-icon-180.png">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#0c1418; --panel:#111e24; --card:#16262e; --card2:#1d323c;
+    /* chart marks — validated for CVD separation against the card surface */
+    --meal:#1fa47e; --sym:#cf6733; --med:#4d7fe0; --routine:#b95fa5;
+    /* brighter siblings for UI accents, which sit on the darker page ground */
+    --mint:#3ecfa4; --flame:#ef8a52;
+    --text:#e9f2f0; --dim:rgba(233,242,240,.6); --faint:rgba(233,242,240,.36);
+    --line:rgba(255,255,255,.09);
+    /* severity: one hue, dim -> vivid, always paired with the number itself */
+    --s1:#7a5138; --s2:#9c633c; --s3:#bd7440; --s4:#d98844; --s5:#f59d4b;
+    --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif;
+    background:var(--bg);color:var(--text);overscroll-behavior-y:none;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer;font-size:inherit}
+  input,textarea,select{font-family:inherit;font-size:16px;color:var(--text)}
+  a{color:var(--mint);text-decoration:none}
+
+  .app{max-width:560px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;position:relative;
+       background:radial-gradient(900px 420px at 50% -8%,#173039 0%,transparent 62%),var(--bg)}
+  @media(min-width:600px){
+    body{padding:24px 16px;background:linear-gradient(165deg,#070e11,#0f1f26 55%,#070e11)}
+    .app{min-height:0;height:calc(100dvh - 48px);border-radius:22px;overflow:hidden;
+         box-shadow:0 26px 70px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06)}
+  }
+
+  /* ---------- header ---------- */
+  .hd{padding:calc(var(--safe-t) + 14px) 16px 12px;display:flex;align-items:center;gap:12px;
+      background:linear-gradient(135deg,#16303a,#0f1c22);border-bottom:1px solid var(--line);flex-shrink:0}
+  .crest{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:grid;place-items:center;
+         background:linear-gradient(150deg,#2fb99a,#12796a);font-size:19px;
+         box-shadow:0 4px 14px rgba(31,164,126,.3)}
+  .hd-t{flex:1;min-width:0}
+  .hd-t h1{font-size:16px;font-weight:800;letter-spacing:-.2px}
+  .hd-t p{font-size:11.5px;color:var(--dim);margin-top:1px;font-weight:600}
+  .iconbtn{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.07);display:grid;
+           place-items:center;font-size:16px;flex-shrink:0}
+  .iconbtn:active{transform:scale(.93)}
+
+  main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 100px;min-height:0}
+
+  /* ---------- shared bits ---------- */
+  .sec{margin-bottom:20px}
+  .sec-h{display:flex;align-items:center;gap:8px;margin:0 2px 9px}
+  .sec-h h2{font-size:11px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
+  .sec-h .sh-act{margin-left:auto;font-size:12px;font-weight:800;color:var(--mint)}
+  .card{background:var(--card);border-radius:16px;border:1px solid var(--line);padding:14px}
+  .btn{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 15px;
+       font-size:13.5px;font-weight:800;text-align:center;display:inline-flex;align-items:center;
+       justify-content:center;gap:7px}
+  .btn:active{transform:scale(.97)}
+  .btn.pri{background:linear-gradient(140deg,#2fb99a,#159078);color:#04211b;border-color:transparent}
+  .btn.warn{color:#f08a8a;border-color:rgba(240,138,138,.3)}
+  .btn.sm{padding:7px 12px;font-size:12px;border-radius:10px}
+  .btn.blk{display:flex;width:100%}
+  .muted{font-size:12.5px;color:var(--dim);line-height:1.55;font-weight:600}
+  .muted b{color:var(--text);font-weight:800}
+  .tiny{font-size:11px;color:var(--faint);line-height:1.5;font-weight:600}
+  .divider{height:1px;background:var(--line);margin:16px 0}
+  .empty{text-align:center;padding:34px 20px;color:var(--faint)}
+  .empty .em{font-size:38px;display:block;margin-bottom:12px;opacity:.75}
+  .empty h3{font-size:15px;font-weight:800;color:var(--dim);margin-bottom:7px}
+  .empty p{font-size:12.5px;line-height:1.55;max-width:280px;margin:0 auto 16px}
+
+  /* ---------- day strip ---------- */
+  .daynav{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .daynav .arw{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.07);
+               display:grid;place-items:center;font-size:14px;flex-shrink:0}
+  .daynav .arw[disabled]{opacity:.25}
+  .daynav .lbl{flex:1;text-align:center}
+  .daynav .lbl b{display:block;font-size:15px;font-weight:800;letter-spacing:-.2px}
+  .daynav .lbl span{font-size:11px;color:var(--faint);font-weight:700}
+
+  /* ---------- day summary ---------- */
+  .sumrow{display:flex;gap:8px;margin-bottom:16px}
+  .sumbox{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;
+          padding:11px 10px;text-align:center;min-width:0}
+  .sumbox b{display:block;font-size:20px;font-weight:900;line-height:1.15;font-variant-numeric:tabular-nums}
+  .sumbox span{font-size:9.5px;font-weight:800;color:var(--faint);letter-spacing:.5px;text-transform:uppercase;
+               display:block;margin-top:3px;line-height:1.25}
+
+  /* ---------- timeline ---------- */
+  .tl{position:relative;padding-left:26px}
+  .tl::before{content:'';position:absolute;left:9px;top:6px;bottom:10px;width:2px;background:var(--line)}
+  .ent{position:relative;margin-bottom:10px}
+  .ent .dot{position:absolute;left:-25px;top:12px;width:22px;height:22px;border-radius:50%;
+            display:grid;place-items:center;font-size:11px;border:3px solid var(--bg)}
+  .ent .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 12px;
+            width:100%;text-align:left;display:block}
+  .ent .box:active{background:var(--card2)}
+  .ent .top{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+  .ent .tm{font-size:11px;font-weight:900;color:var(--faint);font-variant-numeric:tabular-nums;flex-shrink:0}
+  .ent .ttl{font-size:13.5px;font-weight:800;flex:1;min-width:0;letter-spacing:-.1px}
+  .ent .sub{font-size:12px;color:var(--dim);line-height:1.45;font-weight:600;word-break:break-word}
+  .ent .nt{font-size:11.5px;color:var(--faint);margin-top:5px;line-height:1.45;font-style:italic}
+  .ent.meal .dot{background:rgba(31,164,126,.22);color:var(--meal)}
+  .ent.sym  .dot{background:rgba(207,103,51,.22);color:var(--sym)}
+  .ent.med  .dot{background:rgba(77,127,224,.22);color:var(--med)}
+  .ent.evt  .dot{background:rgba(185,95,165,.22);color:var(--routine)}
+
+  /* ---------- chips ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .chip{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:20px;
+        background:rgba(255,255,255,.07);color:var(--dim);border:1px solid transparent}
+  .chip.trig{background:rgba(207,103,51,.14);color:#e79a70;border-color:rgba(207,103,51,.26)}
+  .chip.sev{color:#1b0f06;font-weight:900}
+  .pick{display:flex;flex-wrap:wrap;gap:7px}
+  .pick button{font-size:12.5px;font-weight:700;padding:8px 12px;border-radius:11px;
+               background:var(--card);border:1px solid var(--line);color:var(--dim)}
+  .pick button.on{background:rgba(47,185,154,.15);border-color:rgba(47,185,154,.5);color:var(--mint);font-weight:800}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;font-size:12.5px;font-weight:800;padding:10px 4px;border-radius:11px;
+              background:var(--card);border:1px solid var(--line);color:var(--dim);min-width:0}
+  .seg button.on{background:rgba(47,185,154,.15);border-color:rgba(47,185,154,.5);color:var(--mint)}
+  .seg.sv button.on{color:#1b0f06;border-color:transparent}
+  .seg button small{display:block;font-size:9px;font-weight:800;opacity:.75;margin-top:2px;letter-spacing:.3px}
+
+  /* ---------- charts ---------- */
+  .chart{margin-top:4px}
+  .bars{display:flex;align-items:flex-end;gap:4px;height:112px;position:relative;
+        border-bottom:1px solid var(--line);padding-bottom:0}
+  .bars .gl{position:absolute;left:0;right:0;height:1px;background:var(--line);opacity:.55}
+  .bars .gl span{position:absolute;right:0;top:-14px;font-size:9px;font-weight:800;color:var(--faint)}
+  .bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative;
+        min-width:0;padding:0 1px}
+  .bcol i{display:block;border-radius:4px 4px 0 0;min-height:2px;background:var(--card2);
+          transition:filter .15s}
+  .bcol.on i{filter:brightness(1.35)}
+  .bcol em{position:absolute;top:0;left:0;right:0;text-align:center;font-size:9.5px;font-weight:900;
+           color:var(--dim);font-style:normal}
+  .blabs{display:flex;gap:4px;margin-top:6px}
+  .blabs span{flex:1;text-align:center;font-size:9px;font-weight:800;color:var(--faint);min-width:0;
+              overflow:hidden;white-space:nowrap}
+  .readout{margin-top:9px;font-size:12px;font-weight:700;color:var(--dim);min-height:17px;line-height:1.4}
+  .readout b{color:var(--text);font-weight:800}
+  .hbar{margin-bottom:9px}
+  .hbar .hl{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+  .hbar .hl .n{font-size:12.5px;font-weight:700;flex:1;min-width:0;overflow:hidden;
+               text-overflow:ellipsis;white-space:nowrap}
+  .hbar .hl .v{font-size:11.5px;font-weight:900;color:var(--dim);font-variant-numeric:tabular-nums;flex-shrink:0}
+  .hbar .tr{height:7px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}
+  .hbar .tr i{display:block;height:100%;border-radius:4px;background:var(--sym)}
+  .hbar.g .tr i{background:var(--meal)}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+  .legend span{font-size:10.5px;font-weight:800;color:var(--dim);display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+
+  /* ---------- trigger rows ---------- */
+  .trow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .trow:last-child{border-bottom:none}
+  .trow .ic{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.06);
+            display:grid;place-items:center;font-size:15px;flex-shrink:0}
+  .trow .tx{flex:1;min-width:0}
+  .trow .tx .n{font-size:13.5px;font-weight:800;letter-spacing:-.1px}
+  .trow .tx .m{font-size:11px;color:var(--faint);font-weight:700;margin-top:2px}
+  .trow .rt{text-align:right;flex-shrink:0}
+  .trow .rt b{display:block;font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--flame)}
+  .trow .rt span{font-size:9px;font-weight:800;color:var(--faint);letter-spacing:.4px;text-transform:uppercase}
+  .trow.ok .rt b{color:var(--mint)}
+
+  /* ---------- banner ---------- */
+  .banner{background:rgba(47,185,154,.09);border:1px solid rgba(47,185,154,.26);border-radius:14px;
+          padding:11px 13px;display:flex;gap:10px;align-items:flex-start;margin-bottom:14px}
+  .banner.amber{background:rgba(207,103,51,.11);border-color:rgba(207,103,51,.3)}
+  .banner.red{background:rgba(224,90,90,.1);border-color:rgba(224,90,90,.3)}
+  .banner .bi{font-size:15px;line-height:1.35;flex-shrink:0}
+  .banner .bt{flex:1;min-width:0;font-size:12px;line-height:1.5;color:var(--dim);font-weight:600}
+  .banner .bt strong{color:var(--text);font-weight:800;display:block;margin-bottom:2px}
+  .banner .bt b{color:var(--text);font-weight:800}
+
+  /* ---------- sheet ---------- */
+  .sheetwrap{position:fixed;inset:0;z-index:50;display:none}
+  .sheetwrap.on{display:block}
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);animation:fade .18s}
+  @keyframes fade{from{opacity:0}}
+  .sheet{position:absolute;left:0;right:0;bottom:0;max-height:92dvh;background:var(--panel);
+         border-radius:22px 22px 0 0;display:flex;flex-direction:column;animation:up .24s cubic-bezier(.2,.8,.3,1);
+         max-width:560px;margin:0 auto;border-top:1px solid rgba(255,255,255,.12)}
+  @keyframes up{from{transform:translateY(100%)}}
+  .grab{width:36px;height:4px;border-radius:3px;background:rgba(255,255,255,.18);margin:8px auto 0}
+  .sheet-hd{display:flex;align-items:center;gap:10px;padding:13px 16px 12px;border-bottom:1px solid var(--line);flex-shrink:0}
+  .sheet-hd h2{font-size:16px;font-weight:800;flex:1;letter-spacing:-.2px}
+  .sheet-bd{overflow-y:auto;padding:16px;padding-bottom:calc(var(--safe-b) + 26px);-webkit-overflow-scrolling:touch}
+
+  /* ---------- forms ---------- */
+  .f{margin-bottom:14px}
+  .f label{display:block;font-size:10.5px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;
+           color:var(--faint);margin-bottom:7px}
+  .f input,.f textarea,.f select{width:100%;background:var(--card);border:1px solid var(--line);
+    border-radius:11px;padding:11px 12px;font-size:15px;outline:none}
+  .f input:focus,.f textarea:focus,.f select:focus{border-color:rgba(47,185,154,.5)}
+  .f textarea{resize:vertical;min-height:66px;line-height:1.45}
+  .f select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' stroke='%236d8189' stroke-width='2' fill='none'/></svg>");
+            background-repeat:no-repeat;background-position:right 13px center}
+  .f2{display:flex;gap:10px}
+  .f2 > *{flex:1;min-width:0}
+  .hint{font-size:11.5px;color:var(--faint);margin-top:7px;line-height:1.5}
+  .acts{display:flex;gap:9px;margin-top:20px}
+  .acts .btn{flex:1}
+  .bigpick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .bigpick button{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 12px;
+                  text-align:center;font-size:13.5px;font-weight:800}
+  .bigpick button:active{transform:scale(.96)}
+  .bigpick button i{display:block;font-size:24px;font-style:normal;margin-bottom:7px}
+  .bigpick button small{display:block;font-size:10.5px;font-weight:700;color:var(--faint);margin-top:3px}
+
+  /* ---------- misc ---------- */
+  .fab{position:absolute;right:16px;bottom:calc(var(--safe-b) + 74px);width:54px;height:54px;border-radius:50%;
+       background:linear-gradient(140deg,#33c1a2,#128a72);color:#04211b;font-size:28px;font-weight:300;
+       display:grid;place-items:center;box-shadow:0 8px 24px rgba(31,164,126,.36);z-index:20}
+  .fab:active{transform:scale(.93)}
+  .tabbar{position:sticky;bottom:0;display:flex;background:rgba(13,23,28,.94);
+          backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+          border-top:1px solid var(--line);padding-bottom:var(--safe-b);flex-shrink:0;z-index:25}
+  .tb{flex:1;padding:9px 2px 8px;font-size:9.5px;font-weight:800;color:var(--faint);letter-spacing:.2px}
+  .tb i{display:block;font-size:18px;font-style:normal;margin-bottom:2px;opacity:.62}
+  .tb.on{color:var(--mint)}
+  .tb.on i{opacity:1}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 86px);
+         background:#e9f2f0;color:#0c1418;font-size:13px;font-weight:800;padding:11px 18px;border-radius:22px;
+         z-index:99;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:88%;text-align:center;
+         box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(-6px)}
+  code.blk{display:block;background:#081013;border:1px solid var(--line);border-radius:11px;padding:11px;
+           font-size:11px;line-height:1.55;color:var(--dim);max-height:220px;overflow:auto;
+           white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  /* ---------- print: the version that goes to the appointment ---------- */
+  #printout{display:none}
+  @media print{
+    body{background:#fff;padding:0}
+    .app,.sheetwrap,.toast{display:none !important}
+    #printout{display:block;color:#000;font-size:12px;line-height:1.5;padding:8px}
+    #printout h1{font-size:19px;margin-bottom:2px}
+    #printout h2{font-size:13px;margin:16px 0 6px;border-bottom:1px solid #999;padding-bottom:3px}
+    #printout .sub{color:#444;font-size:11px;margin-bottom:6px}
+    #printout table{width:100%;border-collapse:collapse;margin-bottom:6px}
+    #printout th,#printout td{text-align:left;padding:3px 6px;border-bottom:1px solid #ddd;
+                              font-size:11px;vertical-align:top}
+    #printout th{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:#555}
+    #printout ul{margin:0 0 6px 18px}
+    #printout li{margin-bottom:2px}
+    #printout .note{font-size:10px;color:#555;margin-top:14px;border-top:1px solid #ccc;padding-top:6px}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="hd">
+    <div class="crest">🔥</div>
+    <div class="hd-t">
+      <h1>Reflux Diary</h1>
+      <p id="hdSub">Loading…</p>
+    </div>
+    <button class="iconbtn" id="btnSettings" aria-label="Settings">⚙️</button>
+  </header>
+
+  <main id="view"></main>
+
+  <button class="fab" id="fab" aria-label="Add an entry">+</button>
+
+  <nav class="tabbar">
+    <button class="tb on" data-tab="today"><i>📔</i>Diary</button>
+    <button class="tb" data-tab="trends"><i>📈</i>Trends</button>
+    <button class="tb" data-tab="triggers"><i>🔎</i>Triggers</button>
+    <button class="tb" data-tab="report"><i>🩺</i>Report</button>
+  </nav>
+</div>
+
+<div class="sheetwrap" id="sheetwrap">
+  <div class="scrim" data-close="1"></div>
+  <div class="sheet">
+    <div class="grab" data-close="1"></div>
+    <div class="sheet-hd">
+      <h2 id="sheetTitle"></h2>
+      <button class="iconbtn" data-close="1" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-bd" id="sheetBody"></div>
+  </div>
+</div>
+
+<div id="printout"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Reflux Diary — a food-and-symptom diary for GERD / acid reflux.
+
+   The point of a reflux diary isn't the writing down, it's the
+   pattern: which meals are actually followed by symptoms, and
+   which ones you've been avoiding for no reason. So every meal
+   is tagged (automatically, from what you typed) and every
+   symptom is time-stamped, and the Triggers tab compares the
+   two — how often a food was followed by symptoms within a few
+   hours, against your own baseline rate.
+
+   Everything stays in this browser's localStorage. Nothing is
+   uploaded anywhere, and no account is involved. Export makes a
+   file you keep; Report makes a page you can print for a doctor.
+
+   Not medical advice — it's a record, not a diagnosis.
+   ============================================================ */
+
+var KEY = 'reflux.diary.v1';
+
+/* ---------- what we know about reflux triggers ----------
+   These are the foods most often implicated in GERD. They are
+   *candidates*, not verdicts — the whole app exists to find out
+   which of them actually matter for this particular person. */
+var TRIGGERS = [
+  {id:'caffeine', nm:'Caffeine',            em:'☕', kw:['coffee','espresso','latte','cappuccino','americano','mocha','cold brew','nescafe','energy drink','red bull','black tea','green tea','matcha','chai','caffeine','flat white']},
+  {id:'citrus',   nm:'Citrus & acidic',     em:'🍋', kw:['orange','lemon','lime','grapefruit','citrus','marmalade','lemonade','pineapple','tangerine','clementine','mandarin','vinegar','vinaigrette','orange juice','oj']},
+  {id:'tomato',   nm:'Tomato',              em:'🍅', kw:['tomato','marinara','ketchup','salsa','pizza','pasta sauce','bolognese','jollof','tomato paste','passata','shakshuka','stew']},
+  {id:'spicy',    nm:'Spicy food',          em:'🌶️', kw:['spicy','chili','chilli','hot sauce','jalapeno','sriracha','curry','cayenne','pepper soup','suya','scotch bonnet','kimchi','harissa','peri peri','piri piri','tabasco','wasabi','pepper flakes','shito','pepper sauce','hot pepper']},
+  {id:'fatty',    nm:'Fried & fatty',       em:'🍟', kw:['fried','fries','chips','burger','bacon','sausage','butter','cream','pizza','doughnut','donut','wings','samosa','puff puff','akara','nuggets','oily','mayonnaise','pastry','croissant','crisps','kebab','shawarma','spring roll','egusi','palm oil','groundnut soup','mafe','fried rice','fried plantain','chin chin']},
+  {id:'chocolate',nm:'Chocolate',           em:'🍫', kw:['chocolate','cocoa','brownie','nutella','milo','ovaltine','choc']},
+  {id:'mint',     nm:'Mint',                em:'🌿', kw:['mint','peppermint','spearmint','menthol','mojito']},
+  {id:'alcohol',  nm:'Alcohol',             em:'🍷', kw:['wine','beer','vodka','whisky','whiskey','rum','gin','cocktail','champagne','alcohol','tequila','cider','prosecco','liqueur','brandy']},
+  {id:'fizzy',    nm:'Carbonated drinks',   em:'🥤', kw:['soda','sparkling','fizzy','cola','coke','pepsi','sprite','fanta','seltzer','tonic','malta','ginger ale','club soda','soft drink','7up']},
+  {id:'allium',   nm:'Onion & garlic',      em:'🧄', kw:['onion','garlic','shallot','leek','chive','scallion','spring onion']},
+  {id:'dairy',    nm:'Rich dairy',          em:'🧀', kw:['milk','cheese','ice cream','yoghurt','yogurt','custard','milkshake','cheesecake','mozzarella','cheddar','latte','butter']},
+  /* these two aren't foods — they're how and when you ate, which
+     matters as much as what. Both are worked out automatically. */
+  {id:'large',    nm:'Large portion',       em:'🍽️', auto:true},
+  {id:'late',     nm:'Late meal',           em:'🌙', auto:true}
+];
+var TRIG = {}; TRIGGERS.forEach(function(t){ TRIG[t.id]=t; });
+
+var SYMPTOMS = [
+  {id:'heartburn', em:'🔥', nm:'Heartburn'},
+  {id:'regurg',    em:'🌊', nm:'Regurgitation'},
+  {id:'sour',      em:'😖', nm:'Sour / bitter taste'},
+  {id:'chest',     em:'💢', nm:'Chest pain', flag:'chest'},
+  {id:'bloat',     em:'🎈', nm:'Bloating / fullness'},
+  {id:'burp',      em:'💨', nm:'Belching'},
+  {id:'nausea',    em:'🤢', nm:'Nausea'},
+  {id:'cough',     em:'😮‍💨', nm:'Cough'},
+  {id:'hoarse',    em:'🗣️', nm:'Hoarse voice'},
+  {id:'throat',    em:'😷', nm:'Burning throat'},
+  {id:'globus',    em:'🫤', nm:'Lump in throat'},
+  {id:'swallow',   em:'⚠️', nm:'Trouble swallowing', flag:'alarm'}
+];
+var SYM = {}; SYMPTOMS.forEach(function(s){ SYM[s.id]=s; });
+
+var MEDS = [
+  {id:'antacid',  nm:'Antacid',     em:'💊', eg:'Tums, Rennie, Maalox'},
+  {id:'alginate', nm:'Alginate',    em:'🧴', eg:'Gaviscon'},
+  {id:'h2',       nm:'H2 blocker',  em:'💊', eg:'famotidine'},
+  {id:'ppi',      nm:'PPI',         em:'💊', eg:'omeprazole, lansoprazole'},
+  {id:'other',    nm:'Something else', em:'💊', eg:''}
+];
+var MED = {}; MEDS.forEach(function(m){ MED[m.id]=m; });
+
+var EVENTS = [
+  {id:'bed',      em:'🛏️', nm:'Went to bed'},
+  {id:'laydown',  em:'🛋️', nm:'Lay down / nap'},
+  {id:'stress',   em:'😰', nm:'Stressful stretch'},
+  {id:'exercise', em:'🏃', nm:'Exercise'},
+  {id:'other',    em:'📌', nm:'Something else'}
+];
+var EVT = {}; EVENTS.forEach(function(e){ EVT[e.id]=e; });
+
+var POSITIONS = [
+  {id:'upright', nm:'Sitting / standing'},
+  {id:'lying',   nm:'Lying down'},
+  {id:'asleep',  nm:'Woke me from sleep'}
+];
+var DURATIONS = [
+  {id:'lt15', nm:'Under 15 min'}, {id:'15-30', nm:'15–30 min'},
+  {id:'30-60', nm:'30–60 min'},   {id:'1-2h', nm:'1–2 hours'},
+  {id:'gt2h', nm:'Over 2 hours'}
+];
+var SEVLAB = ['','Barely there','Mild','Uncomfortable','Bad','Severe'];
+
+/* ============================================================
+   storage
+   ============================================================ */
+function blank(){
+  return {v:1, meals:[], symptoms:[], meds:[], events:[],
+          settings:{win:3, bedtime:'22:30', name:''}};
+}
+var db = load();
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(raw){
+      var d = JSON.parse(raw), b = blank();
+      ['meals','symptoms','meds','events'].forEach(function(k){ if(!Array.isArray(d[k])) d[k]=[]; });
+      d.settings = Object.assign(b.settings, d.settings||{});
+      return d;
+    }
+  }catch(e){}
+  return blank();
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch(e){ toast('Could not save — storage may be full'); }
+}
+
+/* ============================================================
+   small helpers
+   ============================================================ */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function dayStart(d){ var x = new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+function dayKey(t){ var d = new Date(t); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function fmtTime(t){
+  var d = new Date(t), h = d.getHours(), m = d.getMinutes(), ap = h<12?'am':'pm';
+  var hh = h%12; if(hh===0) hh=12;
+  return hh+':'+pad(m)+ap;
+}
+function fmtDate(t){
+  return new Date(t).toLocaleDateString(undefined,{weekday:'long', day:'numeric', month:'long'});
+}
+function fmtShort(t){
+  return new Date(t).toLocaleDateString(undefined,{day:'numeric', month:'short'});
+}
+function localInput(t){
+  var d = new Date(t);
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+function parseInput(v){ var t = new Date(v).getTime(); return isNaN(t) ? Date.now() : t; }
+function pct(x){ return Math.round(x*100)+'%'; }
+function plural(n, w){ return n+' '+w+(n===1?'':'s'); }
+function winLabel(){ var n = db.settings.win||3; return n + ' hour' + (n===1?'':'s'); }
+function sevColor(s){ return 'var(--s'+Math.max(1,Math.min(5,s||1))+')'; }
+
+var toastT;
+function toast(msg){
+  var el = $('toast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(function(){ el.classList.remove('on'); }, 2000);
+}
+
+/* Every entry type in one stream, newest first, so the diary and
+   the report can both just walk the list. */
+function allEntries(){
+  var out = [];
+  db.meals.forEach(function(m){ out.push({k:'meal', o:m, t:m.t}); });
+  db.symptoms.forEach(function(s){ out.push({k:'sym', o:s, t:s.t}); });
+  db.meds.forEach(function(m){ out.push({k:'med', o:m, t:m.t}); });
+  db.events.forEach(function(e){ out.push({k:'evt', o:e, t:e.t}); });
+  out.sort(function(a,b){ return b.t - a.t; });
+  return out;
+}
+function entryCount(){ return db.meals.length + db.symptoms.length + db.meds.length + db.events.length; }
+
+/* ============================================================
+   tagging — read the meal text and pick out known triggers
+   ============================================================ */
+function normText(s){ return (' ' + String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ') + ' '); }
+function hasWord(hay, kw){
+  var k = ' ' + kw.replace(/[^a-z0-9]+/g,' ') + ' ';
+  return hay.indexOf(k) >= 0 || hay.indexOf(k.slice(0,-1)+'s ') >= 0 || hay.indexOf(k.slice(0,-1)+'es ') >= 0;
+}
+function detectTags(text){
+  var hay = normText(text), found = [];
+  TRIGGERS.forEach(function(t){
+    if(t.auto) return;
+    for(var i=0;i<t.kw.length;i++){ if(hasWord(hay, t.kw[i])){ found.push(t.id); return; } }
+  });
+  return found;
+}
+/* the two automatic ones depend on the meal, not the words */
+function mealTags(m){
+  var tags = (m.tags||[]).slice();
+  if(m.portion === 'large' && tags.indexOf('large')<0) tags.push('large');
+  if(isLate(m.t) && tags.indexOf('late')<0) tags.push('late');
+  return tags;
+}
+function bedMinutes(){
+  var b = (db.settings.bedtime||'22:30').split(':');
+  return (parseInt(b[0],10)||22)*60 + (parseInt(b[1],10)||30);
+}
+/* "late" = eaten inside the 3 hours before your usual bedtime,
+   which is the window most reflux advice is actually about. */
+function isLate(t){
+  var d = new Date(t), mins = d.getHours()*60 + d.getMinutes(), bed = bedMinutes();
+  var diff = bed - mins; if(diff < 0) diff += 1440;
+  return diff <= 180 || (mins >= bed && mins <= 1439) || mins < 240;
+}
+/* split "rice, fried chicken and a coke" into countable items */
+function foodItems(text){
+  return String(text||'').toLowerCase()
+    .split(/,|\band\b|\n|\+|\//)
+    .map(function(s){ return s.replace(/\b(a|an|the|some|of|with|large|small|big|cup|glass|bowl|plate|slice|piece)\b/g,' ')
+                               .replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); })
+    .filter(function(s){ return s.length > 2 && s.length < 34; });
+}
+
+/* ============================================================
+   the analysis — meals in, patterns out
+   ============================================================ */
+function analyze(){
+  var winMs = (db.settings.win||3)*3600000, now = Date.now();
+  var syms = db.symptoms.slice().sort(function(a,b){ return a.t-b.t; });
+
+  /* A meal only counts once its window has fully elapsed —
+     otherwise this evening's dinner always looks innocent. */
+  var meals = db.meals.filter(function(m){ return m.t + winMs <= now; })
+                      .sort(function(a,b){ return a.t-b.t; });
+
+  var rows = meals.map(function(m){
+    var after = syms.filter(function(s){ return s.t > m.t && s.t <= m.t + winMs; });
+    var worst = after.reduce(function(a,s){ return Math.max(a, s.sev||1); }, 0);
+    return {m:m, hit: after.length>0, worst:worst, tags: mealTags(m)};
+  });
+
+  var hits = rows.filter(function(r){ return r.hit; }).length;
+  var baseline = rows.length ? hits/rows.length : 0;
+
+  function tally(keyFn){
+    var map = {};
+    rows.forEach(function(r){
+      var keys = keyFn(r), seen = {};
+      keys.forEach(function(k){
+        if(seen[k]) return; seen[k] = 1;
+        if(!map[k]) map[k] = {key:k, n:0, k:0, sev:0};
+        map[k].n++; if(r.hit){ map[k].k++; map[k].sev += r.worst; }
+      });
+    });
+    return Object.keys(map).map(function(k){
+      var e = map[k];
+      e.rate = e.n ? e.k/e.n : 0;
+      /* pull small samples toward the baseline so that three
+         meals can't outrank thirty on a coin flip */
+      e.adj = (e.k + baseline*2) / (e.n + 2);
+      e.lift = baseline > 0 ? e.adj/baseline : 0;
+      e.avgSev = e.k ? e.sev/e.k : 0;
+      return e;
+    });
+  }
+
+  var tagStats  = tally(function(r){ return r.tags; });
+  var foodStats = tally(function(r){ return foodItems(r.m.items); });
+
+  return {rows:rows, meals:meals.length, hits:hits, baseline:baseline,
+          tagStats:tagStats, foodStats:foodStats, win:(db.settings.win||3)};
+}
+
+var MIN_N = 3;                    /* below this it's an anecdote, not a pattern */
+function watchList(stats, baseline){
+  return stats.filter(function(e){ return e.n >= MIN_N && e.k >= 2 && e.lift >= 1.2 && e.rate > baseline; })
+              .sort(function(a,b){ return b.adj - a.adj; });
+}
+function safeList(stats){
+  return stats.filter(function(e){ return e.n >= MIN_N && e.k === 0; })
+              .sort(function(a,b){ return b.n - a.n; });
+}
+
+/* nights, sleep and the meal-to-bed gap */
+function nightStats(){
+  var nights = [], byDay = {};
+  db.events.filter(function(e){ return e.kind === 'bed'; }).forEach(function(b){
+    var lastMeal = null;
+    db.meals.forEach(function(m){ if(m.t < b.t && (!lastMeal || m.t > lastMeal.t)) lastMeal = m; });
+    var gap = lastMeal ? Math.round((b.t - lastMeal.t)/60000) : null;
+    if(gap !== null && gap > 16*60) gap = null;    /* no meal that evening — don't count it */
+    var woke = db.symptoms.some(function(s){
+      return s.t > b.t && s.t <= b.t + 9*3600000 && (s.pos === 'asleep' || s.pos === 'lying');
+    });
+    nights.push({t:b.t, gap:gap, woke:woke});
+    byDay[dayKey(b.t)] = 1;
+  });
+  var withGap = nights.filter(function(n){ return n.gap !== null; });
+  function avg(a){ return a.length ? Math.round(a.reduce(function(x,y){return x+y;},0)/a.length) : null; }
+  return {
+    nights: nights.length,
+    woke: nights.filter(function(n){ return n.woke; }).length,
+    gapWoke:  avg(withGap.filter(function(n){ return n.woke; }).map(function(n){ return n.gap; })),
+    gapCalm:  avg(withGap.filter(function(n){ return !n.woke; }).map(function(n){ return n.gap; })),
+    gapAll:   avg(withGap.map(function(n){ return n.gap; }))
+  };
+}
+function fmtGap(mins){
+  if(mins == null) return '—';
+  var h = Math.floor(mins/60), m = mins%60;
+  return h ? (h+'h'+(m?' '+m+'m':'')) : (m+'m');
+}
+
+/* ============================================================
+   view state + router
+   ============================================================ */
+var ui = {tab:'today', day: dayStart(Date.now()), barSel:null, hourSel:null};
+
+function render(){
+  var v = $('view');
+  /* replacing innerHTML drops the scroll position, so hold it
+     across a re-render that was only a chart tap */
+  var keep = ui.keepScroll ? v.scrollTop : 0;
+  v.innerHTML = ui.tab === 'today'    ? viewToday()
+              : ui.tab === 'trends'   ? viewTrends()
+              : ui.tab === 'triggers' ? viewTriggers()
+              :                          viewReport();
+  v.scrollTop = keep;
+  ui.keepScroll = false;
+  Array.prototype.forEach.call(document.querySelectorAll('.tb'), function(b){
+    b.classList.toggle('on', b.dataset.tab === ui.tab);
+  });
+  var n = db.symptoms.length;
+  $('hdSub').textContent = entryCount() === 0
+    ? 'Private to this device'
+    : plural(db.meals.length,'meal') + ' · ' + plural(n,'symptom') + ' logged';
+}
+
+/* ============================================================
+   DIARY
+   ============================================================ */
+function viewToday(){
+  var start = ui.day, end = start + 86400000;
+  var today = dayStart(Date.now());
+  var items = allEntries().filter(function(e){ return e.t >= start && e.t < end; });
+  var syms = items.filter(function(e){ return e.k === 'sym'; });
+  var meals = items.filter(function(e){ return e.k === 'meal'; });
+  var worst = syms.reduce(function(a,e){ return Math.max(a, e.o.sev||1); }, 0);
+
+  var h = '';
+
+  if(entryCount() === 0){
+    h += '<div class="banner"><div class="bi">👋</div><div class="bt">'
+      +  '<strong>Start with today</strong>Log meals as you eat them and symptoms as they hit. '
+      +  'After a week or so the Triggers tab can start telling you which foods are actually '
+      +  'followed by symptoms — and which ones you\'ve been avoiding for nothing.</div></div>';
+  }
+
+  h += '<div class="daynav">'
+    +  '<button class="arw" data-day="-1" aria-label="Previous day">‹</button>'
+    +  '<div class="lbl"><b>' + (start===today ? 'Today' : fmtDate(start)) + '</b>'
+    +  '<span>' + (start===today ? fmtDate(start) : (start===today-86400000 ? 'Yesterday' : '')) + '</span></div>'
+    +  '<button class="arw" data-day="1" ' + (start >= today ? 'disabled' : '') + ' aria-label="Next day">›</button>'
+    +  '</div>';
+
+  h += '<div class="sumrow">'
+    +  '<div class="sumbox"><b>' + meals.length + '</b><span>Meals</span></div>'
+    +  '<div class="sumbox"><b style="color:' + (syms.length?'var(--flame)':'inherit') + '">' + syms.length + '</b><span>Symptoms</span></div>'
+    +  '<div class="sumbox"><b style="color:' + (worst?sevColor(worst):'inherit') + '">' + (worst? worst+'/5' : '—') + '</b><span>Worst</span></div>'
+    +  '</div>';
+
+  if(!items.length){
+    h += '<div class="empty"><span class="em">🍽️</span><h3>Nothing logged ' + (start===today?'yet today':'this day') + '</h3>'
+      +  '<p>Tap the + button to add a meal, a symptom, a medication or a bedtime.</p></div>';
+    return h;
+  }
+
+  h += '<div class="tl">';
+  items.slice().reverse().forEach(function(e){ h += entryHTML(e); });
+  h += '</div>';
+  return h;
+}
+
+function entryHTML(e){
+  var o = e.o, h = '';
+  if(e.k === 'meal'){
+    var tags = mealTags(o);
+    h = '<div class="ent meal"><div class="dot">🍽️</div>'
+      + '<button class="box" data-edit="meal:' + o.id + '">'
+      + '<div class="top"><span class="tm">' + fmtTime(o.t) + '</span>'
+      + '<span class="ttl">' + esc(o.items || 'Meal') + '</span></div>'
+      + (o.portion && o.portion !== 'normal' ? '<div class="sub">' + (o.portion==='large'?'Large portion':'Light portion') + '</div>' : '')
+      + (tags.length ? '<div class="chips">' + tags.map(function(t){
+          return '<span class="chip trig">' + (TRIG[t]?TRIG[t].em+' '+esc(TRIG[t].nm):esc(t)) + '</span>'; }).join('') + '</div>' : '')
+      + (o.note ? '<div class="nt">' + esc(o.note) + '</div>' : '')
+      + '</button></div>';
+  } else if(e.k === 'sym'){
+    var names = (o.types||[]).map(function(t){ return SYM[t] ? SYM[t].nm : t; }).join(', ');
+    h = '<div class="ent sym"><div class="dot">🔥</div>'
+      + '<button class="box" data-edit="sym:' + o.id + '">'
+      + '<div class="top"><span class="tm">' + fmtTime(o.t) + '</span>'
+      + '<span class="ttl">' + esc(names || 'Symptom') + '</span></div>'
+      + '<div class="chips">'
+      + '<span class="chip sev" style="background:' + sevColor(o.sev) + '">' + (o.sev||1) + '/5 ' + SEVLAB[o.sev||1] + '</span>'
+      + (o.dur ? '<span class="chip">' + esc(durName(o.dur)) + '</span>' : '')
+      + (o.pos ? '<span class="chip">' + esc(posName(o.pos)) + '</span>' : '')
+      + '</div>'
+      + (o.note ? '<div class="nt">' + esc(o.note) + '</div>' : '')
+      + '</button></div>';
+  } else if(e.k === 'med'){
+    var m = MED[o.kind] || {nm:'Medication', em:'💊'};
+    h = '<div class="ent med"><div class="dot">💊</div>'
+      + '<button class="box" data-edit="med:' + o.id + '">'
+      + '<div class="top"><span class="tm">' + fmtTime(o.t) + '</span>'
+      + '<span class="ttl">' + esc(o.name || m.nm) + '</span></div>'
+      + '<div class="sub">' + esc(m.nm) + (o.helped ? ' · ' + esc(helpName(o.helped)) : '') + '</div>'
+      + (o.note ? '<div class="nt">' + esc(o.note) + '</div>' : '')
+      + '</button></div>';
+  } else {
+    var ev = EVT[o.kind] || {nm:'Note', em:'📌'};
+    h = '<div class="ent evt"><div class="dot">' + ev.em + '</div>'
+      + '<button class="box" data-edit="evt:' + o.id + '">'
+      + '<div class="top"><span class="tm">' + fmtTime(o.t) + '</span>'
+      + '<span class="ttl">' + esc(ev.nm) + '</span></div>'
+      + (o.note ? '<div class="nt">' + esc(o.note) + '</div>' : '')
+      + '</button></div>';
+  }
+  return h;
+}
+function durName(id){ var d = DURATIONS.filter(function(x){return x.id===id;})[0]; return d?d.nm:id; }
+function posName(id){ var p = POSITIONS.filter(function(x){return x.id===id;})[0]; return p?p.nm:id; }
+function helpName(id){ return {yes:'Helped', partly:'Helped a bit', no:'Did not help'}[id] || id; }
+
+/* ============================================================
+   TRENDS
+   ============================================================ */
+function viewTrends(){
+  if(db.symptoms.length < 2){
+    return '<div class="empty"><span class="em">📈</span><h3>Not enough logged yet</h3>'
+      +  '<p>Once there are a few symptom entries in the diary, this tab shows how often they '
+      +  'happen, when in the day they cluster, and whether things are heading the right way.</p></div>';
+  }
+
+  var h = '', days = 14, today = dayStart(Date.now());
+  var buckets = [];
+  for(var i = days-1; i >= 0; i--){
+    var s = today - i*86400000;
+    var dsym = db.symptoms.filter(function(x){ return x.t >= s && x.t < s+86400000; });
+    buckets.push({t:s, n:dsym.length,
+                  worst:dsym.reduce(function(a,x){ return Math.max(a, x.sev||1); }, 0),
+                  meals:db.meals.filter(function(x){ return x.t >= s && x.t < s+86400000; }).length});
+  }
+  var max = Math.max.apply(null, buckets.map(function(b){ return b.n; }).concat([1]));
+  var peak = buckets.reduce(function(a,b){ return b.n > a.n ? b : a; }, buckets[0]);
+
+  /* headline numbers first — a chart is the wrong shape for these */
+  var wk  = db.symptoms.filter(function(s){ return s.t >= today - 6*86400000; }).length;
+  var prv = db.symptoms.filter(function(s){ return s.t >= today - 13*86400000 && s.t < today - 6*86400000; }).length;
+  var clear = 0;
+  for(var j = 0; j < buckets.length; j++){ if(buckets[buckets.length-1-j].n === 0) clear++; else break; }
+  var delta = prv ? Math.round((wk - prv)/prv*100) : null;
+
+  h += '<div class="sumrow">'
+    +  '<div class="sumbox"><b>' + wk + '</b><span>Last 7 days</span></div>'
+    +  '<div class="sumbox"><b style="color:' + (delta==null?'inherit':(delta<=0?'var(--mint)':'var(--flame)')) + '">'
+    +  (delta==null ? '—' : (delta>0?'+':'') + delta + '%') + '</b><span>vs week before</span></div>'
+    +  '<div class="sumbox"><b style="color:' + (clear?'var(--mint)':'inherit') + '">' + clear + '</b><span>Clear days in a row</span></div>'
+    +  '</div>';
+
+  /* --- symptoms per day --- */
+  h += '<div class="sec"><div class="sec-h"><h2>Symptoms per day</h2></div><div class="card"><div class="chart">'
+    +  '<div class="bars">'
+    +  '<div class="gl" style="bottom:86%"><span>' + max + '</span></div>';
+  buckets.forEach(function(b, i){
+    var hpx = b.n ? Math.max(4, Math.round(b.n/max*86)) : 0;
+    h += '<button class="bcol' + (ui.barSel===i?' on':'') + '" data-bar="' + i + '" aria-label="' + esc(fmtShort(b.t)) + '">'
+      +  (b === peak && b.n ? '<em>' + b.n + '</em>' : '')
+      +  '<i style="height:' + hpx + '%;background:' + (b.n ? sevColor(b.worst) : 'rgba(255,255,255,.07)') + '"></i>'
+      +  '</button>';
+  });
+  h += '</div><div class="blabs">'
+    +  buckets.map(function(b, i){
+         var d = new Date(b.t);
+         return '<span>' + (i%2===0 || i===days-1 ? d.getDate() : '') + '</span>';
+       }).join('')
+    +  '</div>';
+  var selB = ui.barSel != null ? buckets[ui.barSel] : buckets[buckets.length-1];
+  h += '<div class="readout">' + (selB
+      ? '<b>' + fmtShort(selB.t) + '</b> — ' + (selB.n ? plural(selB.n,'symptom') + ', worst ' + selB.worst + '/5' : 'no symptoms')
+        + ', ' + plural(selB.meals,'meal') + ' logged'
+      : 'Tap a bar for that day') + '</div>';
+  h += '<div class="tiny" style="margin-top:8px">Bar height is how many symptoms that day; the shade is the worst severity, 1 (dim) to 5 (bright).</div>';
+  h += '</div></div></div>';
+
+  /* --- when in the day --- */
+  var hours = new Array(12).fill(0);
+  db.symptoms.forEach(function(s){ hours[Math.floor(new Date(s.t).getHours()/2)]++; });
+  var hmax = Math.max.apply(null, hours.concat([1]));
+  var hpeak = hours.indexOf(hmax);
+  h += '<div class="sec"><div class="sec-h"><h2>When they happen</h2></div><div class="card"><div class="chart">'
+    +  '<div class="bars" style="height:88px">';
+  hours.forEach(function(n, i){
+    h += '<button class="bcol' + (ui.hourSel===i?' on':'') + '" data-hour="' + i + '" '
+      +  'aria-label="' + esc(hourLabel(i)) + ', ' + plural(n,'symptom') + '">'
+      +  (i === hpeak && n ? '<em>' + n + '</em>' : '')
+      +  '<i style="height:' + (n ? Math.max(4, Math.round(n/hmax*86)) : 0) + '%;background:'
+      +  (n ? 'var(--sym)' : 'rgba(255,255,255,.07)') + '"></i></button>';
+  });
+  h += '</div><div class="blabs">'
+    +  hours.map(function(n,i){ return '<span>' + (i%3===0 ? (i*2===0?'12a':(i*2<12? i*2+'a' : (i*2===12?'12p':(i*2-12)+'p'))) : '') + '</span>'; }).join('')
+    +  '</div>';
+  var night = db.symptoms.filter(function(s){ var hh = new Date(s.t).getHours(); return hh >= 21 || hh < 6; }).length;
+  var selH = ui.hourSel != null ? ui.hourSel : hpeak;
+  h += '<div class="readout"><b>' + hourLabel(selH) + '</b> — ' + plural(hours[selH],'symptom') + '</div>';
+  h += '<div class="tiny" style="margin-top:8px">' + pct(night/db.symptoms.length)
+    +  ' of your symptoms fall between 9pm and 6am. Night-time reflux is the kind that most often responds to '
+    +  'raising the head of the bed and leaving a longer gap after your last meal.</div>';
+  h += '</div></div></div>';
+
+  /* --- which symptoms --- */
+  var counts = {};
+  db.symptoms.forEach(function(s){ (s.types||[]).forEach(function(t){ counts[t] = (counts[t]||0)+1; }); });
+  var list = Object.keys(counts).map(function(k){ return {k:k, n:counts[k]}; })
+                   .sort(function(a,b){ return b.n - a.n; }).slice(0,6);
+  if(list.length){
+    var cmax = list[0].n;
+    h += '<div class="sec"><div class="sec-h"><h2>Most common symptoms</h2></div><div class="card">';
+    list.forEach(function(e){
+      h += '<div class="hbar"><div class="hl"><span class="n">' + (SYM[e.k]?SYM[e.k].em+' '+esc(SYM[e.k].nm):esc(e.k)) + '</span>'
+        +  '<span class="v">' + e.n + '</span></div>'
+        +  '<div class="tr"><i style="width:' + Math.round(e.n/cmax*100) + '%"></i></div></div>';
+    });
+    h += '</div></div>';
+  }
+
+  /* --- nights --- */
+  var ns = nightStats();
+  if(ns.nights >= 3){
+    h += '<div class="sec"><div class="sec-h"><h2>Nights</h2></div><div class="card">'
+      +  '<div class="sumrow" style="margin:0 0 12px">'
+      +  '<div class="sumbox"><b>' + ns.nights + '</b><span>Bedtimes logged</span></div>'
+      +  '<div class="sumbox"><b style="color:' + (ns.woke?'var(--flame)':'var(--mint)') + '">' + ns.woke + '</b><span>Disturbed</span></div>'
+      +  '<div class="sumbox"><b>' + fmtGap(ns.gapAll) + '</b><span>Avg meal→bed</span></div>'
+      +  '</div>';
+    if(ns.gapWoke != null && ns.gapCalm != null){
+      var better = ns.gapCalm > ns.gapWoke;
+      h += '<div class="muted">On the nights reflux woke you, your last meal was <b>' + fmtGap(ns.gapWoke)
+        +  '</b> before bed. On the settled nights it was <b>' + fmtGap(ns.gapCalm) + '</b>.'
+        +  (better ? ' That is the gap worth protecting.' : ' No clear difference so far.') + '</div>';
+    } else {
+      h += '<div class="muted">Log a bedtime each night and this will compare the meal-to-bed gap on '
+        +  'settled nights against disturbed ones.</div>';
+    }
+    h += '</div></div>';
+  }
+
+  return h;
+}
+function hourLabel(i){
+  function f(x){ return x===0?'12am':(x<12? x+'am' : (x===12?'12pm':(x-12)+'pm')); }
+  return f(i*2) + '–' + f(((i*2)+2)%24);
+}
+
+/* ============================================================
+   TRIGGERS
+   ============================================================ */
+function viewTriggers(){
+  var a = analyze();
+  var h = '';
+
+  if(a.meals < 6){
+    return '<div class="empty"><span class="em">🔎</span><h3>Keep logging for a few more days</h3>'
+      +  '<p>This tab compares how often each food was followed by symptoms against your own average. '
+      +  'It needs roughly a week of meals before that comparison means anything — ' + a.meals
+      +  ' logged so far.</p></div>';
+  }
+
+  h += '<div class="banner"><div class="bi">🧭</div><div class="bt">'
+    +  '<strong>How to read this</strong>Out of every meal you logged, <b>' + pct(a.baseline) + '</b> were followed by a symptom '
+    +  'within ' + winLabel() + '. Anything below is above that line more often than average — a candidate worth testing '
+    +  'by leaving it out for a week, not a verdict.</div></div>';
+
+  var tw = watchList(a.tagStats, a.baseline);
+  var fw = watchList(a.foodStats, a.baseline).slice(0,8);
+
+  if(tw.length){
+    h += '<div class="sec"><div class="sec-h"><h2>Trigger categories to watch</h2></div><div class="card">';
+    tw.forEach(function(e){
+      var t = TRIG[e.key] || {nm:e.key, em:'•'};
+      h += '<div class="trow"><div class="ic">' + t.em + '</div><div class="tx">'
+        +  '<div class="n">' + esc(t.nm) + '</div>'
+        +  '<div class="m">' + e.k + ' of ' + e.n + ' meals followed by symptoms'
+        +  (e.avgSev ? ' · avg ' + e.avgSev.toFixed(1) + '/5' : '') + '</div></div>'
+        +  '<div class="rt"><b>' + pct(e.rate) + '</b><span>vs ' + pct(a.baseline) + '</span></div></div>';
+    });
+    h += '</div></div>';
+  }
+
+  if(fw.length){
+    h += '<div class="sec"><div class="sec-h"><h2>Specific foods to watch</h2></div><div class="card">';
+    fw.forEach(function(e){
+      h += '<div class="trow"><div class="ic">🍴</div><div class="tx">'
+        +  '<div class="n">' + esc(e.key) + '</div>'
+        +  '<div class="m">' + e.k + ' of ' + e.n + ' times followed by symptoms</div></div>'
+        +  '<div class="rt"><b>' + pct(e.rate) + '</b><span>vs ' + pct(a.baseline) + '</span></div></div>';
+    });
+    h += '</div></div>';
+  }
+
+  var safeT = safeList(a.tagStats), safeF = safeList(a.foodStats).slice(0,10);
+  if(safeT.length || safeF.length){
+    h += '<div class="sec"><div class="sec-h"><h2>Clear so far</h2></div><div class="card">'
+      +  '<div class="muted" style="margin-bottom:11px">Eaten at least ' + MIN_N
+      +  ' times with no symptoms in the ' + winLabel() + ' after. Reflux advice lists are generic — this list is yours.</div>';
+    safeT.forEach(function(e){
+      var t = TRIG[e.key] || {nm:e.key, em:'•'};
+      h += '<div class="trow ok"><div class="ic">' + t.em + '</div><div class="tx">'
+        +  '<div class="n">' + esc(t.nm) + '</div><div class="m">' + e.n + ' meals, none followed by symptoms</div></div>'
+        +  '<div class="rt"><b>0%</b><span>clear</span></div></div>';
+    });
+    if(safeF.length){
+      h += '<div class="chips" style="margin-top:11px">'
+        +  safeF.map(function(e){ return '<span class="chip">' + esc(e.key) + ' ×' + e.n + '</span>'; }).join('')
+        +  '</div>';
+    }
+    h += '</div></div>';
+  }
+
+  if(!tw.length && !fw.length){
+    h += '<div class="sec"><div class="card"><div class="muted">'
+      +  'Nothing stands out above your ' + pct(a.baseline) + ' baseline yet. That is a real result, not a gap — '
+      +  'it can mean your symptoms are driven more by timing, portion size or posture than by any one food. '
+      +  'The Trends tab is the place to look next.</div></div></div>';
+  }
+
+  /* the whole table, including the quiet ones */
+  h += '<div class="sec"><div class="sec-h"><h2>Every category</h2></div><div class="card">';
+  a.tagStats.slice().sort(function(x,y){ return y.adj - x.adj; }).forEach(function(e){
+    var t = TRIG[e.key] || {nm:e.key, em:'•'};
+    var thin = e.n < MIN_N;
+    h += '<div class="trow' + (e.rate<=a.baseline?' ok':'') + '"><div class="ic">' + t.em + '</div><div class="tx">'
+      +  '<div class="n">' + esc(t.nm) + '</div>'
+      +  '<div class="m">' + (thin ? plural(e.n,'meal') + ' — too few to judge' : e.k + ' of ' + e.n + ' meals') + '</div></div>'
+      +  '<div class="rt"><b style="' + (thin?'color:var(--faint)':'') + '">' + pct(e.rate) + '</b><span>followed</span></div></div>';
+  });
+  h += '</div></div>';
+
+  h += '<div class="tiny" style="padding:0 4px 8px">A food showing up here means it was followed by symptoms more '
+    +  'often than your average — not that it caused them. Meals overlap, and reflux has its own timing. '
+    +  'The way to test one is to drop it for a week or two and watch this number.</div>';
+
+  return h;
+}
+
+/* ============================================================
+   REPORT
+   ============================================================ */
+function viewReport(){
+  var a = analyze(), ns = nightStats(), h = '';
+  var first = entryCount() ? allEntries()[allEntries().length-1].t : Date.now();
+  var days = Math.max(1, Math.round((Date.now() - first)/86400000) + 1);
+
+  h += '<div class="sec"><div class="sec-h"><h2>Summary for an appointment</h2></div><div class="card">';
+  if(entryCount() === 0){
+    h += '<div class="muted">Nothing logged yet. Once there is a couple of weeks of diary here, this builds '
+      +  'the summary a GP or gastroenterologist usually asks for: how often, how bad, what time of day, what you tried.</div>';
+  } else {
+    h += '<div class="muted">'
+      +  '<b>' + days + ' days</b> of diary · <b>' + db.symptoms.length + '</b> symptom entries · <b>'
+      +  db.meals.length + '</b> meals · <b>' + db.meds.length + '</b> medication doses.</div>'
+      +  '<div class="divider"></div>'
+      +  '<div class="muted">' + reportProse(a, ns, days) + '</div>'
+      +  '<div class="acts"><button class="btn pri" id="btnPrint">🖨️ Print</button>'
+      +  '<button class="btn" id="btnCopy">📋 Copy text</button></div>';
+  }
+  h += '</div></div>';
+
+  h += '<div class="sec"><div class="sec-h"><h2>Worth a doctor, not a diary</h2></div>'
+    +  '<div class="banner red" style="margin:0"><div class="bi">⚠️</div><div class="bt">'
+    +  '<strong>Get these looked at rather than tracked</strong>'
+    +  'Food sticking or pain when you swallow · losing weight without trying · vomiting blood or something like '
+    +  'coffee grounds · black, tarry stools · persistent vomiting · new symptoms over 50 · reflux that keeps '
+    +  'breaking through medication.<br><br>'
+    +  'Chest pain is the one that can\'t wait: if it feels crushing, spreads to your arm, neck or jaw, or comes '
+    +  'with breathlessness, sweating or feeling faint, treat it as a heart problem and get emergency help. '
+    +  'Reflux and cardiac pain feel alike, and a diary is not the way to tell them apart.'
+    +  '</div></div></div>';
+
+  h += '<div class="sec"><div class="sec-h"><h2>Your data</h2></div><div class="card">'
+    +  '<div class="muted">Everything you log lives in this browser only — not on a server, not in an account. '
+    +  'Clearing your browser data or switching device loses it, so export a copy now and then.</div>'
+    +  '<div class="acts"><button class="btn" id="btnExport">⬇️ Export file</button>'
+    +  '<button class="btn" id="btnImport">⬆️ Import</button></div>'
+    +  '<div class="acts" style="margin-top:9px"><button class="btn blk" id="btnSample">Load a week of example data</button></div>'
+    +  '</div></div>';
+
+  h += '<div class="tiny" style="padding:0 4px 10px">Reflux Diary keeps a record and does arithmetic on it. '
+    +  'It does not diagnose anything and it is not a substitute for medical advice — bring it to someone who can.</div>';
+
+  return h;
+}
+
+function reportProse(a, ns, days){
+  var out = [];
+  var perWeek = (db.symptoms.length / days * 7);
+  out.push('Symptoms averaged <b>' + perWeek.toFixed(1) + ' a week</b> over this period.');
+
+  var sevs = db.symptoms.map(function(s){ return s.sev||1; });
+  if(sevs.length){
+    var avg = sevs.reduce(function(x,y){return x+y;},0)/sevs.length;
+    var bad = sevs.filter(function(s){ return s >= 4; }).length;
+    out.push('Average severity <b>' + avg.toFixed(1) + '/5</b>, with <b>' + bad + '</b> rated 4 or above.');
+  }
+  var night = db.symptoms.filter(function(s){ var hh = new Date(s.t).getHours(); return hh>=21 || hh<6; }).length;
+  if(db.symptoms.length) out.push('<b>' + pct(night/db.symptoms.length) + '</b> happened between 9pm and 6am' +
+    (ns.woke ? ', and reflux disturbed sleep on <b>' + ns.woke + '</b> of ' + ns.nights + ' logged nights' : '') + '.');
+
+  var counts = {};
+  db.symptoms.forEach(function(s){ (s.types||[]).forEach(function(t){ counts[t]=(counts[t]||0)+1; }); });
+  var top = Object.keys(counts).sort(function(x,y){ return counts[y]-counts[x]; }).slice(0,3)
+              .map(function(k){ return (SYM[k]?SYM[k].nm.toLowerCase():k) + ' (' + counts[k] + ')'; });
+  if(top.length) out.push('Most frequent: <b>' + top.join(', ') + '</b>.');
+
+  if(a.meals >= 6){
+    out.push('Across ' + a.meals + ' meals, <b>' + pct(a.baseline) + '</b> were followed by a symptom within '
+      + winLabel() + '.');
+    var w = watchList(a.tagStats, a.baseline).slice(0,3);
+    if(w.length) out.push('Above that baseline: <b>' + w.map(function(e){
+      return (TRIG[e.key]?TRIG[e.key].nm.toLowerCase():e.key) + ' ' + pct(e.rate); }).join(', ') + '</b>.');
+  }
+  if(ns.gapWoke != null && ns.gapCalm != null){
+    out.push('Last meal to bed averaged <b>' + fmtGap(ns.gapWoke) + '</b> before disturbed nights and <b>'
+      + fmtGap(ns.gapCalm) + '</b> before settled ones.');
+  }
+  var medc = {};
+  db.meds.forEach(function(m){ medc[m.kind] = (medc[m.kind]||0)+1; });
+  var mk = Object.keys(medc);
+  if(mk.length) out.push('Medication taken: <b>' + mk.map(function(k){
+    return (MED[k]?MED[k].nm:k) + ' ×' + medc[k]; }).join(', ') + '</b>.');
+
+  return out.join(' ');
+}
+
+/* the printable version — plain, dense, and it fits on a page */
+function buildPrintout(){
+  var a = analyze(), ns = nightStats();
+  var entries = allEntries();
+  var first = entries.length ? entries[entries.length-1].t : Date.now();
+  var days = Math.max(1, Math.round((Date.now()-first)/86400000) + 1);
+  var who = db.settings.name ? esc(db.settings.name) : '';
+
+  var h = '<h1>Reflux &amp; food diary' + (who ? ' — ' + who : '') + '</h1>'
+    + '<div class="sub">' + fmtDate(first) + ' to ' + fmtDate(Date.now()) + ' · ' + days + ' days · printed '
+    + new Date().toLocaleDateString() + '</div>';
+
+  h += '<h2>Summary</h2><p>' + reportProse(a, ns, days) + '</p>';
+
+  var counts = {};
+  db.symptoms.forEach(function(s){ (s.types||[]).forEach(function(t){ counts[t]=(counts[t]||0)+1; }); });
+  var keys = Object.keys(counts).sort(function(x,y){ return counts[y]-counts[x]; });
+  if(keys.length){
+    h += '<h2>Symptoms recorded</h2><table><tr><th>Symptom</th><th>Times</th></tr>'
+      + keys.map(function(k){ return '<tr><td>' + esc(SYM[k]?SYM[k].nm:k) + '</td><td>' + counts[k] + '</td></tr>'; }).join('')
+      + '</table>';
+  }
+
+  if(a.meals >= 6){
+    var rowsT = a.tagStats.filter(function(e){ return e.n >= MIN_N; })
+                          .sort(function(x,y){ return y.adj-x.adj; });
+    if(rowsT.length){
+      h += '<h2>Foods followed by symptoms within ' + winLabel() + '</h2>'
+        + '<p class="sub">Baseline across all meals: ' + pct(a.baseline) + '</p>'
+        + '<table><tr><th>Category</th><th>Meals</th><th>Followed</th><th>Rate</th></tr>'
+        + rowsT.map(function(e){
+            return '<tr><td>' + esc(TRIG[e.key]?TRIG[e.key].nm:e.key) + '</td><td>' + e.n + '</td><td>'
+                 + e.k + '</td><td>' + pct(e.rate) + '</td></tr>'; }).join('')
+        + '</table>';
+    }
+  }
+
+  if(db.meds.length){
+    var medc = {};
+    db.meds.forEach(function(m){ var k = MED[m.kind]?MED[m.kind].nm:m.kind;
+                                 medc[k] = medc[k] || {n:0, help:0};
+                                 medc[k].n++; if(m.helped==='yes') medc[k].help++; });
+    h += '<h2>Medication</h2><table><tr><th>Type</th><th>Doses</th><th>Recorded as helping</th></tr>'
+      + Object.keys(medc).map(function(k){
+          return '<tr><td>' + esc(k) + '</td><td>' + medc[k].n + '</td><td>' + medc[k].help + '</td></tr>'; }).join('')
+      + '</table>';
+  }
+
+  /* the last fortnight, entry by entry — what a clinician actually reads */
+  var since = Date.now() - 14*86400000;
+  var recent = entries.filter(function(e){ return e.t >= since; }).slice().reverse();
+  if(recent.length){
+    h += '<h2>Diary, last 14 days</h2><table><tr><th>When</th><th>Entry</th></tr>';
+    var lastDay = '';
+    recent.forEach(function(e){
+      var dk = dayKey(e.t);
+      if(dk !== lastDay){
+        h += '<tr><td colspan="2" style="padding-top:7px"><b>' + esc(fmtDate(e.t)) + '</b></td></tr>';
+        lastDay = dk;
+      }
+      h += '<tr><td style="white-space:nowrap">' + fmtTime(e.t) + '</td><td>' + plainEntry(e) + '</td></tr>';
+    });
+    h += '</table>';
+  }
+
+  h += '<div class="note">Self-recorded diary produced by Reflux Diary. Times and severities are as entered by the '
+    + 'patient. Trigger percentages are simple co-occurrence rates within a ' + winLabel()
+    + ' window and do not establish cause.</div>';
+  return h;
+}
+function plainEntry(e){
+  var o = e.o;
+  if(e.k === 'meal'){
+    var tags = mealTags(o).map(function(t){ return TRIG[t]?TRIG[t].nm:t; });
+    return 'Meal: ' + esc(o.items||'—') + (o.portion && o.portion!=='normal' ? ' (' + o.portion + ' portion)' : '')
+         + (tags.length ? ' [' + esc(tags.join(', ')) + ']' : '') + (o.note ? ' — ' + esc(o.note) : '');
+  }
+  if(e.k === 'sym'){
+    return 'Symptom: ' + esc((o.types||[]).map(function(t){ return SYM[t]?SYM[t].nm:t; }).join(', '))
+         + ' — severity ' + (o.sev||1) + '/5'
+         + (o.dur ? ', ' + esc(durName(o.dur)) : '') + (o.pos ? ', ' + esc(posName(o.pos).toLowerCase()) : '')
+         + (o.note ? ' — ' + esc(o.note) : '');
+  }
+  if(e.k === 'med'){
+    return 'Medication: ' + esc(o.name || (MED[o.kind]?MED[o.kind].nm:o.kind))
+         + (o.helped ? ' — ' + esc(helpName(o.helped).toLowerCase()) : '') + (o.note ? ' — ' + esc(o.note) : '');
+  }
+  return esc(EVT[o.kind]?EVT[o.kind].nm:o.kind) + (o.note ? ' — ' + esc(o.note) : '');
+}
+function plainReportText(){
+  var tmp = document.createElement('div');
+  tmp.innerHTML = buildPrintout().replace(/<\/(h1|h2|p|tr|div)>/g,'\n').replace(/<\/td>/g,'\t');
+  return tmp.textContent.replace(/\n{3,}/g,'\n\n').trim();
+}
+
+/* ============================================================
+   sheets
+   ============================================================ */
+function openSheet(title, html, after){
+  $('sheetTitle').textContent = title;
+  $('sheetBody').innerHTML = html;
+  $('sheetwrap').classList.add('on');
+  if(after) after();
+}
+function closeSheet(){ $('sheetwrap').classList.remove('on'); }
+
+function sheetAdd(){
+  openSheet('Add to the diary',
+    '<div class="bigpick">'
+    + '<button data-new="meal"><i>🍽️</i>Meal or drink<small>What and when</small></button>'
+    + '<button data-new="sym"><i>🔥</i>Symptom<small>What it felt like</small></button>'
+    + '<button data-new="med"><i>💊</i>Medication<small>And whether it helped</small></button>'
+    + '<button data-new="evt"><i>🛏️</i>Bedtime or note<small>Sleep, stress, exercise</small></button>'
+    + '</div>'
+    + '<div class="hint">Log meals as close to eating as you can — the timing is what the pattern-finding runs on.</div>');
+}
+
+/* --- meal --- */
+var draft = {};
+function sheetMeal(id){
+  var m = id ? db.meals.filter(function(x){ return x.id===id; })[0] : null;
+  draft = m ? JSON.parse(JSON.stringify(m))
+            : {id:uid(), t:Date.now(), items:'', portion:'normal', note:'', tags:[]};
+
+  var recents = [];
+  db.meals.slice().sort(function(a,b){ return b.t-a.t; }).forEach(function(x){
+    if(x.items && recents.indexOf(x.items) < 0 && recents.length < 6) recents.push(x.items);
+  });
+
+  openSheet(m ? 'Edit meal' : 'What did you eat?',
+    '<div class="f"><label>Food and drink</label>'
+    + '<textarea id="mItems" placeholder="Jollof rice, fried plantain, orange juice">' + esc(draft.items) + '</textarea>'
+    + '<div class="hint">Separate things with commas. Known reflux triggers get tagged automatically.</div></div>'
+    + '<div id="mTags"></div>'
+    + (recents.length && !m ? '<div class="f"><label>Log again</label><div class="pick" id="mRecent">'
+        + recents.map(function(r,i){ return '<button data-recent="' + i + '">' + esc(r.length>28?r.slice(0,28)+'…':r) + '</button>'; }).join('')
+        + '</div></div>' : '')
+    + '<div class="f"><label>Portion</label><div class="seg" id="mPortion">'
+    + ['light','normal','large'].map(function(p){
+        return '<button data-portion="' + p + '"' + (draft.portion===p?' class="on"':'') + '>'
+             + p.charAt(0).toUpperCase()+p.slice(1) + '</button>'; }).join('')
+    + '</div></div>'
+    + '<div class="f"><label>When</label><input type="datetime-local" id="mTime" value="' + localInput(draft.t) + '"></div>'
+    + '<div class="f"><label>Note (optional)</label><input id="mNote" value="' + esc(draft.note||'') + '" placeholder="Ate in a hurry, lay down after…"></div>'
+    + '<div class="acts">'
+    + (m ? '<button class="btn warn" data-del="meal:' + m.id + '">Delete</button>' : '')
+    + '<button class="btn pri" id="mSave">' + (m?'Save':'Add meal') + '</button></div>',
+    function(){
+      var ta = $('mItems');
+      function refresh(){
+        draft.items = ta.value;
+        draft.tags = detectTags(ta.value);
+        var t = draft.tags.slice();
+        if($('mPortion').querySelector('.on') && $('mPortion').querySelector('.on').dataset.portion === 'large') t.push('large');
+        if(isLate(parseInput($('mTime').value))) t.push('late');
+        $('mTags').innerHTML = t.length
+          ? '<div class="chips" style="margin:-6px 0 14px">' + t.map(function(x){
+              return '<span class="chip trig">' + TRIG[x].em + ' ' + esc(TRIG[x].nm) + '</span>'; }).join('') + '</div>'
+          : '';
+      }
+      ta.addEventListener('input', refresh);
+      $('mTime').addEventListener('change', refresh);
+      $('mPortion').addEventListener('click', function(ev){
+        var b = ev.target.closest('[data-portion]'); if(!b) return;
+        Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); });
+        b.classList.add('on'); draft.portion = b.dataset.portion; refresh();
+      });
+      var rec = $('mRecent');
+      if(rec) rec.addEventListener('click', function(ev){
+        var b = ev.target.closest('[data-recent]'); if(!b) return;
+        ta.value = recents[+b.dataset.recent]; refresh();
+      });
+      refresh();
+      if(!m) ta.focus();
+      $('mSave').addEventListener('click', function(){
+        var items = ta.value.trim();
+        if(!items){ toast('Add at least one thing you ate'); ta.focus(); return; }
+        var rec2 = {id:draft.id, t:parseInput($('mTime').value), items:items,
+                    portion:draft.portion, note:$('mNote').value.trim(), tags:detectTags(items)};
+        upsert(db.meals, rec2);
+        ui.day = dayStart(rec2.t);
+        done('Meal logged');
+      });
+    });
+}
+
+/* --- symptom --- */
+function sheetSym(id){
+  var s = id ? db.symptoms.filter(function(x){ return x.id===id; })[0] : null;
+  draft = s ? JSON.parse(JSON.stringify(s))
+            : {id:uid(), t:Date.now(), types:[], sev:3, dur:'', pos:'', note:''};
+
+  openSheet(s ? 'Edit symptom' : 'What are you feeling?',
+    '<div class="f"><label>Symptoms (pick any)</label><div class="pick" id="sTypes">'
+    + SYMPTOMS.map(function(x){
+        return '<button data-sym="' + x.id + '"' + (draft.types.indexOf(x.id)>=0?' class="on"':'') + '>'
+             + x.em + ' ' + esc(x.nm) + '</button>'; }).join('')
+    + '</div></div>'
+    + '<div id="sFlag"></div>'
+    + '<div class="f"><label>How bad</label><div class="seg sv" id="sSev">'
+    + [1,2,3,4,5].map(function(n){
+        return '<button data-sev="' + n + '"' + (draft.sev===n?' class="on" style="background:'+sevColor(n)+'"':'') + '>'
+             + n + '<small>' + esc(SEVLAB[n]) + '</small></button>'; }).join('')
+    + '</div></div>'
+    + '<div class="f"><label>When</label>'
+    + '<input type="datetime-local" id="sTime" value="' + localInput(draft.t) + '"></div>'
+    + '<div class="f"><label>How long</label><select id="sDur"><option value="">—</option>'
+    + DURATIONS.map(function(d){ return '<option value="' + d.id + '"' + (draft.dur===d.id?' selected':'') + '>' + esc(d.nm) + '</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="f"><label>Where you were</label><div class="seg" id="sPos">'
+    + POSITIONS.map(function(p){
+        return '<button data-pos="' + p.id + '"' + (draft.pos===p.id?' class="on"':'') + '>' + esc(p.nm) + '</button>'; }).join('')
+    + '</div></div>'
+    + '<div class="f"><label>Note (optional)</label><input id="sNote" value="' + esc(draft.note||'') + '" placeholder="Started after dinner…"></div>'
+    + '<div class="acts">'
+    + (s ? '<button class="btn warn" data-del="sym:' + s.id + '">Delete</button>' : '')
+    + '<button class="btn pri" id="sSave">' + (s?'Save':'Log symptom') + '</button></div>',
+    function(){
+      function flag(){
+        var f = draft.types.filter(function(t){ return SYM[t] && SYM[t].flag; });
+        var html = '';
+        if(f.indexOf('swallow') >= 0){
+          html = '<div class="banner red"><div class="bi">⚠️</div><div class="bt"><strong>Mention this one to a doctor</strong>'
+               + 'Trouble swallowing, or food sticking, is one of the symptoms that should be looked at rather than '
+               + 'tracked — it is worth a call even if the reflux itself is manageable.</div></div>';
+        } else if(f.indexOf('chest') >= 0){
+          html = '<div class="banner amber"><div class="bi">❤️</div><div class="bt"><strong>If in doubt, treat chest pain as cardiac</strong>'
+               + 'Crushing pain, or pain spreading to your arm, neck or jaw, with breathlessness, sweating or '
+               + 'feeling faint, needs emergency help now — not an entry in a diary.</div></div>';
+        }
+        $('sFlag').innerHTML = html;
+      }
+      $('sTypes').addEventListener('click', function(ev){
+        var b = ev.target.closest('[data-sym]'); if(!b) return;
+        var id2 = b.dataset.sym, i = draft.types.indexOf(id2);
+        if(i>=0) draft.types.splice(i,1); else draft.types.push(id2);
+        b.classList.toggle('on'); flag();
+      });
+      $('sSev').addEventListener('click', function(ev){
+        var b = ev.target.closest('[data-sev]'); if(!b) return;
+        Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); c.style.background=''; });
+        b.classList.add('on'); draft.sev = +b.dataset.sev; b.style.background = sevColor(draft.sev);
+      });
+      $('sPos').addEventListener('click', function(ev){
+        var b = ev.target.closest('[data-pos]'); if(!b) return;
+        var was = b.classList.contains('on');
+        Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); });
+        if(!was){ b.classList.add('on'); draft.pos = b.dataset.pos; } else { draft.pos = ''; }
+      });
+      flag();
+      $('sSave').addEventListener('click', function(){
+        if(!draft.types.length){ toast('Pick at least one symptom'); return; }
+        var rec = {id:draft.id, t:parseInput($('sTime').value), types:draft.types, sev:draft.sev,
+                   dur:$('sDur').value, pos:draft.pos, note:$('sNote').value.trim()};
+        upsert(db.symptoms, rec);
+        ui.day = dayStart(rec.t);
+        done('Symptom logged');
+      });
+    });
+}
+
+/* --- medication --- */
+function sheetMed(id){
+  var m = id ? db.meds.filter(function(x){ return x.id===id; })[0] : null;
+  draft = m ? JSON.parse(JSON.stringify(m)) : {id:uid(), t:Date.now(), kind:'antacid', name:'', helped:'', note:''};
+
+  openSheet(m ? 'Edit medication' : 'What did you take?',
+    '<div class="f"><label>Type</label><div class="pick" id="dKind">'
+    + MEDS.map(function(x){
+        return '<button data-kind="' + x.id + '"' + (draft.kind===x.id?' class="on"':'') + '>' + esc(x.nm) + '</button>'; }).join('')
+    + '</div><div class="hint" id="dEg"></div></div>'
+    + '<div class="f"><label>Name and dose (optional)</label>'
+    + '<input id="dName" value="' + esc(draft.name||'') + '" placeholder="omeprazole 20mg"></div>'
+    + '<div class="f"><label>When</label><input type="datetime-local" id="dTime" value="' + localInput(draft.t) + '"></div>'
+    + '<div class="f"><label>Did it help?</label><div class="seg" id="dHelp">'
+    + [['yes','Yes'],['partly','A bit'],['no','No']].map(function(p){
+        return '<button data-help="' + p[0] + '"' + (draft.helped===p[0]?' class="on"':'') + '>' + p[1] + '</button>'; }).join('')
+    + '</div><div class="hint">You can come back and fill this in later.</div></div>'
+    + '<div class="acts">'
+    + (m ? '<button class="btn warn" data-del="med:' + m.id + '">Delete</button>' : '')
+    + '<button class="btn pri" id="dSave">' + (m?'Save':'Log it') + '</button></div>',
+    function(){
+      function eg(){ var k = MED[draft.kind]; $('dEg').textContent = k && k.eg ? 'e.g. ' + k.eg : ''; }
+      $('dKind').addEventListener('click', function(ev){
+        var b = ev.target.closest('[data-kind]'); if(!b) return;
+        Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); });
+        b.classList.add('on'); draft.kind = b.dataset.kind; eg();
+      });
+      $('dHelp').addEventListener('click', function(ev){
+        var b = ev.target.closest('[data-help]'); if(!b) return;
+        var was = b.classList.contains('on');
+        Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); });
+        if(!was){ b.classList.add('on'); draft.helped = b.dataset.help; } else { draft.helped = ''; }
+      });
+      eg();
+      $('dSave').addEventListener('click', function(){
+        var rec = {id:draft.id, t:parseInput($('dTime').value), kind:draft.kind,
+                   name:$('dName').value.trim(), helped:draft.helped, note:''};
+        upsert(db.meds, rec);
+        ui.day = dayStart(rec.t);
+        done('Medication logged');
+      });
+    });
+}
+
+/* --- bedtime / other --- */
+function sheetEvt(id){
+  var e = id ? db.events.filter(function(x){ return x.id===id; })[0] : null;
+  draft = e ? JSON.parse(JSON.stringify(e)) : {id:uid(), t:Date.now(), kind:'bed', note:''};
+
+  openSheet(e ? 'Edit note' : 'Bedtime or note',
+    '<div class="f"><label>What</label><div class="pick" id="eKind">'
+    + EVENTS.map(function(x){
+        return '<button data-kind="' + x.id + '"' + (draft.kind===x.id?' class="on"':'') + '>'
+             + x.em + ' ' + esc(x.nm) + '</button>'; }).join('')
+    + '</div><div class="hint">Logging bedtime is what lets the app work out your meal-to-bed gap — one of the '
+    + 'few reflux levers with good evidence behind it.</div></div>'
+    + '<div class="f"><label>When</label><input type="datetime-local" id="eTime" value="' + localInput(draft.t) + '"></div>'
+    + '<div class="f"><label>Note (optional)</label><input id="eNote" value="' + esc(draft.note||'') + '" placeholder="Propped up on two pillows"></div>'
+    + '<div class="acts">'
+    + (e ? '<button class="btn warn" data-del="evt:' + e.id + '">Delete</button>' : '')
+    + '<button class="btn pri" id="eSave">' + (e?'Save':'Log it') + '</button></div>',
+    function(){
+      $('eKind').addEventListener('click', function(ev){
+        var b = ev.target.closest('[data-kind]'); if(!b) return;
+        Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); });
+        b.classList.add('on'); draft.kind = b.dataset.kind;
+      });
+      $('eSave').addEventListener('click', function(){
+        var rec = {id:draft.id, t:parseInput($('eTime').value), kind:draft.kind, note:$('eNote').value.trim()};
+        upsert(db.events, rec);
+        ui.day = dayStart(rec.t);
+        done('Logged');
+      });
+    });
+}
+
+/* --- settings --- */
+function sheetSettings(){
+  openSheet('Settings',
+    '<div class="f"><label>Look for symptoms within</label><select id="stWin">'
+    + [1,2,3,4,6].map(function(n){ return '<option value="' + n + '"' + (db.settings.win===n?' selected':'') + '>'
+        + n + ' hour' + (n===1?'':'s') + ' after a meal</option>'; }).join('')
+    + '</select><div class="hint">Reflux usually shows up within two to three hours of eating. Widening the window '
+    + 'catches slower reactions but blurs which meal was responsible.</div></div>'
+    + '<div class="f"><label>Usual bedtime</label><input type="time" id="stBed" value="' + esc(db.settings.bedtime||'22:30') + '">'
+    + '<div class="hint">Meals inside the three hours before this get tagged as a late meal.</div></div>'
+    + '<div class="f"><label>Name on the printed report</label>'
+    + '<input id="stName" value="' + esc(db.settings.name||'') + '" placeholder="Optional"></div>'
+    + '<div class="acts"><button class="btn pri" id="stSave">Save</button></div>'
+    + '<div class="divider"></div>'
+    + '<div class="muted">Diary lives in this browser. <b>' + entryCount() + '</b> entries stored.</div>'
+    + '<div class="acts"><button class="btn" id="stExport">Export</button>'
+    + '<button class="btn warn" id="stClear">Erase everything</button></div>',
+    function(){
+      $('stSave').addEventListener('click', function(){
+        db.settings.win = +$('stWin').value;
+        db.settings.bedtime = $('stBed').value || '22:30';
+        db.settings.name = $('stName').value.trim();
+        save(); closeSheet(); render(); toast('Saved');
+      });
+      $('stExport').addEventListener('click', doExport);
+      $('stClear').addEventListener('click', function(){
+        if(confirm('Erase the whole diary from this browser? Export first if you want to keep it.')){
+          db = blank(); save(); closeSheet(); render(); toast('Diary erased');
+        }
+      });
+    });
+}
+
+/* ============================================================
+   write paths
+   ============================================================ */
+function upsert(arr, rec){
+  var i = -1;
+  for(var j=0;j<arr.length;j++){ if(arr[j].id === rec.id){ i = j; break; } }
+  if(i >= 0) arr[i] = rec; else arr.push(rec);
+  save();
+}
+function done(msg){ closeSheet(); render(); toast(msg); }
+function removeEntry(kind, id){
+  var arr = kind==='meal'?db.meals : kind==='sym'?db.symptoms : kind==='med'?db.meds : db.events;
+  for(var i=0;i<arr.length;i++){ if(arr[i].id === id){ arr.splice(i,1); break; } }
+  save(); done('Deleted');
+}
+
+/* ============================================================
+   export / import / sample
+   ============================================================ */
+function doExport(){
+  var blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'reflux-diary-' + dayKey(Date.now()) + '.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  toast('Exported');
+}
+function doImport(){
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'application/json,.json';
+  inp.addEventListener('change', function(){
+    var f = inp.files && inp.files[0]; if(!f) return;
+    var r = new FileReader();
+    r.onload = function(){
+      var d;
+      try{ d = JSON.parse(r.result); }
+      catch(e){ toast('That file is not a diary export'); return; }
+      if(!d || !Array.isArray(d.meals) || !Array.isArray(d.symptoms)){ toast('That file is not a diary export'); return; }
+      /* merge rather than replace — importing on a phone that has
+         its own entries shouldn't quietly throw them away */
+      var added = 0;
+      ['meals','symptoms','meds','events'].forEach(function(k){
+        (d[k]||[]).forEach(function(rec){
+          if(!rec || !rec.id) return;
+          if(db[k].some(function(x){ return x.id === rec.id; })) return;
+          db[k].push(rec); added++;
+        });
+      });
+      db.settings = Object.assign(db.settings, d.settings||{});
+      save(); render(); toast(added ? added + ' entries imported' : 'Nothing new in that file');
+    };
+    r.readAsText(f);
+  });
+  inp.click();
+}
+
+/* A week of plausible entries, so the Trends and Triggers tabs
+   can be seen working before you've lived through a week. */
+function loadSample(){
+  if(entryCount() && !confirm('This adds a week of example entries alongside what you already have. Continue?')) return;
+  var day0 = dayStart(Date.now()) - 6*86400000;
+  function at(d, h, m){ return day0 + d*86400000 + h*3600000 + (m||0)*60000; }
+  var plan = [
+    [0, [[7,30,'Toast with butter, black coffee','normal'],[13,0,'Chicken salad, water','normal'],[19,30,'Jollof rice, fried plantain','large']],
+        [[21,45,['heartburn'],3,'lying','30-60']], [[22,30,'bed']]],
+    [1, [[8,0,'Porridge, green tea','normal'],[12,45,'Rice and grilled fish','normal'],[18,30,'Vegetable soup, bread','light']],
+        [], [[22,15,'bed']]],
+    [2, [[7,45,'Coffee, croissant','normal'],[13,15,'Pizza and a coke','large'],[20,45,'Leftover pizza','normal']],
+        [[15,0,['heartburn','sour'],4,'upright','30-60'],[23,30,['regurg','cough'],4,'asleep','1-2h']],
+        [[22,45,'bed']], [[15,20,'antacid','Rennie','yes']]],
+    [3, [[8,15,'Oats with banana, water','normal'],[13,0,'Chicken and couscous','normal'],[19,0,'Grilled fish, salad','normal']],
+        [], [[22,0,'bed']]],
+    [4, [[7,30,'Black coffee','normal'],[12,30,'Tomato pasta, garlic bread','large'],[21,30,'Fried chicken, chips','large']],
+        [[14,15,['heartburn'],3,'upright','15-30'],[23,15,['heartburn','burp'],5,'lying','gt2h']],
+        [[23,0,'bed']], [[23,20,'alginate','Gaviscon','partly']]],
+    [5, [[8,0,'Toast, tea','light'],[13,30,'Rice and stew','normal'],[18,45,'Soup and bread','light']],
+        [[20,0,['bloat'],2,'upright','lt15']], [[22,30,'bed']]],
+    [6, [[8,30,'Eggs, orange juice','normal'],[13,0,'Sandwich, water','normal'],[19,15,'Grilled chicken, rice','normal']],
+        [[10,0,['sour','throat'],3,'upright','15-30']], [[22,15,'bed']]]
+  ];
+  plan.forEach(function(row){
+    var d = row[0];
+    (row[1]||[]).forEach(function(m){
+      db.meals.push({id:uid(), t:at(d,m[0],m[1]), items:m[2], portion:m[3], note:'', tags:detectTags(m[2])});
+    });
+    (row[2]||[]).forEach(function(s){
+      db.symptoms.push({id:uid(), t:at(d,s[0],s[1]), types:s[2], sev:s[3], pos:s[4], dur:s[5], note:''});
+    });
+    (row[3]||[]).forEach(function(e){
+      db.events.push({id:uid(), t:at(d,e[0],e[1]), kind:e[2], note:''});
+    });
+    (row[4]||[]).forEach(function(m){
+      db.meds.push({id:uid(), t:at(d,m[0],m[1]), kind:m[2], name:m[3], helped:m[4], note:''});
+    });
+  });
+  save(); ui.tab = 'triggers'; render(); toast('Example week loaded');
+}
+
+/* ============================================================
+   wiring
+   ============================================================ */
+document.addEventListener('click', function(ev){
+  var t = ev.target;
+
+  var tab = t.closest && t.closest('.tb');
+  if(tab){ ui.tab = tab.dataset.tab; ui.barSel = null; ui.hourSel = null; render(); return; }
+
+  if(t.closest && t.closest('#fab')){ sheetAdd(); return; }
+  if(t.closest && t.closest('#btnSettings')){ sheetSettings(); return; }
+  if(t.closest && t.closest('[data-close]')){ closeSheet(); return; }
+
+  var nw = t.closest && t.closest('[data-new]');
+  if(nw){
+    var k = nw.dataset.new;
+    if(k==='meal') sheetMeal(); else if(k==='sym') sheetSym();
+    else if(k==='med') sheetMed(); else sheetEvt();
+    return;
+  }
+
+  var ed = t.closest && t.closest('[data-edit]');
+  if(ed){
+    var p = ed.dataset.edit.split(':');
+    if(p[0]==='meal') sheetMeal(p[1]); else if(p[0]==='sym') sheetSym(p[1]);
+    else if(p[0]==='med') sheetMed(p[1]); else sheetEvt(p[1]);
+    return;
+  }
+
+  var del = t.closest && t.closest('[data-del]');
+  if(del){
+    var d = del.dataset.del.split(':');
+    if(confirm('Delete this entry?')) removeEntry(d[0], d[1]);
+    return;
+  }
+
+  var dn = t.closest && t.closest('[data-day]');
+  if(dn){
+    if(dn.hasAttribute('disabled')) return;
+    ui.day += (+dn.dataset.day) * 86400000;
+    if(ui.day > dayStart(Date.now())) ui.day = dayStart(Date.now());
+    render(); return;
+  }
+
+  var bar = t.closest && t.closest('[data-bar]');
+  if(bar){ ui.barSel = +bar.dataset.bar; ui.keepScroll = true; render(); return; }
+  var hr = t.closest && t.closest('[data-hour]');
+  if(hr){ ui.hourSel = +hr.dataset.hour; ui.keepScroll = true; render(); return; }
+
+  if(t.closest && t.closest('#btnExport')){ doExport(); return; }
+  if(t.closest && t.closest('#btnImport')){ doImport(); return; }
+  if(t.closest && t.closest('#btnSample')){ loadSample(); return; }
+  if(t.closest && t.closest('#btnPrint')){
+    $('printout').innerHTML = buildPrintout();
+    window.print(); return;
+  }
+  if(t.closest && t.closest('#btnCopy')){
+    var txt = plainReportText();
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ toast('Report copied'); },
+                                             function(){ fallbackCopy(txt); });
+    } else fallbackCopy(txt);
+    return;
+  }
+});
+function fallbackCopy(txt){
+  var ta = document.createElement('textarea');
+  ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('Report copied'); }catch(e){ toast('Could not copy'); }
+  ta.remove();
+}
+document.addEventListener('keydown', function(ev){
+  if(ev.key === 'Escape' && $('sheetwrap').classList.contains('on')) closeSheet();
+});
+
+render();
+</script>
+</body>
+</html>
