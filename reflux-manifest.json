@@ -1,0 +1,25 @@
+{
+  "name": "Reflux Diary",
+  "short_name": "Reflux",
+  "description": "A private food and symptom diary for GERD and acid reflux — log meals and symptoms, and find the patterns between them.",
+  "start_url": "/reflux.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0c1418",
+  "theme_color": "#0c1418",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/reflux-icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/reflux-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
