@@ -92,6 +92,11 @@
   .mac{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;font-weight:700;color:var(--dim)}
   .mac i{width:9px;height:9px;border-radius:3px;flex-shrink:0}
   .mac b{margin-left:auto;color:var(--text);font-variant-numeric:tabular-nums}
+  .mac b span{color:var(--faint);font-weight:700}
+  .mac.goal{display:block;margin-bottom:8px}
+  .mac .mt{display:flex;align-items:center;gap:8px}
+  .mbar{height:4px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:4px;overflow:hidden}
+  .mbar div{height:100%;border-radius:2px}
 
   /* meals */
   .meal{display:flex;gap:11px;align-items:center;background:var(--card);border:1px solid var(--line);
@@ -255,8 +260,10 @@ const clearMeals = () => tx('readwrite', s => s.clear());
 
 const SET_KEY = 'calorie-snap-settings';
 function loadSettings(){
-  try{ return Object.assign({goal:2000, apiKey:''}, JSON.parse(localStorage.getItem(SET_KEY) || '{}')); }
-  catch(e){ return {goal:2000, apiKey:''}; }
+  // macro goals are grams per day; 0 means no goal set
+  const base = {goal:2000, proteinGoal:0, carbsGoal:0, fatGoal:0, apiKey:''};
+  try{ return Object.assign(base, JSON.parse(localStorage.getItem(SET_KEY) || '{}')); }
+  catch(e){ return base; }
 }
 function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){} }
 let settings = loadSettings();
@@ -422,6 +429,13 @@ function ring(kcal, goal){
     <div class="in"><div><b>${fmt(kcal)}</b><span>kcal</span></div></div></div>`;
 }
 
+function macroRow(label, got, goal, col){
+  if(!goal) return `<div class="mac"><i style="background:${col}"></i>${label}<b>${fmt(got)} g</b></div>`;
+  const p = Math.min(100, got / goal * 100);
+  return `<div class="mac goal"><div class="mt"><i style="background:${col}"></i>${label}<b>${fmt(got)}<span> / ${fmt(goal)} g</span></b></div>
+    <div class="mbar"><div style="width:${p}%;background:${col}"></div></div></div>`;
+}
+
 function renderDay(){
   const list = mealsOn(curDay), t = totals(list.flatMap(m => m.items)), goal = settings.goal;
   const left = goal - t.kcal;
@@ -434,9 +448,9 @@ function renderDay(){
     <div class="card sec"><div class="hero">${ring(t.kcal, goal)}
       <div class="hero-r">
         <div class="left ${left < 0 ? 'over' : ''}">${left >= 0 ? fmt(left) + ' kcal left' : fmt(-left) + ' kcal over'} <span class="tiny">of ${fmt(goal)}</span></div>
-        <div class="mac"><i style="background:var(--pro)"></i>Protein<b>${fmt(t.protein)} g</b></div>
-        <div class="mac"><i style="background:var(--carb)"></i>Carbs<b>${fmt(t.carbs)} g</b></div>
-        <div class="mac"><i style="background:var(--fat)"></i>Fat<b>${fmt(t.fat)} g</b></div>
+        ${macroRow('Protein', t.protein, settings.proteinGoal, 'var(--pro)')}
+        ${macroRow('Carbs', t.carbs, settings.carbsGoal, 'var(--carb)')}
+        ${macroRow('Fat', t.fat, settings.fatGoal, 'var(--fat)')}
       </div></div></div>`;
   if(!settings.apiKey){
     h += `<div class="info"><b>One-time setup:</b> photo estimates need an Anthropic API key. <a href="#" data-view="settings">Add it in Settings →</a><br>You can still add meals by hand with ✏️.</div>`;
@@ -540,7 +554,13 @@ function renderSettings(){
   const has = !!settings.apiKey;
   return `<div class="sec"><div class="sec-h"><h2>Daily goal</h2></div><div class="card">
       <div class="fld" style="margin:0"><label for="goalIn">Calories per day</label>
-      <input class="inp" id="goalIn" type="number" inputmode="numeric" min="500" max="10000" step="50" value="${settings.goal}"></div></div></div>
+      <input class="inp" id="goalIn" type="number" inputmode="numeric" min="500" max="10000" step="50" value="${settings.goal}"></div>
+      <div class="row" style="margin-top:12px">
+        <div class="fld" style="margin:0"><label for="proteinGoalIn">Protein g</label><input class="inp mg" id="proteinGoalIn" data-k="proteinGoal" type="number" inputmode="numeric" min="0" max="1000" placeholder="—" value="${settings.proteinGoal || ''}"></div>
+        <div class="fld" style="margin:0"><label for="carbsGoalIn">Carbs g</label><input class="inp mg" id="carbsGoalIn" data-k="carbsGoal" type="number" inputmode="numeric" min="0" max="1500" placeholder="—" value="${settings.carbsGoal || ''}"></div>
+        <div class="fld" style="margin:0"><label for="fatGoalIn">Fat g</label><input class="inp mg" id="fatGoalIn" data-k="fatGoal" type="number" inputmode="numeric" min="0" max="1000" placeholder="—" value="${settings.fatGoal || ''}"></div>
+      </div>
+      <p class="tiny" style="margin-top:8px">Leave a macro blank if you don't want a goal for it.</p></div></div>
 
     <div class="sec"><div class="sec-h"><h2>Photo estimates</h2></div><div class="card">
       <p class="muted" style="margin-bottom:12px">Photos are read by Claude, Anthropic's AI. To use it you need your own API key
@@ -601,6 +621,10 @@ function wire(){
 
   const g = $('#goalIn');
   if(g) g.onchange = () => { const v = Math.round(num(g.value)); if(v >= 500){ settings.goal = v; saveSettings(); toast('Goal saved'); } else { g.value = settings.goal; toast('Goal must be at least 500'); } };
+  document.querySelectorAll('input.mg').forEach(inp => inp.onchange = () => {
+    settings[inp.dataset.k] = Math.round(num(inp.value)); saveSettings();
+    inp.value = settings[inp.dataset.k] || ''; toast('Goal saved');
+  });
   const sk = $('#saveKey');
   if(sk) sk.onclick = () => {
     const v = $('#keyIn').value.trim();
@@ -800,16 +824,17 @@ function exportItems(){
 function exportDays(){
   if(!meals.length){ toast('Nothing to export yet'); return; }
   const map = dayTotals();
-  const rows = [['Date','Calories','Goal','Difference','Protein (g)','Carbs (g)','Fat (g)','Meals logged']];
+  const g = v => v || '';
+  const rows = [['Date','Calories','Calorie goal','Difference','Protein (g)','Protein goal (g)','Carbs (g)','Carbs goal (g)','Fat (g)','Fat goal (g)','Meals logged']];
   for(const k of Object.keys(map).sort()){
     const d = map[k];
-    rows.push([k, r0(d.kcal), settings.goal, r0(d.kcal - settings.goal), r0(d.protein), r0(d.carbs), r0(d.fat), d.n]);
+    rows.push([k, r0(d.kcal), settings.goal, r0(d.kcal - settings.goal), r0(d.protein), g(settings.proteinGoal), r0(d.carbs), g(settings.carbsGoal), r0(d.fat), g(settings.fatGoal), d.n]);
   }
   download(`calories-daily-${todayKey()}.csv`, csv(rows), 'text/csv;charset=utf-8');
 }
 function exportJson(){
   if(!meals.length){ toast('Nothing to export yet'); return; }
-  const data = {app:'calorie-snap', version:1, exported:new Date().toISOString(), goal:settings.goal, meals:sorted()};
+  const data = {app:'calorie-snap', version:1, exported:new Date().toISOString(), goal:settings.goal, proteinGoal:settings.proteinGoal, carbsGoal:settings.carbsGoal, fatGoal:settings.fatGoal, meals:sorted()};
   download(`calories-backup-${todayKey()}.json`, JSON.stringify(data), 'application/json');
 }
 $('#importIn').onchange = async e => {
@@ -821,7 +846,9 @@ $('#importIn').onchange = async e => {
   const ok = d.meals.filter(m => m && m.id && m.ts && Array.isArray(m.items));
   if(!confirm(`Restore ${ok.length} meals from this backup? Meals with the same entry are replaced; others are kept.`)) return;
   for(const m of ok){ m.day = dayKey(m.ts); await putMeal(m); }
-  if(d.goal >= 500){ settings.goal = d.goal; saveSettings(); }
+  if(d.goal >= 500) settings.goal = d.goal;
+  for(const k of ['proteinGoal','carbsGoal','fatGoal']) if(num(d[k])) settings[k] = Math.round(num(d[k]));
+  saveSettings();
   await refresh(); toast(`Restored ${ok.length} meals`);
 };
 
