@@ -158,7 +158,7 @@
   .sheet-h{display:flex;align-items:center;margin-bottom:14px}
   .sheet-h h3{font-size:16px;font-weight:900;flex:1}
   .x{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.07);font-size:15px}
-  .photo{width:100%;max-height:260px;object-fit:cover;border-radius:14px;display:block;margin-bottom:12px;background:var(--card2)}
+  .photo{width:100%;max-height:200px;object-fit:cover;border-radius:14px;display:block;margin-bottom:12px;background:var(--card2)}
   .spin{display:flex;align-items:center;gap:12px;padding:16px;background:var(--card);border-radius:14px;border:1px solid var(--line);margin-bottom:12px}
   .spin i{width:22px;height:22px;border-radius:50%;border:3px solid rgba(240,164,92,.25);border-top-color:var(--amber);animation:sp 0.8s linear infinite;flex-shrink:0}
   @keyframes sp{to{transform:rotate(360deg)}}
@@ -178,6 +178,14 @@
   .tot b{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
   .conf{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;padding:3px 7px;border-radius:6px;background:rgba(255,255,255,.08);color:var(--dim);margin-left:6px}
 
+  .quick{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 10px 10px 14px;margin-bottom:12px}
+  .quick div{flex:1}
+  .quick b{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .quick span{font-size:12px;font-weight:800;color:var(--faint);margin-left:5px}
+  .quick .btn{padding:12px 20px}
+  .fix{margin-bottom:14px}
+  .fix summary{font-size:12.5px;font-weight:800;color:var(--amber);cursor:pointer;padding:4px 2px 8px;list-style:none}
+  .fix summary::-webkit-details-marker{display:none}
   .toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 130px);transform:translateX(-50%) translateY(20px);background:#2b3138;
          color:var(--text);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;opacity:0;transition:.2s;z-index:40;pointer-events:none;max-width:90vw;text-align:center}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -646,7 +654,8 @@ function openEditor(meal, isNew){
   if(isNew && !meal._photo) ed.items.push(blankItem());
   edState = {isNew, busy:false, error:'', analysed:!isNew || !meal._photo};
   $('#veil').classList.add('open');
-  drawEditor();
+  if(isNew && meal._photo && settings.apiKey) runEstimate();
+  else drawEditor();
 }
 function closeEditor(){ $('#veil').classList.remove('open'); ed = null; }
 $('#veil').onclick = e => { if(e.target.id === 'veil' && !edState.busy) closeEditor(); };
@@ -660,18 +669,26 @@ function drawEditor(){
   if(pic) h += `<img class="photo" src="${pic}" alt="Meal photo">`;
 
   if(ed.source === 'photo' && !edState.analysed){
-    h += `<div class="fld"><label for="edDet">Anything the photo can't show? (optional)</label>
-        <textarea class="inp" id="edDet" placeholder="e.g. cooked in palm oil, the drink is diet coke, I ate half">${esc(ed._details || '')}</textarea></div>`;
     if(edState.error) h += `<div class="err">${esc(edState.error)}</div>`;
-    if(edState.busy) h += `<div class="spin"><i></i><div class="muted">Looking at your food and estimating portions… this can take 10–30 seconds.</div></div>`;
-    else if(!settings.apiKey) h += `<div class="info"><b>Add your API key first.</b> Go to Settings to paste your Anthropic key, or enter this meal by hand.</div>
+    if(edState.busy) h += `<div class="spin"><i></i><div class="muted">Working out what's on the plate and how many calories… this takes about 10–30 seconds.</div></div>`;
+    else if(!settings.apiKey) h += `<div class="info"><b>Add your API key first.</b> It's a one-time step in Settings. After that, photos are estimated automatically.</div>
         <div class="row"><button class="btn" id="edManual">Enter by hand</button><button class="btn pri" id="edSettings">Open Settings</button></div>`;
-    else h += `<div class="row"><button class="btn" id="edManual">Enter by hand</button><button class="btn pri" id="edGo">✨ Estimate calories</button></div>`;
+    else h += `<div class="row"><button class="btn" id="edManual">Enter by hand</button><button class="btn pri" id="edGo">↻ Try again</button></div>`;
     s.innerHTML = h; wireEditor(); return;
   }
 
   if(ed.notes || ed.confidence){
     h += `<div class="info">${ed.confidence ? `<b>Estimate</b><span class="conf">${esc(ed.confidence)} confidence</span><br>` : ''}${esc(ed.notes)}</div>`;
+  }
+  if(ed.source === 'photo' && edState.isNew){
+    h += `<div class="quick"><div><b id="edTop">${fmt(t.kcal)}</b><span>kcal</span></div><button class="btn pri" id="edSave2">Save meal</button></div>`;
+  }
+  if(ed.source === 'photo' && ed._photo){
+    if(edState.error) h += `<div class="err">${esc(edState.error)}</div>`;
+    h += `<details class="fix" id="edFix" ${edState.busy || ed._fixOpen ? 'open' : ''}><summary>Not quite right? Tell it what's different</summary>
+      <textarea class="inp" id="edDet" placeholder="e.g. it was cooked in palm oil, I only ate half, the drink is diet coke">${esc(ed._details || '')}</textarea>
+      ${edState.busy ? `<div class="spin" style="margin:8px 0 0"><i></i><div class="muted">Re-estimating…</div></div>` : `<button class="btn sm" id="edGo" style="margin-top:8px">↻ Re-estimate</button>`}
+    </details>`;
   }
   h += `<div class="row" style="margin-bottom:12px">
       <div class="fld" style="margin:0;flex:2"><label for="edName">Meal name</label><input class="inp" id="edName" value="${esc(ed.name)}" placeholder="e.g. Chicken salad"></div>
@@ -703,6 +720,7 @@ function wireEditor(){
   on('#edManual', () => { edState.analysed = true; ed.items = [blankItem()]; drawEditor(); });
   on('#edGo', runEstimate);
   const det = $('#edDet'); if(det) det.oninput = () => ed._details = det.value;
+  const fx = $('#edFix'); if(fx) fx.ontoggle = () => ed._fixOpen = fx.open;
 
   const nm = $('#edName'); if(nm) nm.oninput = () => ed.name = nm.value;
   const ty = $('#edType'); if(ty) ty.onchange = () => ed.type = ty.value;
@@ -711,11 +729,13 @@ function wireEditor(){
     const i = +inp.closest('.item').dataset.i, f = inp.dataset.f;
     ed.items[i][f] = (f === 'name' || f === 'portion') ? inp.value : num(inp.value);
     $('#edTot').textContent = fmt(totals(ed.items).kcal) + ' kcal';
+    const top = $('#edTop'); if(top) top.textContent = fmt(totals(ed.items).kcal);
   });
   document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { ed.items.splice(+b.dataset.rm, 1); drawEditor(); });
   on('#edAdd', () => { ed.items.push(blankItem()); drawEditor(); });
   on('#edDel', async () => { if(!confirm('Delete this meal?')) return; await delMeal(ed.id); closeEditor(); await refresh(); toast('Meal deleted'); });
   on('#edSave', saveEditor);
+  on('#edSave2', saveEditor);
 }
 
 async function runEstimate(){
@@ -727,6 +747,7 @@ async function runEstimate(){
       edState.error = 'No food or drink found in that photo. Try a clearer shot, or enter the meal by hand.';
       drawEditor(); return;
     }
+    edState.error = '';
     ed.name = r.meal_name;
     ed.items = r.items.map(i => ({name:i.name, portion:i.portion, kcal:num(i.calories), protein:num(i.protein_g), carbs:num(i.carbs_g), fat:num(i.fat_g)}));
     ed.confidence = r.confidence; ed.notes = r.notes;
@@ -743,7 +764,7 @@ async function saveEditor(){
   if(!ed.items.length){ toast('Add at least one food with calories'); if(!ed.items.length) ed.items.push(blankItem()); drawEditor(); return; }
   ed.items.forEach(i => { if(!i.name.trim()) i.name = 'Food'; });
   if(!ed.name.trim()) ed.name = ed.items.map(i => i.name).slice(0, 3).join(', ');
-  const {_photo, _details, ...rec} = ed;
+  const {_photo, _details, _fixOpen, ...rec} = ed;
   await putMeal(rec);
   curDay = rec.day; view = 'today';
   closeEditor(); await refresh();
